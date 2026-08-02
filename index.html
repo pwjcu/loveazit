@@ -110,6 +110,10 @@ details ol{padding-left:18px;line-height:1.7}
     <div class="stitle">🗓️ 다가오는 기념일</div>
     <div id="uplist"></div>
   </div>
+  <div class="card">
+    <div class="stitle">📅 다가오는 일정</div>
+    <div id="upevlist"></div>
+  </div>
 </div>
 
 <!-- 달력 -->
@@ -292,6 +296,19 @@ function renderHome(){
       <span class="badge">${dd===0?'오늘!':'D-'+dd}</span>
       ${u.id?`<button class="x" onclick="DB.del('annis','${u.id}')">✕</button>`:''}</span></div>`;
   }).join('')||'<div class="mut">달력에서 "매년 반복" 체크로 기념일을 추가해보세요!</div>';
+  const evlist=upcomingEvents();
+  $('upevlist').innerHTML=evlist.map(e=>{
+    const d=new Date(e.date+'T00:00:00');
+    const dd=Math.round((d-t)/864e5);
+    return `<div class="row"><span>${e.emoji||'💗'} ${e.title}</span><span>
+      <small style="color:#c7a3ad">${e.date.replaceAll('-','.')}</small>
+      <span class="badge">${dd===0?'오늘!':'D-'+dd}</span>
+      <button class="x" onclick="DB.del('events','${e.id}')">✕</button></span></div>`;
+  }).join('')||'<div class="mut">달력에서 일정을 추가해보세요!</div>';
+}
+function upcomingEvents(){
+  const today=todayStr();
+  return events.filter(e=>e.date>=today).sort((a,b)=>a.date<b.date?-1:1).slice(0,6);
 }
 function upcoming(){
   const t=new Date(); t.setHours(0,0,0,0); const list=[];
