@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>우리 아지트 💗</title>
+<meta property="og:title" content="우리 아지트 💗">
+<meta property="og:description" content="디데이 · 캘린더 · 추억앨범 · 한마디 — 우리 둘만의 공간">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Jua',sans-serif;background:linear-gradient(180deg,#fff5f7,#ffeaf0);color:#5b4a4f;min-height:100vh;padding-bottom:78px}
+.wrap{max-width:480px;margin:0 auto;padding:16px}
+h1{text-align:center;font-size:22px;color:#ff7fa3;padding:6px 0 2px}
+.card{background:#fff;border-radius:22px;padding:16px;margin-top:14px;box-shadow:0 4px 14px rgba(255,143,171,.15)}
+.page{display:none}.page.on{display:block;animation:pop .25s}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+/* nav */
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ffe0e8;display:flex;max-width:480px;margin:0 auto;border-radius:20px 20px 0 0;box-shadow:0 -4px 14px rgba(255,143,171,.15)}
+nav button{flex:1;border:0;background:none;font-family:inherit;padding:9px 0 10px;font-size:11px;color:#c7a3ad;cursor:pointer}
+nav button span{display:block;font-size:20px;margin-bottom:1px}
+nav button.on{color:#ff7fa3}
+/* home */
+.chars{display:flex;align-items:flex-end;justify-content:center;gap:4px}
+.chars svg{width:34%;max-width:130px;animation:bob 3s ease-in-out infinite}
+.chars svg:last-child{animation-delay:1.5s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.heart{font-size:30px;padding-bottom:38px;animation:beat 1.2s infinite}
+@keyframes beat{0%,100%{transform:scale(1)}30%{transform:scale(1.25)}}
+.cname{text-align:center;font-size:15px;color:#8a6f77;display:flex;justify-content:center;gap:26%}
+.dday{text-align:center}
+.dday .big{font-size:44px;color:#ff5f8a;line-height:1.1}
+.dday .sub{font-size:13px;color:#b99aa3}
+.banner{background:#fff0f4;border-radius:14px;padding:10px;text-align:center;font-size:13px;color:#e0708f;margin-top:10px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px dashed #ffe3ea;font-size:15px}
+.row:last-child{border:0}
+.badge{background:#ffe3ea;color:#ff5f8a;border-radius:999px;padding:2px 10px;font-size:13px}
+.stitle{font-size:15px;color:#ff8fab;margin-bottom:6px}
+/* calendar */
+.calhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.calhead button{border:0;background:#fff0f4;border-radius:10px;font-size:16px;width:34px;height:30px;color:#ff7fa3;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;font-size:13px}
+.grid .dow{color:#c7a3ad;font-size:11px;padding:2px 0}
+.cell{border-radius:12px;padding:5px 0 3px;cursor:pointer;min-height:38px;position:relative}
+.cell:hover{background:#fff0f4}
+.cell.today{background:#ffe3ea}
+.cell.sel{outline:2px solid #ff8fab}
+.cell .dots{font-size:8px;line-height:1;height:9px;color:#ff8fab}
+.cell.sun{color:#f08a8a}
+/* forms */
+input,select,textarea,button.btn{font-family:inherit;font-size:14px;color:#5b4a4f}
+input[type=text],input[type=date],textarea{width:100%;border:2px solid #ffe0e8;border-radius:12px;padding:8px 10px;background:#fffafb;outline:none}
+input:focus,textarea:focus{border-color:#ffb3c6}
+.btn{border:0;background:#ff8fab;color:#fff;border-radius:12px;padding:9px 16px;cursor:pointer;box-shadow:0 3px 8px rgba(255,143,171,.35)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn.ghost{background:#fff0f4;color:#ff7fa3;box-shadow:none}
+.frow{display:flex;gap:6px;margin-top:8px}
+.frow input[type=text]{flex:1}
+.x{border:0;background:none;color:#e0a9b6;font-size:14px;cursor:pointer}
+label.chk{font-size:13px;color:#b99aa3;display:flex;align-items:center;gap:4px;margin-top:8px}
+/* photos */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.pgrid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;cursor:pointer}
+.upl{display:flex;gap:6px}
+.upl input[type=text]{flex:1}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:9;flex-direction:column;padding:20px}
+#modal.on{display:flex}
+#modal img{max-width:100%;max-height:70vh;border-radius:16px}
+#modal .cap{color:#fff;margin:10px 0;font-size:14px;text-align:center}
+/* notes */
+#nlist{max-height:52vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0}
+.bub{max-width:78%;padding:8px 12px;border-radius:16px;font-size:14px;position:relative}
+.bub small{display:block;font-size:10px;color:#c7a3ad;margin-top:2px}
+.bub.a{align-self:flex-start;background:#e9f1ff;border-bottom-left-radius:4px}
+.bub.b{align-self:flex-end;background:#ffe3ea;border-bottom-right-radius:4px}
+.who{display:flex;gap:6px;margin-bottom:6px}
+.who button{border:2px solid #ffe0e8;background:#fff;border-radius:999px;padding:4px 14px;font-family:inherit;font-size:13px;color:#b99aa3;cursor:pointer}
+.who button.on{border-color:#ff8fab;color:#ff5f8a;background:#fff0f4}
+details{font-size:13px;color:#8a6f77;margin-top:10px}
+details summary{cursor:pointer;color:#ff7fa3}
+details ol{padding-left:18px;line-height:1.7}
+.mut{font-size:12px;color:#c7a3ad;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1 id="apptitle">우리 아지트 💗</h1>
+
+<!-- 홈 -->
+<div class="page on" id="p0">
+  <div class="card">
+    <div class="chars">
+      <svg viewBox="0 0 120 150"><circle cx="60" cy="50" r="40" class="hB" fill="#6b4b3a"/><rect x="34" y="88" width="52" height="48" rx="18" fill="#aecbff"/><circle cx="60" cy="64" r="33" fill="#ffe3d0"/><circle cx="48" cy="62" r="3.4" fill="#4a3b36"/><circle cx="72" cy="62" r="3.4" fill="#4a3b36"/><ellipse cx="42" cy="71" rx="5" ry="3" fill="#ffb0b8" opacity=".7"/><ellipse cx="78" cy="71" rx="5" ry="3" fill="#ffb0b8" opacity=".7"/><path d="M54 74 Q60 80 66 74" stroke="#4a3b36" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      <div class="heart">💗</div>
+      <svg viewBox="0 0 120 150"><circle cx="60" cy="52" r="42" class="hG" fill="#4a3226"/><rect x="34" y="88" width="52" height="48" rx="18" fill="#ffc9d6"/><rect x="15" y="48" width="18" height="56" rx="9" class="hG" fill="#4a3226"/><rect x="87" y="48" width="18" height="56" rx="9" class="hG" fill="#4a3226"/><circle cx="60" cy="64" r="32" fill="#ffe3d0"/><circle cx="48" cy="62" r="3.4" fill="#4a3b36"/><circle cx="72" cy="62" r="3.4" fill="#4a3b36"/><ellipse cx="42" cy="71" rx="5" ry="3" fill="#ffb0b8" opacity=".7"/><ellipse cx="78" cy="71" rx="5" ry="3" fill="#ffb0b8" opacity=".7"/><path d="M54 74 Q60 80 66 74" stroke="#4a3b36" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="88" cy="26" r="6" fill="#ff8fab"/><circle cx="99" cy="30" r="6" fill="#ff8fab"/><circle cx="93" cy="29" r="3.4" fill="#ff5f8a"/></svg>
+    </div>
+    <div class="cname"><span id="cn1">나</span><span id="cn2">너</span></div>
+    <div class="dday" style="margin-top:10px">
+      <div class="sub">우리 함께한 지</div>
+      <div class="big" id="dnum">D+1</div>
+      <div class="sub" id="dstart">설정에서 처음 만난 날을 골라주세요</div>
+    </div>
+    <div class="banner" id="todaybanner" style="display:none"></div>
+    <div class="banner" id="localbanner" style="display:none">🔗 지금은 내 기기에만 저장돼요 — 설정에서 "같이 쓰기"를 켜면 둘이 실시간 공유!</div>
+  </div>
+  <div class="card">
+    <div class="stitle">🗓️ 다가오는 기념일</div>
+    <div id="uplist"></div>
+  </div>
+</div>
+
+<!-- 달력 -->
+<div class="page" id="p1">
+  <div class="card">
+    <div class="calhead"><button onclick="mv(-1)">◀</button><b id="calttl"></b><button onclick="mv(1)">▶</button></div>
+    <div class="grid" id="calgrid"></div>
+  </div>
+  <div class="card">
+    <div class="stitle" id="selttl">일정</div>
+    <div id="daylist"></div>
+    <div class="frow">
+      <select id="evemoji"><option>💗</option><option>🎂</option><option>🍽️</option><option>✈️</option><option>🎬</option><option>🎁</option><option>⭐</option><option>🏥</option></select>
+      <input type="text" id="evtitle" placeholder="일정 이름" maxlength="30">
+      <button class="btn sm" onclick="addEv()">추가</button>
+    </div>
+    <label class="chk"><input type="checkbox" id="evyearly"> 매년 반복되는 기념일 (생일·크리스마스 등)</label>
+  </div>
+</div>
+
+<!-- 추억 -->
+<div class="page" id="p2">
+  <div class="card">
+    <div class="stitle">📸 우리의 추억</div>
+    <div class="upl">
+      <input type="text" id="pcap" placeholder="한 줄 설명 (선택)" maxlength="40">
+      <label class="btn sm">올리기<input type="file" id="pfile" accept="image/*" multiple hidden></label>
+    </div>
+    <div class="pgrid" id="pgrid"></div>
+    <div class="mut" id="pempty">아직 사진이 없어요. 첫 추억을 올려보세요!</div>
+  </div>
+</div>
+
+<!-- 한마디 -->
+<div class="page" id="p3">
+  <div class="card">
+    <div class="stitle">💌 서로에게 한마디</div>
+    <div class="who"><button id="w1" onclick="setWho(1)">나</button><button id="w2" onclick="setWho(2)">너</button></div>
+    <div id="nlist"></div>
+    <div class="frow"><input type="text" id="ntext" placeholder="오늘의 한마디..." maxlength="200"><button class="btn sm" onclick="addNote()">보내기</button></div>
+  </div>
+</div>
+
+<!-- 설정 -->
+<div class="page" id="p4">
+  <div class="card">
+    <div class="stitle">⚙️ 우리 설정</div>
+    <div class="frow"><input type="text" id="sn1" placeholder="남자 이름"><input type="text" id="sn2" placeholder="여자 이름"></div>
+    <div style="margin-top:8px"><input type="date" id="sstart"></div>
+    <div class="frow" style="align-items:center;font-size:13px;color:#b99aa3">
+      머리색 <input type="color" id="sh1" value="#6b4b3a" style="width:40px;height:30px;border:0;background:none">
+      <input type="color" id="sh2" value="#4a3226" style="width:40px;height:30px;border:0;background:none">
+      <button class="btn sm" style="margin-left:auto" onclick="saveSet()">저장</button>
+    </div>
+    <div class="mut" id="modeinfo"></div>
+    <details>
+      <summary>💑 "같이 쓰기" 켜는 법 (5분, 무료)</summary>
+      <ol>
+        <li>console.firebase.google.com → 프로젝트 만들기</li>
+        <li>왼쪽 메뉴 빌드 → Realtime Database → 데이터베이스 만들기 → <b>테스트 모드</b></li>
+        <li>프로젝트 개요 옆 ⚙️ → 프로젝트 설정 → 내 앱 → 웹(&lt;/&gt;) 추가 → <b>firebaseConfig</b> 값 복사 (databaseURL 꼭 포함)</li>
+        <li>index.html 파일 안의 <b>FIREBASE_CONFIG</b> 를 복사한 값으로 바꾸고 다시 업로드</li>
+        <li>테스트 모드는 30일 뒤 만료 → Realtime Database의 <b>규칙</b> 탭에서 <b>{"rules":{".read":true,".write":true}}</b> 로 수정</li>
+      </ol>
+      링크를 아는 사람은 볼 수 있으니, 링크는 둘만 알기! 🤫
+    </details>
+    <div class="frow" style="margin-top:12px">
+      <button class="btn ghost sm" onclick="bkExport()">백업 저장</button>
+      <label class="btn ghost sm">백업 불러오기<input type="file" id="bkfile" accept=".json" hidden></label>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="modal" onclick="this.classList.remove('on')">
+  <img id="mimg"><div class="cap" id="mcap"></div>
+  <button class="btn sm" id="mdel">삭제</button>
+</div>
+
+<nav>
+  <button class="on" onclick="go(0,this)"><span>🏠</span>홈</button>
+  <button onclick="go(1,this)"><span>📅</span>달력</button>
+  <button onclick="go(2,this)"><span>📸</span>추억</button>
+  <button onclick="go(3,this)"><span>💌</span>한마디</button>
+  <button onclick="go(4,this)"><span>⚙️</span>설정</button>
+</nav>
+
+<script>
+/* ★ 둘이 같이 쓰려면: 설정 탭 안내대로 Firebase 프로젝트를 만들고
+   아래 null 을 firebaseConfig 객체로 교체한 뒤 다시 배포하세요. */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCp1froagTQACqe2m3ehSRvuU1DTZOYAuM",
+  authDomain: "testmode-loveazit.firebaseapp.com",
+  databaseURL: "https://testmode-loveazit-default-rtdb.firebaseio.com",
+  projectId: "testmode-loveazit",
+  storageBucket: "testmode-loveazit.firebasestorage.app",
+  messagingSenderId: "708230288823",
+  appId: "1:708230288823:web:36466e7dd1b753f3918432"
+};
+
+let db=null;
+if(FIREBASE_CONFIG){ firebase.initializeApp(FIREBASE_CONFIG); db=firebase.database(); }
+
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const todayStr=()=>{const t=new Date();return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());};
+
+/* ---- 저장소 (Firebase 또는 내 기기) ---- */
+const DB={
+  async load(n){ if(db)return[]; return JSON.parse(localStorage.getItem(n)||'[]'); },
+  async add(n,o){ o.ts=Date.now();
+    if(db){ await db.ref(n).push(o); return; }
+    o.id='L'+o.ts+Math.random().toString(36).slice(2,6);
+    const a=JSON.parse(localStorage.getItem(n)||'[]'); a.push(o);
+    localStorage.setItem(n,JSON.stringify(a)); refreshLocal(n);
+  },
+  async del(n,id){
+    if(db){ await db.ref(n+'/'+id).remove(); return; }
+    const a=JSON.parse(localStorage.getItem(n)||'[]').filter(x=>x.id!==id);
+    localStorage.setItem(n,JSON.stringify(a)); refreshLocal(n);
+  },
+  async getSet(){ if(db){const d=await db.ref('settings').once('value');return d.val()||{};}
+    return JSON.parse(localStorage.getItem('settings')||'{}'); },
+  async setSet(v){ if(db){await db.ref('settings').set(v);return;}
+    localStorage.setItem('settings',JSON.stringify(v)); }
+};
+
+let S={start:'',n1:'나',n2:'너',h1:'#6b4b3a',h2:'#4a3226'};
+let events=[],annis=[],photos=[],notes=[];
+const setD={events:a=>events=a,annis:a=>annis=a,photos:a=>photos=a,notes:a=>notes=a};
+
+async function refreshLocal(n){ setD[n](await DB.load(n)); renderAll(); }
+
+function toArr(v){ return v?Object.entries(v).map(([id,o])=>({id,...o})):[]; }
+async function boot(){
+  if(db){
+    ['events','annis','photos','notes'].forEach(n=>
+      db.ref(n).on('value',s=>{ setD[n](toArr(s.val())); renderAll(); }));
+    db.ref('settings').on('value',s=>{ const v=s.val(); if(v){S={...S,...v};applySet();renderAll();} });
+  }else{
+    $('localbanner').style.display='block';
+    for(const n of ['events','annis','photos','notes']) setD[n](await DB.load(n));
+  }
+  S={...S,...await DB.getSet()};
+  applySet(); renderAll();
+}
+
+function applySet(){
+  $('cn1').textContent=S.n1; $('cn2').textContent=S.n2;
+  $('sn1').value=S.n1; $('sn2').value=S.n2; $('sstart').value=S.start||'';
+  $('sh1').value=S.h1; $('sh2').value=S.h2;
+  $('w1').textContent=S.n1; $('w2').textContent=S.n2;
+  document.querySelectorAll('.hB').forEach(e=>e.setAttribute('fill',S.h1));
+  document.querySelectorAll('.hG').forEach(e=>e.setAttribute('fill',S.h2));
+  $('modeinfo').textContent = db ? '💑 같이 쓰기 켜짐 — 실시간 공유 중!' : '📱 내 기기 저장 모드';
+}
+async function saveSet(){
+  S={start:$('sstart').value,n1:$('sn1').value||'나',n2:$('sn2').value||'너',h1:$('sh1').value,h2:$('sh2').value};
+  await DB.setSet(S); applySet(); renderAll(); alert('저장했어요! 💗');
+}
+
+/* ---- 홈 ---- */
+function renderHome(){
+  const t=new Date(); t.setHours(0,0,0,0);
+  if(S.start){
+    const sd=new Date(S.start+'T00:00:00');
+    const n=Math.floor((t-sd)/864e5)+1;
+    $('dnum').textContent='D+'+n;
+    $('dstart').textContent=S.start.replaceAll('-','.')+' 부터';
+    const tb=$('todaybanner');
+    if(n>0&&n%100===0){tb.style.display='block';tb.textContent='🎉 오늘은 우리 '+n+'일이에요! 🎉';}
+    else{const yrs=(t.getMonth()===sd.getMonth()&&t.getDate()===sd.getDate())?(t.getFullYear()-sd.getFullYear()):0;
+      if(yrs>0){tb.style.display='block';tb.textContent='🎉 오늘은 '+yrs+'주년이에요! 🎉';} else tb.style.display='none';}
+  }
+  const list=upcoming();
+  $('uplist').innerHTML=list.map(u=>{
+    const dd=Math.round((u.d-t)/864e5);
+    return `<div class="row"><span>${u.t}</span><span>
+      <small style="color:#c7a3ad">${u.d.getFullYear()}.${pad(u.d.getMonth()+1)}.${pad(u.d.getDate())}</small>
+      <span class="badge">${dd===0?'오늘!':'D-'+dd}</span>
+      ${u.id?`<button class="x" onclick="DB.del('annis','${u.id}')">✕</button>`:''}</span></div>`;
+  }).join('')||'<div class="mut">달력에서 "매년 반복" 체크로 기념일을 추가해보세요!</div>';
+}
+function upcoming(){
+  const t=new Date(); t.setHours(0,0,0,0); const list=[];
+  if(S.start){
+    const sd=new Date(S.start+'T00:00:00');
+    for(let n=100;n<=3600;n+=100){const d=new Date(sd);d.setDate(d.getDate()+n-1);if(d>=t)list.push({t:'💗 '+n+'일',d});}
+    for(let y=1;y<=30;y++){const d=new Date(sd);d.setFullYear(sd.getFullYear()+y);if(d>=t)list.push({t:'💍 '+y+'주년',d});}
+  }
+  annis.forEach(a=>{
+    let d=new Date(a.date+'T00:00:00');
+    d.setFullYear(t.getFullYear()); if(d<t)d.setFullYear(t.getFullYear()+1);
+    list.push({t:(a.emoji||'🎉')+' '+a.title,d,id:a.id});
+  });
+  list.sort((a,b)=>a.d-b.d); return list.slice(0,6);
+}
+
+/* ---- 달력 ---- */
+const now=new Date(); let calY=now.getFullYear(),calM=now.getMonth(),selDate=todayStr();
+function mv(d){ calM+=d; if(calM<0){calM=11;calY--;} if(calM>11){calM=0;calY++;} renderCal(); }
+function renderCal(){
+  $('calttl').textContent=calY+'년 '+(calM+1)+'월';
+  const first=new Date(calY,calM,1).getDay(), days=new Date(calY,calM+1,0).getDate();
+  let h='일월화수목금토'.split('').map((d,i)=>`<div class="dow"${i===0?' style="color:#f08a8a"':''}>${d}</div>`).join('');
+  for(let i=0;i<first;i++) h+='<div></div>';
+  for(let d=1;d<=days;d++){
+    const key=calY+'-'+pad(calM+1)+'-'+pad(d);
+    const evs=events.filter(e=>e.date===key);
+    const isAnni=annis.some(a=>a.date.slice(5)===key.slice(5));
+    const cls=['cell',key===todayStr()?'today':'',key===selDate?'sel':'',(first+d-1)%7===0?'sun':''].join(' ');
+    h+=`<div class="${cls}" onclick="selDay('${key}')">${d}<div class="dots">${isAnni?'🎀':evs.map(e=>e.emoji||'●').join('').slice(0,6)}</div></div>`;
+  }
+  $('calgrid').innerHTML=h; renderDay();
+}
+function selDay(k){ selDate=k; renderCal(); }
+function renderDay(){
+  $('selttl').textContent='📌 '+selDate.replaceAll('-','.');
+  const evs=events.filter(e=>e.date===selDate);
+  const ann=annis.filter(a=>a.date.slice(5)===selDate.slice(5));
+  $('daylist').innerHTML=
+    ann.map(a=>`<div class="row"><span>${a.emoji||'🎀'} ${a.title} <small style="color:#c7a3ad">매년</small></span><button class="x" onclick="DB.del('annis','${a.id}')">✕</button></div>`).join('')+
+    evs.map(e=>`<div class="row"><span>${e.emoji} ${e.title}</span><button class="x" onclick="DB.del('events','${e.id}')">✕</button></div>`).join('')
+    ||'<div class="mut">일정이 없어요</div>';
+}
+async function addEv(){
+  const title=$('evtitle').value.trim(); if(!title)return;
+  const emoji=$('evemoji').value;
+  if($('evyearly').checked) await DB.add('annis',{date:selDate,title,emoji});
+  else await DB.add('events',{date:selDate,title,emoji});
+  $('evtitle').value=''; $('evyearly').checked=false;
+}
+
+/* ---- 추억 ---- */
+$('pfile').onchange=async e=>{
+  for(const f of e.target.files){
+    let img=await compress(f,700,.65);
+    if(img.length>900000) img=await compress(f,480,.45);
+    await DB.add('photos',{img,cap:$('pcap').value.trim(),date:todayStr()});
+  }
+  $('pcap').value=''; e.target.value='';
+};
+function compress(file,max,q){
+  return new Promise(res=>{
+    const r=new FileReader();
+    r.onload=()=>{ const im=new Image();
+      im.onload=()=>{ const s=Math.min(1,max/Math.max(im.width,im.height));
+        const c=document.createElement('canvas');
+        c.width=im.width*s; c.height=im.height*s;
+        c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+        res(c.toDataURL('image/jpeg',q)); };
+      im.src=r.result; };
+    r.readAsDataURL(file);
+  });
+}
+function renderPhotos(){
+  const a=[...photos].sort((x,y)=>y.ts-x.ts);
+  $('pgrid').innerHTML=a.map((p,i)=>`<img src="${p.img}" onclick="openP(${i})" loading="lazy">`).join('');
+  $('pempty').style.display=a.length?'none':'block';
+  window._pv=a;
+}
+function openP(i){
+  const p=window._pv[i];
+  $('mimg').src=p.img; $('mcap').textContent=(p.cap?p.cap+' · ':'')+p.date;
+  $('mdel').onclick=ev=>{ev.stopPropagation(); if(confirm('이 추억을 지울까요?')){DB.del('photos',p.id);$('modal').classList.remove('on');}};
+  $('modal').classList.add('on');
+}
+
+/* ---- 한마디 ---- */
+let who=+(localStorage.getItem('who')||1);
+function setWho(w){ who=w; localStorage.setItem('who',w);
+  $('w1').classList.toggle('on',w===1); $('w2').classList.toggle('on',w===2); }
+async function addNote(){
+  const t=$('ntext').value.trim(); if(!t)return;
+  await DB.add('notes',{who,text:t}); $('ntext').value='';
+}
+$('ntext').addEventListener('keydown',e=>{if(e.key==='Enter')addNote();});
+function renderNotes(){
+  const a=[...notes].sort((x,y)=>x.ts-y.ts);
+  $('nlist').innerHTML=a.map(n=>{
+    const d=new Date(n.ts);
+    return `<div class="bub ${n.who===1?'a':'b'}">${esc(n.text)}
+      <small>${n.who===1?S.n1:S.n2} · ${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}</small></div>`;
+  }).join('')||'<div class="mut">첫 한마디를 남겨보세요 💌</div>';
+  $('nlist').scrollTop=$('nlist').scrollHeight;
+}
+const esc=s=>s.replace(/</g,'&lt;');
+
+/* ---- 백업 ---- */
+function bkExport(){
+  const blob=new Blob([JSON.stringify({S,events,annis,photos,notes})],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='우리아지트_백업_'+todayStr()+'.json'; a.click();
+}
+$('bkfile').onchange=async e=>{
+  const d=JSON.parse(await e.target.files[0].text());
+  if(!confirm('백업을 불러올까요? (기존 데이터에 추가됩니다)'))return;
+  if(d.S){S={...S,...d.S}; await DB.setSet(S); applySet();}
+  for(const n of ['events','annis','photos','notes'])
+    for(const o of d[n]||[]){delete o.id; await DB.add(n,o);}
+  alert('불러왔어요!'); e.target.value='';
+};
+
+/* ---- 공통 ---- */
+function go(i,btn){
+  document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('on',j===i));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===btn));
+}
+function renderAll(){ renderHome(); renderCal(); renderPhotos(); renderNotes(); }
+setWho(who); boot();
+</script>
+</body>
+</html>
