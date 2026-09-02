@@ -5,24 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>우리 아지트 💗</title>
 <meta property="og:title" content="우리 아지트 💗">
-<meta property="og:description" content="디데이 · 캘린더 · 추억앨범 · 한마디 — 우리 둘만의 공간">
+<meta property="og:description" content="디데이 · Q&A · 리빙룸 · 캘린더 · 추억앨범 — 우리 둘만의 아지트">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Jua',sans-serif;background:linear-gradient(180deg,#fff5f7,#ffeaf0);color:#5b4a4f;min-height:100vh;padding-bottom:78px}
+body{font-family:'Jua',sans-serif;background:linear-gradient(180deg,#fff5f7,#ffeaf0);color:#5b4a4f;min-height:100vh;padding-bottom:82px}
 .wrap{max-width:480px;margin:0 auto;padding:16px}
 h1{text-align:center;font-size:22px;color:#ff7fa3;padding:6px 0 2px}
 .card{background:#fff;border-radius:22px;padding:16px;margin-top:14px;box-shadow:0 4px 14px rgba(255,143,171,.15)}
 .page{display:none}.page.on{display:block;animation:pop .25s}
 @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
 /* nav */
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ffe0e8;display:flex;max-width:480px;margin:0 auto;border-radius:20px 20px 0 0;box-shadow:0 -4px 14px rgba(255,143,171,.15)}
-nav button{flex:1;border:0;background:none;font-family:inherit;padding:9px 0 10px;font-size:11px;color:#c7a3ad;cursor:pointer}
-nav button span{display:block;font-size:20px;margin-bottom:1px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ffe0e8;display:flex;max-width:480px;margin:0 auto;border-radius:20px 20px 0 0;box-shadow:0 -4px 14px rgba(255,143,171,.15);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;min-width:14.28%;border:0;background:none;font-family:inherit;padding:8px 4px 9px;font-size:10px;color:#c7a3ad;cursor:pointer;white-space:nowrap}
+nav button span{display:block;font-size:18px;margin-bottom:1px}
 nav button.on{color:#ff7fa3}
+.hbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.hearts{display:inline-flex;align-items:center;gap:4px;background:#fff0f4;border-radius:999px;padding:4px 12px;font-size:14px;color:#ff5f8a}
+.hearts b{font-size:16px}
+.hpop{animation:hpop .4s}
+@keyframes hpop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#ff8fab;color:#fff;padding:8px 18px;border-radius:999px;font-size:13px;z-index:20;opacity:0;pointer-events:none;transition:opacity .3s}
+.toast.on{opacity:1}
 /* home */
 .chars{display:flex;align-items:center;justify-content:center;gap:8px}
 .side{flex:0 0 34%;max-width:132px;display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -95,11 +103,73 @@ details{font-size:13px;color:#8a6f77;margin-top:10px}
 details summary{cursor:pointer;color:#ff7fa3}
 details ol{padding-left:18px;line-height:1.7}
 .mut{font-size:12px;color:#c7a3ad;margin-top:6px}
+/* Q&A */
+.qcard{background:linear-gradient(135deg,#fff8fb,#fff0f6);border:2px dashed #ffc9d6;border-radius:18px;padding:14px;margin:10px 0;text-align:center}
+.qcard .q{font-size:16px;color:#ff5f8a;line-height:1.5;margin:8px 0}
+.qcard .hint{font-size:12px;color:#c7a3ad}
+.qans{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.qbox{background:#fff;border-radius:14px;padding:10px;border:2px solid #ffe0e8}
+.qbox.locked{background:#f9f9f9;border-style:dashed}
+.qbox .qlabel{font-size:12px;color:#ff8fab;margin-bottom:4px}
+.qbox .qtext{font-size:14px;min-height:20px}
+.qbox .qtext.hidden{color:#c7a3ad;font-style:italic}
+.qhist{margin-top:12px}
+.qhistitem{border-bottom:1px dashed #ffe3ea;padding:8px 0;font-size:13px}
+.qhistitem:last-child{border:0}
+.seal{display:inline-block;background:#ffe3ea;color:#ff5f8a;border-radius:999px;padding:2px 8px;font-size:11px;margin-left:4px}
+/* Living Room */
+.living-scene{position:relative;border-radius:18px;overflow:hidden;min-height:280px;margin-top:8px}
+.room-bg,.garden-bg{position:relative;width:100%;padding-top:75%;background:linear-gradient(180deg,#e8f4ff 0%,#e8f4ff 45%,#f5e6d3 45%,#edd9c4 100%)}
+.garden-bg{background:linear-gradient(180deg,#b8e0ff 0%,#b8e0ff 35%,#a8d98a 35%,#8bc96a 100%);padding-top:85%}
+.room-floor{position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(180deg,transparent,#f0dcc8)}
+.room-wall{position:absolute;top:8%;left:10%;width:25%;height:22%;background:#fff;border:3px solid #d4c4b0;border-radius:4px;box-shadow:inset 0 0 0 4px #e8f0ff}
+.room-wall::after{content:'';position:absolute;inset:15%;background:linear-gradient(135deg,#fff9,#fff3);border-radius:2px}
+.room-door{position:absolute;bottom:18%;right:8%;width:14%;height:32%;background:#c9a882;border:2px solid #a08060;border-radius:4px 4px 0 0;cursor:pointer;z-index:5}
+.room-door::before{content:'🚪';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px}
+.room-door:hover{filter:brightness(1.05)}
+.theme-cozy .room-bg{background:linear-gradient(180deg,#ffe8ee 0%,#ffe8ee 45%,#f5e6d3 45%,#edd9c4 100%)}
+.theme-mint .room-bg{background:linear-gradient(180deg,#e0f5ee 0%,#e0f5ee 45%,#d8efe8 45%,#c8e6d8 100%)}
+.theme-lavender .room-bg{background:linear-gradient(180deg,#eee8ff 0%,#eee8ff 45%,#e8e0f5 45%,#ddd4ee 100%)}
+.theme-sunset .room-bg{background:linear-gradient(180deg,#ffe8d0 0%,#ffe8d0 45%,#f5ddd0 45%,#e8cfc0 100%)}
+.lr-char{position:absolute;bottom:12%;width:18%;z-index:3;animation:bob 3s ease-in-out infinite}
+.lr-char.c2{animation-delay:1.5s;right:22%}
+.lr-char.c1{left:22%}
+.lr-char svg,.lr-char img{width:100%;height:auto;display:block;border-radius:50%}
+.lr-pet{position:absolute;bottom:14%;font-size:28px;z-index:4;animation:wag 2s ease-in-out infinite}
+.lr-pet.dog{left:38%}.lr-pet.cat{right:38%}
+@keyframes wag{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+.lr-vase{position:absolute;bottom:20%;left:50%;transform:translateX(-50%);font-size:32px;z-index:2}
+.lr-plant{position:absolute;bottom:22%;font-size:24px;z-index:2}
+.lr-plant.p1{left:12%}.lr-plant.p2{right:12%}
+.care-bubble{position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:#ff8fab;color:#fff;font-size:10px;padding:2px 6px;border-radius:8px;white-space:nowrap;animation:beat 1s infinite;cursor:pointer}
+.garden-plots{position:absolute;bottom:8%;left:5%;right:5%;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;z-index:3}
+.gplot{background:rgba(139,105,70,.35);border:2px dashed #8b6946;border-radius:12px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;cursor:pointer;position:relative;min-height:70px}
+.gplot.planted{background:rgba(106,160,80,.4);border-style:solid}
+.gplot .stage{font-size:10px;color:#fff;margin-top:2px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.shop-item{background:#fffafb;border:2px solid #ffe0e8;border-radius:14px;padding:10px;text-align:center;font-size:13px;cursor:pointer;transition:transform .15s}
+.shop-item:hover{transform:scale(1.02);border-color:#ffb3c6}
+.shop-item .si{font-size:28px;display:block;margin-bottom:4px}
+.shop-item .cost{color:#ff5f8a;font-size:12px}
+.shop-item.disabled{opacity:.45;pointer-events:none}
+.loc-tabs{display:flex;gap:6px;margin-bottom:8px}
+.loc-tabs button{flex:1;border:2px solid #ffe0e8;background:#fff;border-radius:12px;padding:8px;font-family:inherit;font-size:13px;color:#b99aa3;cursor:pointer}
+.loc-tabs button.on{border-color:#ff8fab;color:#ff5f8a;background:#fff0f4}
+.care-panel{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.care-btn{border:0;background:#fff0f4;color:#ff7fa3;border-radius:10px;padding:6px 10px;font-family:inherit;font-size:12px;cursor:pointer}
+.care-btn.urgent{background:#ff8fab;color:#fff;animation:beat 1.2s infinite}
+.status-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed #ffe3ea}
+.status-row:last-child{border:0}
+.quick-links{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.quick-links button{border:2px solid #ffe0e8;background:#fff;border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13px;color:#ff7fa3;cursor:pointer}
+.quick-links button span{display:block;font-size:22px;margin-bottom:4px}
 </style>
 </head>
 <body>
+<div class="toast" id="toast"></div>
 <div class="wrap">
 <h1 id="apptitle">우리 아지트 💗</h1>
+<div class="hbar"><div></div><div class="hearts" id="heartsBar">💗 <b id="heartNum">0</b></div></div>
 
 <!-- 홈 -->
 <div class="page on" id="p0">
@@ -123,6 +193,13 @@ details ol{padding-left:18px;line-height:1.7}
     </div>
     <div class="banner" id="todaybanner" style="display:none"></div>
     <div class="banner" id="localbanner" style="display:none">🔗 지금은 내 기기에만 저장돼요 — 설정에서 "같이 쓰기"를 켜면 둘이 실시간 공유!</div>
+  </div>
+  <div class="card">
+    <div class="stitle">🎮 아지트 놀러가기</div>
+    <div class="quick-links">
+      <button onclick="go(4,document.querySelectorAll('nav button')[4])"><span>💑</span>Q&A 질문방</button>
+      <button onclick="go(5,document.querySelectorAll('nav button')[5])"><span>🏡</span>리빙룸</button>
+    </div>
   </div>
   <div class="card">
     <div class="stitle">🗓️ 다가오는 기념일</div>
@@ -175,6 +252,38 @@ details ol{padding-left:18px;line-height:1.7}
   </div>
 </div>
 
+<!-- Q&A 질문방 -->
+<div class="page" id="p5">
+  <div class="card">
+    <div class="stitle">💑 커플 Q&A 질문방</div>
+    <div class="mut">랜덤 질문에 각자 답하고, 둘 다 쓰면 함께 열어봐요!</div>
+    <div class="who"><button id="qw1" onclick="setWho(1)">나</button><button id="qw2" onclick="setWho(2)">너</button></div>
+    <div id="qaActive"></div>
+    <div class="frow" style="margin-top:10px">
+      <button class="btn sm" onclick="startQA()">🎲 새 질문 뽑기</button>
+    </div>
+  </div>
+  <div class="card qhist">
+    <div class="stitle">📜 지난 Q&A</div>
+    <div id="qaHist"></div>
+  </div>
+</div>
+
+<!-- 리빙룸 -->
+<div class="page" id="p6">
+  <div class="card">
+    <div class="stitle">🏡 우리 리빙룸</div>
+    <div class="mut">스타듀밸리 감성! 하트💗로 꾸미고 키워요 · 활동마다 +10 · 50일마다 +100</div>
+    <div class="loc-tabs">
+      <button id="locRoom" class="on" onclick="setLoc('room')">🏠 거실</button>
+      <button id="locGarden" onclick="setLoc('garden')">🌿 텃밭</button>
+      <button id="locShop" onclick="setLoc('shop')">🛒 상점</button>
+    </div>
+    <div id="livingView"></div>
+    <div id="careList"></div>
+  </div>
+</div>
+
 <!-- 설정 -->
 <div class="page" id="p4">
   <div class="card">
@@ -216,6 +325,8 @@ details ol{padding-left:18px;line-height:1.7}
   <button onclick="go(1,this)"><span>📅</span>달력</button>
   <button onclick="go(2,this)"><span>📸</span>추억</button>
   <button onclick="go(3,this)"><span>💌</span>한마디</button>
+  <button onclick="go(5,this)"><span>💑</span>Q&A</button>
+  <button onclick="go(6,this)"><span>🏡</span>룸</button>
   <button onclick="go(4,this)"><span>⚙️</span>설정</button>
 </nav>
 
@@ -256,30 +367,160 @@ const DB={
   async getSet(){ if(db){const d=await db.ref('settings').once('value');return d.val()||{};}
     return JSON.parse(localStorage.getItem('settings')||'{}'); },
   async setSet(v){ if(db){await db.ref('settings').set(v);return;}
-    localStorage.setItem('settings',JSON.stringify(v)); }
+    localStorage.setItem('settings',JSON.stringify(v)); },
+  async getObj(n){
+    if(db){const d=await db.ref(n).once('value');return d.val();}
+    const v=localStorage.getItem(n); return v?JSON.parse(v):null;
+  },
+  async setObj(n,v){
+    if(db){await db.ref(n).set(v);return;}
+    localStorage.setItem(n,JSON.stringify(v));
+  }
 };
 
 let S={start:'',n1:'나',n2:'너',h1:'#6b4b3a',h2:'#4a3226'};
 let AV={};
-let events=[],annis=[],photos=[],notes=[];
-const setD={events:a=>events=a,annis:a=>annis=a,photos:a=>photos=a,notes:a=>notes=a};
+let events=[],annis=[],photos=[],notes=[],qaList=[];
+let LV=defaultLiving();
+const setD={events:a=>events=a,annis:a=>annis=a,photos:a=>photos=a,notes:a=>notes=a,qa:a=>qaList=a};
+
+function defaultLiving(){
+  return{
+    hearts:20,lastMilestone:0,dailyEarn:{},locView:'room',
+    theme:'cozy',vase:null,pets:[],indoor:[],garden:{plots:[null,null,null,null,null,null],decor:'basic'},
+    themes:['cozy']
+  };
+}
+function mergeLiving(v){
+  const d=defaultLiving();
+  if(!v)return d;
+  return{...d,...v,pets:v.pets||[],indoor:v.indoor||[],garden:{...d.garden,...(v.garden||{}),
+    plots:(v.garden&&v.garden.plots)||d.garden.plots},themes:v.themes||d.themes,dailyEarn:v.dailyEarn||{}};
+}
+
+const QA_POOL=[
+  '처음 만났을 때 상대방의 첫인상은?','우리가 처음 손 잡았던 순간 기억나?','상대방에게 가장 고마웠던 순간은?',
+  '다음 데이트는 어디서 하고 싶어?','상대방의 어떤 표정이 제일 좋아?','우리만의 애칭을 하나 더 지어본다면?',
+  '10년 뒤 우리는 어떤 모습일까?','상대방과 꼭 가보고 싶은 여행지는?','처음 "좋아해"라고 한 순간 떠올려봐',
+  '상대방이 해준 말 중 가장 기억에 남는 한마디는?','우리가 함께 먹은 음식 중 최고는?','상대방의 어떤 습관이 귀여워?',
+  '싸웠을 때 먼저 화해하고 싶은 사람은?','상대방에게 받고 싶은 선물은?','우리 둘만 아는 비밀 하나 말해봐',
+  '상대방의 목소리에서 좋아하는 점은?','함께 보고 싶은 영화/드라마는?','상대방과 함께 배우고 싶은 것은?',
+  '우리의 커플송을 고른다면?','상대방이 입었을 때 제일 잘 어울리는 옷은?','데이트할 때 상대방의 어떤 모습에 설레?',
+  '상대방과 함께하고 싶은 취미는?','우리가 가장 많이 웃었던 순간은?','상대방에게 "고마워"라고 전하고 싶은 이유는?',
+  '상대방의 어떤 점을 존경해?','함께 살게 된다면 꼭 갖고 싶은 것은?','상대방과의 첫 키스(또는 스킨십) 기억은?',
+  '상대방이 화났을 때 위로하는 나만의 방법은?','우리의 추억 중 다시 하고 싶은 것은?','상대방에게 가장 잘 어울리는 계절은?',
+  '상대방과 밤새 이야기한다면 무슨 얘기 하고 싶어?','우리가 만약 만화/게임 캐릭터라면?','상대방의 손을 잡을 때 느끼는 감정은?',
+  '상대방이 요리해준다면 뭐가 제일 먹고 싶어?','우리만의 기념일을 하나 더 만든다면?','상대방의 어떤 행동에 심쿵했어?',
+  '함께 키우고 싶은 반려동물은?','상대방과의 미래에서 가장 기대되는 것은?','상대방에게서 배운 가장 좋은 점은?',
+  '우리가 커플 게임에서 이긴다면 벌칙은?','상대방과 함께 듣고 싶은 노래는?','상대방의 어떤 말투가 좋아?',
+  '우리 집(리빙룸)에서 가장 좋아하는 코너는?','상대방과 함께 아침을 맞이한다면?','상대방에게 숨기지 못한 작은 비밀은?',
+  '우리가 다퉜을 때 가장 후회하는 말은?','상대방의 눈을 보면 어떤 생각이 들어?','함께 걸었던 길 중 가장 좋았던 곳은?',
+  '상대방에게 편지를 쓴다면 첫 문장은?','우리의 사랑을 색깔로 표현한다면?','상대방과 함께라면 할 수 있는 도전은?'
+];
+
+const FLOWERS={rose:'🌹',tulip:'🌷',sunflower:'🌻',lavender:'💜',sakura:'🌸',daisy:'🌼',lily:'🪷'};
+const FRUITS={tomato:'🍅',strawberry:'🍓',cherry:'🍒',grape:'🍇',peach:'🍑'};
+const THEMES={cozy:{n:'코지 핑크',e:'🌸'},mint:{n:'민트',e:'🍃'},lavender:{n:'라벤더',e:'💜'},sunset:{n:'선셋',e:'🌅'}};
+const SHOP={
+  petDog:{cost:50,label:'강아지',icon:'🐶',type:'pet',id:'dog'},
+  petCat:{cost:50,label:'고양이',icon:'🐱',type:'pet',id:'cat'},
+  potTomato:{cost:10,label:'방울토마토',icon:'🍅',type:'indoor',id:'tomato'},
+  potStraw:{cost:10,label:'딸기',icon:'🍓',type:'indoor',id:'strawberry'},
+  potCherry:{cost:10,label:'체리',icon:'🍒',type:'indoor',id:'cherry'},
+  potGrape:{cost:10,label:'포도',icon:'🍇',type:'indoor',id:'grape'},
+  potPeach:{cost:10,label:'복숭아',icon:'🍑',type:'indoor',id:'peach'},
+  decorBasic:{cost:20,label:'나무 울타리',icon:'🪵',type:'gdecor',id:'fence'},
+  decorFountain:{cost:35,label:'분수',icon:'⛲',type:'gdecor',id:'fountain'},
+  gardenPlot:{cost:15,label:'텃밭 칸',icon:'🌱',type:'plot',id:'plot'}
+};
+const THEME_COST=200;
+const FLOWER_COST=5;
+const CARE_REWARD=5;
+const ACT_REWARD=10;
+const MILESTONE_REWARD=100;
+const DAILY_ACT_CAP=15;
+
+function uid(){return 'i'+Date.now()+Math.random().toString(36).slice(2,5);}
+function dayKey(d=new Date()){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function toast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2200);
+}
+function popHearts(){
+  const h=$('heartsBar'); h.classList.remove('hpop'); void h.offsetWidth; h.classList.add('hpop');
+}
+
+async function saveLiving(){
+  await DB.setObj('living',LV); renderHearts(); renderLiving(); renderCareList();
+}
+async function earnHeart(kind,amount){
+  const dk=dayKey();
+  LV.dailyEarn[dk]=LV.dailyEarn[dk]||{};
+  const used=LV.dailyEarn[dk][kind]||0;
+  if(kind==='visit'){
+    if(LV.dailyEarn[dk].visitOnce)return;
+    LV.dailyEarn[dk].visitOnce=1;
+  }
+  if(kind!=='care'&&kind!=='milestone'&&kind!=='harvest'){
+    const total=Object.values(LV.dailyEarn[dk]).reduce((a,b)=>a+b,0);
+    if(total>=DAILY_ACT_CAP)return;
+    if(used>=3)return;
+    LV.dailyEarn[dk][kind]=used+1;
+  }
+  LV.hearts=(LV.hearts||0)+amount;
+  await saveLiving();
+  popHearts();
+  toast('💗 +' + amount + ' 하트!');
+}
+function scheduleCare(count){
+  const times=[]; const now=Date.now();
+  for(let i=0;i<count;i++){
+    const h=4+Math.random()*10;
+    times.push(now+h*3600000);
+  }
+  return times.sort((a,b)=>a-b);
+}
+function dueCare(schedule){return(schedule||[]).filter(t=>t<=Date.now()).length;}
+function nextCareLabel(schedule){
+  const d=(schedule||[]).filter(t=>t<=Date.now());
+  if(d.length)return d.length+'개 케어 필요!';
+  const n=(schedule||[]).find(t=>t>Date.now());
+  return n?'다음: '+new Date(n).toLocaleTimeString('ko',{hour:'2-digit',minute:'2-digit'}):'편안해요';
+}
+function checkMilestone(){
+  if(!S.start)return;
+  const t=new Date(); t.setHours(0,0,0,0);
+  const sd=new Date(S.start+'T00:00:00');
+  const days=Math.floor((t-sd)/864e5)+1;
+  const milestone=Math.floor(days/50)*50;
+  if(milestone>0&&milestone>(LV.lastMilestone||0)){
+    const bonus=Math.floor((milestone-(LV.lastMilestone||0))/50)*MILESTONE_REWARD;
+    LV.lastMilestone=milestone;
+    LV.hearts=(LV.hearts||0)+bonus;
+    toast('🎉 '+milestone+'일 달성! 💗+'+bonus);
+    saveLiving();
+  }
+}
 
 async function refreshLocal(n){ setD[n](await DB.load(n)); renderAll(); }
 
 function toArr(v){ return v?Object.entries(v).map(([id,o])=>({id,...o})):[]; }
 async function boot(){
   if(db){
-    ['events','annis','photos','notes'].forEach(n=>
+    ['events','annis','photos','notes','qa'].forEach(n=>
       db.ref(n).on('value',s=>{ setD[n](toArr(s.val())); renderAll(); }));
     db.ref('settings').on('value',s=>{ const v=s.val(); if(v){S={...S,...v};applySet();renderAll();} });
     db.ref('avatars').on('value',s=>{ AV=s.val()||{}; applyAv(); });
+    db.ref('living').on('value',s=>{ LV=mergeLiving(s.val()); renderHearts(); renderLiving(); renderCareList(); });
   }else{
     $('localbanner').style.display='block';
     AV=JSON.parse(localStorage.getItem('avatars')||'{}'); applyAv();
-    for(const n of ['events','annis','photos','notes']) setD[n](await DB.load(n));
+    for(const n of ['events','annis','photos','notes','qa']) setD[n](await DB.load(n));
+    LV=mergeLiving(await DB.getObj('living'));
   }
   S={...S,...await DB.getSet()};
-  applySet(); renderAll();
+  applySet(); renderAll(); checkMilestone();
+  if(!db && !localStorage.getItem('living')) await saveLiving();
 }
 
 function applySet(){
@@ -287,6 +528,7 @@ function applySet(){
   $('sn1').value=S.n1; $('sn2').value=S.n2; $('sstart').value=S.start||'';
   $('sh1').value=S.h1; $('sh2').value=S.h2;
   $('w1').textContent=S.n1; $('w2').textContent=S.n2;
+  if($('qw1')){$('qw1').textContent=S.n1; $('qw2').textContent=S.n2;}
   document.querySelectorAll('.hB').forEach(e=>e.setAttribute('fill',S.h1));
   document.querySelectorAll('.hG').forEach(e=>e.setAttribute('fill',S.h2));
   $('modeinfo').textContent = db ? '💑 같이 쓰기 켜짐 — 실시간 공유 중!' : '📱 내 기기 저장 모드';
@@ -330,6 +572,7 @@ function applyAv(){
 
 /* ---- 홈 ---- */
 function renderHome(){
+  checkMilestone();
   const t=new Date(); t.setHours(0,0,0,0);
   if(S.start){
     const sd=new Date(S.start+'T00:00:00');
@@ -419,6 +662,7 @@ $('pfile').onchange=async e=>{
     let img=await compress(f,700,.65);
     if(img.length>900000) img=await compress(f,480,.45);
     await DB.add('photos',{img,cap:$('pcap').value.trim(),date:todayStr()});
+    await earnHeart('photo',ACT_REWARD);
   }
   $('pcap').value=''; e.target.value='';
 };
@@ -455,6 +699,7 @@ function setWho(w){ who=w; localStorage.setItem('who',w);
 async function addNote(){
   const t=$('ntext').value.trim(); if(!t)return;
   await DB.add('notes',{who,text:t}); $('ntext').value='';
+  await earnHeart('note',ACT_REWARD);
 }
 $('ntext').addEventListener('keydown',e=>{if(e.key==='Enter')addNote();});
 function renderNotes(){
@@ -468,9 +713,274 @@ function renderNotes(){
 }
 const esc=s=>s.replace(/</g,'&lt;');
 
+/* ---- Q&A 질문방 ---- */
+function activeQA(){return qaList.filter(q=>!q.revealed).sort((a,b)=>b.ts-a.ts)[0];}
+async function startQA(){
+  const used=new Set(qaList.map(q=>q.question));
+  let pool=QA_POOL.filter(q=>!used.has(q));
+  if(!pool.length)pool=[...QA_POOL];
+  const question=pool[Math.floor(Math.random()*pool.length)];
+  await DB.add('qa',{question,a1:'',a2:'',revealed:false});
+  toast('새 질문이 도착했어요! 💑');
+}
+async function submitQAAns(id){
+  const el=$(`qa_in_${id}`); if(!el)return;
+  const text=el.value.trim(); if(!text)return;
+  const q=qaList.find(x=>x.id===id); if(!q)return;
+  const key='a'+who;
+  if(q[key]){toast('이미 답했어요!');return;}
+  if(db){await db.ref('qa/'+id).update({[key]:text});}
+  else{
+    const a=JSON.parse(localStorage.getItem('qa')||'[]');
+    const i=a.findIndex(x=>x.id===id); if(i>=0){a[i][key]=text; localStorage.setItem('qa',JSON.stringify(a)); setD.qa(a);}
+  }
+  await earnHeart('qa',ACT_REWARD);
+  renderQA();
+}
+async function revealQA(id){
+  const q=qaList.find(x=>x.id===id);
+  if(!q||!q.a1||!q.a2){toast('둘 다 답해야 열 수 있어요!');return;}
+  if(db){await db.ref('qa/'+id).update({revealed:true});}
+  else{
+    const a=JSON.parse(localStorage.getItem('qa')||'[]');
+    const i=a.findIndex(x=>x.id===id); if(i>=0){a[i].revealed=true; localStorage.setItem('qa',JSON.stringify(a)); setD.qa(a);}
+  }
+  renderQA();
+}
+function qaAnsText(val,isOwner,doneLabel){
+  if(!val)return isOwner?`<input type="text" id="qa_in_${activeQA().id}" placeholder="솔직하게 답해봐..." maxlength="200">`:'🔒 아직 비밀';
+  if(isOwner)return esc(val);
+  return '🔒 '+doneLabel+' 답변 완료';
+}
+function renderQA(){
+  const cur=activeQA();
+  if(cur){
+    const both=cur.a1&&cur.a2;
+    $('qaActive').innerHTML=`<div class="qcard">
+      <div class="hint">오늘의 커플 질문</div>
+      <div class="q">${esc(cur.question)}</div>
+      <div class="qans">
+        <div class="qbox"><div class="qlabel">${S.n1}의 답</div>
+          <div class="qtext">${qaAnsText(cur.a1,who===1,S.n1)}</div>
+          ${who===1&&!cur.a1?`<button class="btn sm" style="margin-top:6px" onclick="submitQAAns('${cur.id}')">답하기</button>`:''}
+          ${cur.a1?'<span class="seal">완료</span>':''}</div>
+        <div class="qbox"><div class="qlabel">${S.n2}의 답</div>
+          <div class="qtext">${qaAnsText(cur.a2,who===2,S.n2)}</div>
+          ${who===2&&!cur.a2?`<button class="btn sm" style="margin-top:6px" onclick="submitQAAns('${cur.id}')">답하기</button>`:''}
+          ${cur.a2?'<span class="seal">완료</span>':''}</div>
+      </div>
+      ${both?`<button class="btn" style="margin-top:10px;width:100%" onclick="revealQA('${cur.id}')">🎁 둘 다 답했어! 함께 열어보기</button>`:
+        '<div class="mut" style="margin-top:8px">둘 다 답하면 함께 열 수 있어요 ✨</div>'}
+    </div>`;
+  }else{
+    $('qaActive').innerHTML='<div class="mut" style="text-align:center;padding:16px">아직 진행 중인 질문이 없어요.<br>아래 버튼으로 새 질문을 뽑아보세요! 🎲</div>';
+  }
+  const hist=[...qaList].filter(q=>q.revealed).sort((a,b)=>b.ts-a.ts).slice(0,12);
+  $('qaHist').innerHTML=hist.map(q=>`<div class="qhistitem">
+    <b>${esc(q.question)}</b><br>
+    <small>${S.n1}:</small> ${esc(q.a1)}<br>
+    <small>${S.n2}:</small> ${esc(q.a2)}
+  </div>`).join('')||'<div class="mut">아직 열어본 Q&A가 없어요</div>';
+  $('qw1').classList.toggle('on',who===1); $('qw2').classList.toggle('on',who===2);
+}
+
+/* ---- 리빙룸 ---- */
+function renderHearts(){
+  $('heartNum').textContent=LV.hearts||0;
+}
+function setLoc(v){
+  LV.locView=v; saveLiving();
+  ['Room','Garden','Shop'].forEach(n=>{const el=$('loc'+n); if(el)el.classList.toggle('on',v===n.toLowerCase());});
+}
+function charSvg(w){
+  if(AV['a'+w])return `<img src="${AV['a'+w]}" style="object-position:50% ${AV['p'+w]??30}%">`;
+  return w===1?`<svg viewBox="0 0 120 150"><circle cx="60" cy="50" r="40" fill="${S.h1}"/><rect x="34" y="88" width="52" height="48" rx="18" fill="#aecbff"/><circle cx="60" cy="64" r="33" fill="#ffe3d0"/><circle cx="48" cy="62" r="3.4" fill="#4a3b36"/><circle cx="72" cy="62" r="3.4" fill="#4a3b36"/><ellipse cx="42" cy="71" rx="5" ry="3" fill="#ffb0b8" opacity=".7"/><ellipse cx="78" cy="71" rx="5" ry="3" fill="#ffb0b8" opacity=".7"/><path d="M54 74 Q60 80 66 74" stroke="#4a3b36" stroke-width="2.4" fill="none"/></svg>`
+    :`<svg viewBox="0 0 120 150"><circle cx="60" cy="52" r="42" fill="${S.h2}"/><rect x="34" y="88" width="52" height="48" rx="18" fill="#ffc9d6"/><circle cx="60" cy="64" r="32" fill="#ffe3d0"/><circle cx="48" cy="62" r="3.4" fill="#4a3b36"/><circle cx="72" cy="62" r="3.4" fill="#4a3b36"/><ellipse cx="42" cy="71" rx="5" ry="3" fill="#ffb0b8" opacity=".7"/><ellipse cx="78" cy="71" rx="5" ry="3" fill="#ffb0b8" opacity=".7"/><path d="M54 74 Q60 80 66 74" stroke="#4a3b36" stroke-width="2.4" fill="none"/><circle cx="88" cy="26" r="6" fill="#ff8fab"/></svg>`;
+}
+function renderLiving(){
+  renderHearts();
+  const v=LV.locView||'room';
+  ['Room','Garden','Shop'].forEach(n=>{const el=$('loc'+n); if(el)el.classList.toggle('on',v===n.toLowerCase());});
+  if(v==='shop'){ renderShop(); return; }
+  if(v==='garden'){ renderGarden(); return; }
+  let html=`<div class="living-scene theme-${LV.theme||'cozy'}"><div class="room-bg">
+    <div class="room-wall"></div>
+    <div class="room-floor"></div>
+    <div class="room-door" onclick="setLoc('garden')" title="텃밭으로"></div>
+    <div class="lr-char c1">${charSvg(1)}</div>
+    <div class="lr-char c2">${charSvg(2)}</div>`;
+  LV.pets.forEach(p=>{
+    const due=dueCare(p.care);
+    html+=`<div class="lr-pet ${p.type==='dog'?'dog':'cat'}" onclick="carePet('${p.id}')">${p.type==='dog'?'🐶':'🐱'}${due?'<span class="care-bubble">케어!</span>':''}</div>`;
+  });
+  if(LV.vase){
+    const due=dueCare(LV.vase.care);
+    html+=`<div class="lr-vase" onclick="careVase()">${FLOWERS[LV.vase.flower]||'🌹'}${due?'<span class="care-bubble">💧</span>':''}</div>`;
+  }
+  LV.indoor.forEach((p,i)=>{
+    const due=dueCare(p.care);
+    const ready=(p.stage||0)>=4;
+    const stg=['🌱','🌿','🪴',FRUITS[p.type]||'🍅',FRUITS[p.type]||'🍅'];
+    html+=`<div class="lr-plant p${(i%2)+1}" onclick="${ready?`harvestIndoor('${p.id}')`:`careIndoor('${p.id}')`}">${stg[Math.min(p.stage||0,4)]}${due&&!ready?'<span class="care-bubble">💧</span>':''}${ready?'<span class="care-bubble">수확!</span>':''}</div>`;
+  });
+  html+='</div></div>';
+  $('livingView').innerHTML=html;
+}
+function renderShop(){
+  let h='<div class="shop-grid">';
+  for(const[k,item] of Object.entries(SHOP)){
+    let disabled=false, sub='';
+    if(item.type==='pet'&&LV.pets.some(p=>p.type===item.id))disabled=true;
+    if(item.type==='indoor'&&LV.indoor.length>=2)disabled=true;
+    if(item.type==='gdecor'&&LV.garden.decor===item.id)disabled=true;
+    if(item.type==='plot'){
+      disabled=LV.garden.plots.some(x=>x===null);
+      sub=disabled?'(빈 칸 있음)':'(+1칸)';
+    }
+    h+=`<div class="shop-item ${disabled?'disabled':''}" onclick="buyItem('${k}')">
+      <span class="si">${item.icon}</span>${item.label}<br><span class="cost">💗 ${item.cost}</span> ${sub}
+    </div>`;
+  }
+  h+='</div><div class="stitle" style="margin-top:14px">🌸 꽃 교체 (💗5)</div><div class="shop-grid">';
+  for(const[f,icon] of Object.entries(FLOWERS)){
+    h+=`<div class="shop-item" onclick="buyFlower('${f}')"><span class="si">${icon}</span>${f}<br><span class="cost">💗 ${FLOWER_COST}</span></div>`;
+  }
+  h+='</div><div class="stitle" style="margin-top:14px">🏠 인테리어 (💗200)</div><div class="shop-grid">';
+  for(const[t,info] of Object.entries(THEMES)){
+    const owned=(LV.themes||[]).includes(t);
+    h+=`<div class="shop-item ${LV.theme===t?'disabled':''}" onclick="buyTheme('${t}')">
+      <span class="si">${info.e}</span>${info.n}<br><span class="cost">${owned?'적용':'💗 '+THEME_COST}</span>
+    </div>`;
+  }
+  h+='</div>';
+  $('livingView').innerHTML=h;
+}
+function renderGarden(){
+  const decor={basic:'',fence:'🪵 ',fountain:'⛲ '}[LV.garden.decor||'basic']||'';
+  let h=`<div class="living-scene"><div class="garden-bg">
+    <div style="position:absolute;top:8%;left:50%;transform:translateX(-50%);font-size:14px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3)">${decor}우리 텃밭 🌿</div>
+    <div class="room-door" style="left:8%;right:auto;bottom:55%;width:12%;height:22%" onclick="setLoc('room')" title="거실로"></div>
+    <div class="garden-plots">`;
+  LV.garden.plots.forEach((p,i)=>{
+    if(!p){h+=`<div class="gplot" onclick="plantGarden(${i})"><span>➕</span><span class="stage">심기</span></div>`;return;}
+    const due=dueCare(p.care);
+    const icons=['🌱','🌿','🪴',FRUITS[p.type]||'🍅',FRUITS[p.type]||'🍅'];
+    const ready=(p.stage||0)>=4;
+    h+=`<div class="gplot planted" onclick="${ready?`harvestPlot(${i})`:`careGarden(${i})`}">
+      ${icons[Math.min(p.stage||0,4)]}${due&&!ready?'<span class="care-bubble">💧</span>':''}
+      <span class="stage">${ready?'수확!':['씨앗','새싹','자람','거의','수확'][p.stage||0]}</span>
+    </div>`;
+  });
+  h+='</div></div></div>';
+  h+='<div class="mut" style="margin-top:8px">텃밭에서 키우고 수확하면 💗+15 · 물주기마다 💗+5</div>';
+  $('livingView').innerHTML=h;
+}
+function renderCareList(){
+  const items=[];
+  LV.pets.forEach(p=>items.push({label:(p.type==='dog'?'🐶 강아지':'🐱 고양이'),due:dueCare(p.care),fn:`carePet('${p.id}')`,status:nextCareLabel(p.care)}));
+  if(LV.vase)items.push({label:'🌸 꽃',due:dueCare(LV.vase.care),fn:'careVase()',status:nextCareLabel(LV.vase.care)});
+  LV.indoor.forEach(p=>items.push({label:(FRUITS[p.type]||'🌱')+' 화분',due:dueCare(p.care),fn:`careIndoor('${p.id}')`,status:nextCareLabel(p.care)}));
+  LV.garden.plots.forEach((p,i)=>{if(p&&p.stage<4)items.push({label:'🌿 텃밭 '+(i+1),due:dueCare(p.care),fn:`careGarden(${i})`,status:nextCareLabel(p.care)});});
+  if(!items.length){$('careList').innerHTML='';return;}
+  $('careList').innerHTML='<div class="stitle">🧡 케어 현황</div>'+items.map(it=>
+    `<div class="status-row"><span>${it.label} <small style="color:#c7a3ad">${it.status}</small></span>
+    <button class="care-btn ${it.due?'urgent':''}" onclick="${it.fn}">${it.due?'케어하기':'관리'}</button></div>`
+  ).join('');
+}
+async function buyItem(key){
+  const item=SHOP[key]; if(!item)return;
+  if((LV.hearts||0)<item.cost){toast('하트가 부족해요 💔');return;}
+  if(item.type==='pet'){
+    if(LV.pets.some(p=>p.type===item.id)){toast('이미 키우고 있어요!');return;}
+    LV.pets.push({id:uid(),type:item.id,care:scheduleCare(1+Math.floor(Math.random()*3))});
+  }else if(item.type==='indoor'){
+    if(LV.indoor.length>=2){toast('화분은 2개까지!');return;}
+    LV.indoor.push({id:uid(),type:item.id,stage:0,care:scheduleCare(1+Math.floor(Math.random()*2)),plantedAt:Date.now()});
+  }else if(item.type==='gdecor'){
+    LV.garden.decor=item.id;
+  }else if(item.type==='plot'){
+    if(LV.garden.plots.some(x=>x===null)){toast('아직 빈 텃밭 칸이 있어요!');return;}
+    LV.garden.plots.push(null);
+  }
+  LV.hearts-=item.cost;
+  await saveLiving();
+  toast(item.icon+' 구매 완료!');
+  if(LV.locView==='shop')renderShop();
+}
+async function buyFlower(f){
+  if((LV.hearts||0)<FLOWER_COST){toast('하트가 부족해요 💔');return;}
+  LV.hearts-=FLOWER_COST;
+  LV.vase={flower:f,care:scheduleCare(1+Math.floor(Math.random()*2))};
+  await saveLiving();
+  toast(FLOWERS[f]+' 꽃으로 교체!');
+}
+async function buyTheme(t){
+  const owned=(LV.themes||[]).includes(t);
+  if(!owned){
+    if((LV.hearts||0)<THEME_COST){toast('하트가 부족해요 💔');return;}
+    LV.hearts-=THEME_COST;
+    if(!LV.themes.includes(t))LV.themes.push(t);
+  }
+  LV.theme=t;
+  await saveLiving();
+  toast(THEMES[t].e+' '+THEMES[t].n+' 적용!');
+}
+async function doCare(ref){
+  if(!ref)return false;
+  if(!dueCare(ref.care)){toast('아직 케어 시간이 아니에요');return false;}
+  ref.care=(ref.care||[]).filter(t=>t>Date.now());
+  ref.care.push(...scheduleCare(1));
+  if(ref.stage!==undefined&&ref.stage<4){
+    ref.stage=(ref.stage||0)+1;
+    if(ref.stage>=4)toast('🎉 다 자랐어요! 수확할 수 있어요');
+  }
+  await earnHeart('care',CARE_REWARD);
+  return true;
+}
+async function carePet(id){
+  const p=LV.pets.find(x=>x.id===id);
+  if(await doCare(p))await saveLiving();
+}
+async function careVase(){
+  if(await doCare(LV.vase))await saveLiving();
+}
+async function careIndoor(id){
+  const p=LV.indoor.find(x=>x.id===id);
+  if(await doCare(p))await saveLiving();
+}
+async function careGarden(i){
+  const p=LV.garden.plots[i];
+  if(await doCare(p))await saveLiving();
+}
+async function plantGarden(i){
+  const types=Object.keys(FRUITS);
+  const type=types[Math.floor(Math.random()*types.length)];
+  if((LV.hearts||0)<10){toast('씨앗은 💗10 필요');return;}
+  LV.hearts-=10;
+  LV.garden.plots[i]={type,stage:0,care:scheduleCare(2),plantedAt:Date.now()};
+  await saveLiving();
+  toast(FRUITS[type]+' 씨앗을 심었어요!');
+}
+async function harvestPlot(i){
+  const p=LV.garden.plots[i]; if(!p||p.stage<4)return;
+  LV.garden.plots[i]=null;
+  await earnHeart('harvest',15);
+  await saveLiving();
+  toast((FRUITS[p.type]||'🌱')+' 수확! 💗+15');
+}
+async function harvestIndoor(id){
+  const i=LV.indoor.findIndex(x=>x.id===id);
+  const p=LV.indoor[i]; if(!p||p.stage<4)return;
+  LV.indoor.splice(i,1);
+  await earnHeart('harvest',12);
+  await saveLiving();
+  toast((FRUITS[p.type]||'🌱')+' 수확! 💗+12');
+}
+
+
 /* ---- 백업 ---- */
 function bkExport(){
-  const blob=new Blob([JSON.stringify({S,AV,events,annis,photos,notes})],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({S,AV,events,annis,photos,notes,qa:qaList,living:LV})],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='우리아지트_백업_'+todayStr()+'.json'; a.click();
 }
@@ -479,8 +989,9 @@ $('bkfile').onchange=async e=>{
   if(!confirm('백업을 불러올까요? (기존 데이터에 추가됩니다)'))return;
   if(d.S){S={...S,...d.S}; await DB.setSet(S); applySet();}
   if(d.AV) await saveAv(d.AV);
-  for(const n of ['events','annis','photos','notes'])
+  for(const n of ['events','annis','photos','notes','qa'])
     for(const o of d[n]||[]){delete o.id; await DB.add(n,o);}
+  if(d.living){LV=mergeLiving(d.living); await saveLiving();}
   alert('불러왔어요!'); e.target.value='';
 };
 
@@ -488,8 +999,9 @@ $('bkfile').onchange=async e=>{
 function go(i,btn){
   document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('on',j===i));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===btn));
+  if(i===5||i===6)earnHeart('visit',ACT_REWARD).catch(()=>{});
 }
-function renderAll(){ renderHome(); renderCal(); renderPhotos(); renderNotes(); }
+function renderAll(){ renderHome(); renderCal(); renderPhotos(); renderNotes(); renderQA(); renderHearts(); if(LV.locView)renderLiving(); renderCareList(); }
 setWho(who); boot();
 </script>
 </body>
