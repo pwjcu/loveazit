@@ -5,24 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>우리 아지트 💗</title>
 <meta property="og:title" content="우리 아지트 💗">
-<meta property="og:description" content="디데이 · 캘린더 · 추억앨범 · 한마디 — 우리 둘만의 공간">
+<meta property="og:description" content="디데이 · Q&A · 리빙룸 · 캘린더 · 추억앨범 — 우리 둘만의 아지트">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Jua',sans-serif;background:linear-gradient(180deg,#fff5f7,#ffeaf0);color:#5b4a4f;min-height:100vh;padding-bottom:78px}
+body{font-family:'Jua',sans-serif;background:linear-gradient(180deg,#fff5f7,#ffeaf0);color:#5b4a4f;min-height:100vh;padding-bottom:82px}
 .wrap{max-width:480px;margin:0 auto;padding:16px}
 h1{text-align:center;font-size:22px;color:#ff7fa3;padding:6px 0 2px}
 .card{background:#fff;border-radius:22px;padding:16px;margin-top:14px;box-shadow:0 4px 14px rgba(255,143,171,.15)}
 .page{display:none}.page.on{display:block;animation:pop .25s}
 @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
 /* nav */
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ffe0e8;display:flex;max-width:480px;margin:0 auto;border-radius:20px 20px 0 0;box-shadow:0 -4px 14px rgba(255,143,171,.15)}
-nav button{flex:1;border:0;background:none;font-family:inherit;padding:9px 0 10px;font-size:11px;color:#c7a3ad;cursor:pointer}
-nav button span{display:block;font-size:20px;margin-bottom:1px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ffe0e8;display:flex;max-width:480px;margin:0 auto;border-radius:20px 20px 0 0;box-shadow:0 -4px 14px rgba(255,143,171,.15);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;min-width:14.28%;border:0;background:none;font-family:inherit;padding:8px 4px 9px;font-size:10px;color:#c7a3ad;cursor:pointer;white-space:nowrap}
+nav button span{display:block;font-size:18px;margin-bottom:1px}
 nav button.on{color:#ff7fa3}
+.hbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.hearts{display:inline-flex;align-items:center;gap:4px;background:#fff0f4;border-radius:999px;padding:4px 12px;font-size:14px;color:#ff5f8a}
+.hearts b{font-size:16px}
+.hpop{animation:hpop .4s}
+@keyframes hpop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#ff8fab;color:#fff;padding:8px 18px;border-radius:999px;font-size:13px;z-index:20;opacity:0;pointer-events:none;transition:opacity .3s}
+.toast.on{opacity:1}
 /* home */
 .chars{display:flex;align-items:center;justify-content:center;gap:8px}
 .side{flex:0 0 34%;max-width:132px;display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -95,11 +103,87 @@ details{font-size:13px;color:#8a6f77;margin-top:10px}
 details summary{cursor:pointer;color:#ff7fa3}
 details ol{padding-left:18px;line-height:1.7}
 .mut{font-size:12px;color:#c7a3ad;margin-top:6px}
+/* Q&A */
+.qcard{background:linear-gradient(135deg,#fff8fb,#fff0f6);border:2px dashed #ffc9d6;border-radius:18px;padding:14px;margin:10px 0;text-align:center}
+.qcard .q{font-size:16px;color:#ff5f8a;line-height:1.5;margin:8px 0}
+.qcard .hint{font-size:12px;color:#c7a3ad}
+.qans{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.qbox{background:#fff;border-radius:14px;padding:10px;border:2px solid #ffe0e8}
+.qbox.locked{background:#f9f9f9;border-style:dashed}
+.qbox .qlabel{font-size:12px;color:#ff8fab;margin-bottom:4px}
+.qbox .qtext{font-size:14px;min-height:20px}
+.qbox .qtext.hidden{color:#c7a3ad;font-style:italic}
+.qhist{margin-top:12px}
+.qhistitem{border-bottom:1px dashed #ffe3ea;padding:8px 0;font-size:13px}
+.qhistitem:last-child{border:0}
+.seal{display:inline-block;background:#ffe3ea;color:#ff5f8a;border-radius:999px;padding:2px 8px;font-size:11px;margin-left:4px}
+/* Living Room — arcade pixel scene */
+.living-scene{position:relative;border-radius:18px;overflow:hidden;margin-top:8px;box-shadow:0 5px 16px rgba(90,60,40,.28);line-height:0}
+.living-scene svg.scene{width:100%;height:auto;display:block}
+.scene .clk{cursor:pointer}
+.flame{animation:flick .45s infinite alternate;transform-origin:50% 100%;transform-box:fill-box}
+@keyframes flick{from{transform:scaleY(1)}to{transform:scaleY(1.18) scaleX(.92)}}
+.steam{animation:steamup 2.6s infinite;opacity:0;transform-box:fill-box}
+.steam.s2{animation-delay:.9s}.steam.s3{animation-delay:1.7s}
+@keyframes steamup{0%{opacity:0;transform:translateY(0)}30%{opacity:.75}100%{opacity:0;transform:translateY(-16px)}}
+.zz{animation:zzf 2.2s infinite;opacity:0;transform-box:fill-box}
+.zz.z2{animation-delay:.7s}.zz.z3{animation-delay:1.4s}
+@keyframes zzf{0%{opacity:0;transform:translateY(2px)}35%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+.bobp{animation:bobpx 2.8s ease-in-out infinite;transform-box:fill-box}
+.bobp.b2{animation-delay:1.4s}
+@keyframes bobpx{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.wagp{animation:wagp 2s ease-in-out infinite;transform-origin:50% 90%;transform-box:fill-box}
+@keyframes wagp{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+.twk{animation:twk 1.5s infinite alternate}
+.twk.t2{animation-delay:.5s}.twk.t3{animation-delay:1s}
+@keyframes twk{from{opacity:.35}to{opacity:1}}
+.pin{animation:beat 1s infinite;transform-box:fill-box;transform-origin:center}
+.spark{animation:twk .8s infinite alternate}
+.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.shop-grid.g3{grid-template-columns:repeat(3,1fr)}
+.shop-item{background:#fffafb;border:2px solid #ffe0e8;border-radius:14px;padding:10px 6px;text-align:center;font-size:12px;cursor:pointer;transition:transform .15s}
+.shop-item:hover{transform:scale(1.03);border-color:#ffb3c6}
+.shop-item .si{display:block;margin:0 auto 4px;height:44px}
+.shop-item .si svg{height:44px;width:auto;max-width:100%}
+.shop-item .cost{color:#ff5f8a;font-size:11px;display:block}
+.shop-item.disabled{opacity:.45;pointer-events:none}
+.sw{display:inline-block;width:36px;height:36px;border-radius:10px;margin-bottom:4px;border:2px solid #0001}
+.loc-tabs{display:flex;gap:6px;margin-bottom:8px}
+.loc-tabs button{flex:1;border:2px solid #ffe0e8;background:#fff;border-radius:12px;padding:8px;font-family:inherit;font-size:13px;color:#b99aa3;cursor:pointer}
+.loc-tabs button.on{border-color:#ff8fab;color:#ff5f8a;background:#fff0f4}
+.care-panel{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.care-btn{border:0;background:#fff0f4;color:#ff7fa3;border-radius:10px;padding:6px 10px;font-family:inherit;font-size:12px;cursor:pointer}
+.care-btn.urgent{background:#ff8fab;color:#fff;animation:beat 1.2s infinite}
+.status-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed #ffe3ea}
+.status-row:last-child{border:0}
+.quick-links{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.quick-links button{border:2px solid #ffe0e8;background:#fff;border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13px;color:#ff7fa3;cursor:pointer}
+.quick-links button span{display:block;font-size:22px;margin-bottom:4px}
+/* 계절 테마 */
+body{transition:background 1s}
+body.season-spring{background:linear-gradient(180deg,#fff5f7,#ffe4ee)}
+body.season-summer{background:linear-gradient(180deg,#e9f8ff,#d3efff)}
+body.season-summer h1{color:#3fa8d9}
+body.season-fall{background:linear-gradient(180deg,#fff6ec,#ffe5c9)}
+body.season-fall h1{color:#e0813f}
+body.season-winter{background:linear-gradient(180deg,#eef4fb,#dbe8f8)}
+body.season-winter h1{color:#6f93c9}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+#fx i{position:absolute;top:-26px;display:block;animation:fxfall linear infinite}
+@keyframes fxfall{to{transform:translateY(112vh) rotate(300deg)}}
+#fx i.sp{width:10px;height:10px;background:#ffb7cf;border-radius:62% 4% 62% 62%}
+#fx i.fa{width:12px;height:9px;background:#e8964f;border-radius:62% 4% 62% 4%}
+#fx i.wi{width:8px;height:8px;background:#fff;border-radius:50%;box-shadow:0 0 5px #cfe4ff}
+#fx i.su{width:6px;height:6px;background:#ffe9a0;border-radius:50%;opacity:.75}
+.sleep-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;background:#fffafb;border:2px solid #ffe0e8;border-radius:14px;padding:8px 12px;font-size:13px;color:#8a6f77}
 </style>
 </head>
 <body>
+<div id="fx"></div>
+<div class="toast" id="toast"></div>
 <div class="wrap">
 <h1 id="apptitle">우리 아지트 💗</h1>
+<div class="hbar"><div></div><div class="hearts" id="heartsBar">💗 <b id="heartNum">0</b></div></div>
 
 <!-- 홈 -->
 <div class="page on" id="p0">
@@ -123,6 +207,14 @@ details ol{padding-left:18px;line-height:1.7}
     </div>
     <div class="banner" id="todaybanner" style="display:none"></div>
     <div class="banner" id="localbanner" style="display:none">🔗 지금은 내 기기에만 저장돼요 — 설정에서 "같이 쓰기"를 켜면 둘이 실시간 공유!</div>
+  </div>
+  <div class="card" id="seasonCard"></div>
+  <div class="card">
+    <div class="stitle">🎮 아지트 놀러가기</div>
+    <div class="quick-links">
+      <button onclick="go(4,document.querySelectorAll('nav button')[4])"><span>💑</span>Q&A 질문방</button>
+      <button onclick="go(5,document.querySelectorAll('nav button')[5])"><span>🏡</span>리빙룸</button>
+    </div>
   </div>
   <div class="card">
     <div class="stitle">🗓️ 다가오는 기념일</div>
@@ -175,6 +267,38 @@ details ol{padding-left:18px;line-height:1.7}
   </div>
 </div>
 
+<!-- Q&A 질문방 -->
+<div class="page" id="p5">
+  <div class="card">
+    <div class="stitle">💑 커플 Q&A 질문방</div>
+    <div class="mut">랜덤 질문에 각자 답하고, 둘 다 쓰면 함께 열어봐요!</div>
+    <div class="who"><button id="qw1" onclick="setWho(1)">나</button><button id="qw2" onclick="setWho(2)">너</button></div>
+    <div id="qaActive"></div>
+    <div class="frow" style="margin-top:10px">
+      <button class="btn sm" onclick="startQA()">🎲 새 질문 뽑기</button>
+    </div>
+  </div>
+  <div class="card qhist">
+    <div class="stitle">📜 지난 Q&A</div>
+    <div id="qaHist"></div>
+  </div>
+</div>
+
+<!-- 리빙룸 -->
+<div class="page" id="p6">
+  <div class="card">
+    <div class="stitle">🏡 우리 리빙룸</div>
+    <div class="mut">스타듀밸리 감성! 하트💗로 꾸미고 키워요 · 활동마다 +10 · 50일마다 +100</div>
+    <div class="loc-tabs">
+      <button id="locRoom" class="on" onclick="setLoc('room')">🏠 거실</button>
+      <button id="locGarden" onclick="setLoc('garden')">🌿 텃밭</button>
+      <button id="locShop" onclick="setLoc('shop')">🛒 상점</button>
+    </div>
+    <div id="livingView"></div>
+    <div id="careList"></div>
+  </div>
+</div>
+
 <!-- 설정 -->
 <div class="page" id="p4">
   <div class="card">
@@ -216,7 +340,9 @@ details ol{padding-left:18px;line-height:1.7}
   <button onclick="go(1,this)"><span>📅</span>달력</button>
   <button onclick="go(2,this)"><span>📸</span>추억</button>
   <button onclick="go(3,this)"><span>💌</span>한마디</button>
-  <button onclick="go(4,this)"><span>⚙️</span>설정</button>
+  <button onclick="go(4,this)"><span>💑</span>Q&A</button>
+  <button onclick="go(5,this)"><span>🏡</span>룸</button>
+  <button onclick="go(6,this)"><span>⚙️</span>설정</button>
 </nav>
 
 <script>
@@ -256,30 +382,368 @@ const DB={
   async getSet(){ if(db){const d=await db.ref('settings').once('value');return d.val()||{};}
     return JSON.parse(localStorage.getItem('settings')||'{}'); },
   async setSet(v){ if(db){await db.ref('settings').set(v);return;}
-    localStorage.setItem('settings',JSON.stringify(v)); }
+    localStorage.setItem('settings',JSON.stringify(v)); },
+  async getObj(n){
+    if(db){const d=await db.ref(n).once('value');return d.val();}
+    const v=localStorage.getItem(n); return v?JSON.parse(v):null;
+  },
+  async setObj(n,v){
+    if(db){await db.ref(n).set(v);return;}
+    localStorage.setItem(n,JSON.stringify(v));
+  }
 };
 
 let S={start:'',n1:'나',n2:'너',h1:'#6b4b3a',h2:'#4a3226'};
 let AV={};
-let events=[],annis=[],photos=[],notes=[];
-const setD={events:a=>events=a,annis:a=>annis=a,photos:a=>photos=a,notes:a=>notes=a};
+let events=[],annis=[],photos=[],notes=[],qaList=[];
+let LV=defaultLiving();
+const setD={events:a=>events=a,annis:a=>annis=a,photos:a=>photos=a,notes:a=>notes=a,qa:a=>qaList=a};
+
+function defaultLiving(){
+  return{
+    hearts:20,lastMilestone:0,dailyEarn:{},locView:'room',
+    theme:'cozy',vase:null,pets:[],indoor:[],garden:{plots:[null,null,null,null,null,null],decor:'basic'},
+    themes:['cozy'],sleepNight:'',seasonGift:{},seasonDecor:[]
+  };
+}
+function normalizePlots(plots){
+  let arr;
+  if(Array.isArray(plots)) arr=plots.map(p=>(p&&!p.e)?p:null);
+  else if(plots&&typeof plots==='object'){
+    const idx=Object.keys(plots).map(Number).filter(n=>!isNaN(n));
+    const max=Math.max(5,...idx);
+    arr=Array.from({length:max+1},(_,i)=>plots[i]&&!plots[i].e?plots[i]:null);
+  }else arr=[null,null,null,null,null,null];
+  while(arr.length<6) arr.push(null);
+  return arr;
+}
+function mergeLiving(v){
+  const d=defaultLiving();
+  if(!v)return d;
+  return{...d,...v,pets:v.pets||[],indoor:v.indoor||[],garden:{...d.garden,...(v.garden||{}),
+    plots:normalizePlots(v.garden&&v.garden.plots)},themes:v.themes||d.themes,dailyEarn:v.dailyEarn||{},
+    seasonGift:v.seasonGift||{},seasonDecor:v.seasonDecor||[]};
+}
+
+const QA_POOL=[
+  '처음 만났을 때 상대방의 첫인상은?','우리가 처음 손 잡았던 순간 기억나?','상대방에게 가장 고마웠던 순간은?',
+  '다음 데이트는 어디서 하고 싶어?','상대방의 어떤 표정이 제일 좋아?','우리만의 애칭을 하나 더 지어본다면?',
+  '10년 뒤 우리는 어떤 모습일까?','상대방과 꼭 가보고 싶은 여행지는?','처음 "좋아해"라고 한 순간 떠올려봐',
+  '상대방이 해준 말 중 가장 기억에 남는 한마디는?','우리가 함께 먹은 음식 중 최고는?','상대방의 어떤 습관이 귀여워?',
+  '싸웠을 때 먼저 화해하고 싶은 사람은?','상대방에게 받고 싶은 선물은?','우리 둘만 아는 비밀 하나 말해봐',
+  '상대방의 목소리에서 좋아하는 점은?','함께 보고 싶은 영화/드라마는?','상대방과 함께 배우고 싶은 것은?',
+  '우리의 커플송을 고른다면?','상대방이 입었을 때 제일 잘 어울리는 옷은?','데이트할 때 상대방의 어떤 모습에 설레?',
+  '상대방과 함께하고 싶은 취미는?','우리가 가장 많이 웃었던 순간은?','상대방에게 "고마워"라고 전하고 싶은 이유는?',
+  '상대방의 어떤 점을 존경해?','함께 살게 된다면 꼭 갖고 싶은 것은?','상대방과의 첫 키스(또는 스킨십) 기억은?',
+  '상대방이 화났을 때 위로하는 나만의 방법은?','우리의 추억 중 다시 하고 싶은 것은?','상대방에게 가장 잘 어울리는 계절은?',
+  '상대방과 밤새 이야기한다면 무슨 얘기 하고 싶어?','우리가 만약 만화/게임 캐릭터라면?','상대방의 손을 잡을 때 느끼는 감정은?',
+  '상대방이 요리해준다면 뭐가 제일 먹고 싶어?','우리만의 기념일을 하나 더 만든다면?','상대방의 어떤 행동에 심쿵했어?',
+  '함께 키우고 싶은 반려동물은?','상대방과의 미래에서 가장 기대되는 것은?','상대방에게서 배운 가장 좋은 점은?',
+  '우리가 커플 게임에서 이긴다면 벌칙은?','상대방과 함께 듣고 싶은 노래는?','상대방의 어떤 말투가 좋아?',
+  '우리 집(리빙룸)에서 가장 좋아하는 코너는?','상대방과 함께 아침을 맞이한다면?','상대방에게 숨기지 못한 작은 비밀은?',
+  '우리가 다퉜을 때 가장 후회하는 말은?','상대방의 눈을 보면 어떤 생각이 들어?','함께 걸었던 길 중 가장 좋았던 곳은?',
+  '상대방에게 편지를 쓴다면 첫 문장은?','우리의 사랑을 색깔로 표현한다면?','상대방과 함께라면 할 수 있는 도전은?'
+];
+
+const FLOWERS={
+  rose:{n:'장미',c1:'#e84d6f',c2:'#c02e50'},
+  tulip:{n:'튤립',c1:'#f2647c',c2:'#d94360'},
+  sunflower:{n:'해바라기',c1:'#ffd24d',c2:'#8a5a35'},
+  lavender:{n:'라벤더',c1:'#9d7fd9',c2:'#7d5fc0'},
+  sakura:{n:'벚꽃',c1:'#ffb7cf',c2:'#ff8fb0'},
+  daisy:{n:'데이지',c1:'#ffffff',c2:'#ffd24d'},
+  lily:{n:'수련',c1:'#f8a8c8',c2:'#ffd24d'}
+};
+const FRUITS={
+  tomato:{n:'방울토마토',e:'🍅',c:'#e8483f'},
+  strawberry:{n:'딸기',e:'🍓',c:'#e8385a'},
+  cherry:{n:'체리',e:'🍒',c:'#c62f45'},
+  grape:{n:'포도',e:'🍇',c:'#8a5ab9'},
+  peach:{n:'복숭아',e:'🍑',c:'#f5a878'}
+};
+const THEMES={
+  cozy:{n:'코지 핑크',e:'🌸',wall:'#f7dbe3',blanket:'#e8788a'},
+  mint:{n:'민트',e:'🍃',wall:'#d8efe4',blanket:'#5eb896'},
+  lavender:{n:'라벤더',e:'💜',wall:'#e6def5',blanket:'#9d7fd9'},
+  sunset:{n:'선셋',e:'🌅',wall:'#f9dcc0',blanket:'#e8964f'}
+};
+const DOG_BREEDS={
+  golden:{n:'골든리트리버',A:'#e0a952',B:'#f2cf8e'},
+  shiba:{n:'시바견',A:'#e2914d',B:'#fdf3e3'},
+  husky:{n:'허스키',A:'#7e8ea0',B:'#eef2f6'},
+  corgi:{n:'웰시코기',A:'#efa14f',B:'#ffffff'},
+  maltese:{n:'말티즈',A:'#f0ebdd',B:'#fcfaf4'},
+  poodle:{n:'푸들',A:'#c9a06a',B:'#e3c9a4'},
+  dachshund:{n:'닥스훈트',A:'#8a5432',B:'#b9825a'},
+  beagle:{n:'비글',A:'#a97448',B:'#f4e8d6'},
+  jindo:{n:'진돗개',A:'#ead9b5',B:'#fbf6ea'},
+  chihuahua:{n:'치와와',A:'#c99a6a',B:'#f0dcc0'}
+};
+const CAT_BREEDS={
+  cheese:{n:'치즈냥',A:'#eda155',B:'#fff4e2'},
+  tuxedo:{n:'턱시도',A:'#3b3b46',B:'#ffffff'},
+  calico:{n:'삼색이',A:'#e8a055',B:'#fffdf8'},
+  blue:{n:'러시안블루',A:'#8d9bab',B:'#c3cdd8'},
+  siam:{n:'샴',A:'#e8dcc4',B:'#6c5142'}
+};
+const SEASON_META={
+  spring:{n:'봄',e:'🌸',cls:'season-spring',fx:'sp',msg:'벚꽃이 활짝 피었어요! 아지트에도 봄바람이 불어요.'},
+  summer:{n:'여름',e:'🌊',cls:'season-summer',fx:'su',msg:'반짝반짝 시원한 여름! 밤에는 반딧불이가 날아와요.'},
+  fall:{n:'가을',e:'🍁',cls:'season-fall',fx:'fa',msg:'단풍이 물들었어요. 벽난로가 그리워지는 계절!'},
+  winter:{n:'겨울',e:'⛄',cls:'season-winter',fx:'wi',msg:'포근한 눈의 계절. 트리를 꾸며볼까요?'}
+};
+const SEASON_ITEMS={
+  spring:{id:'blossom',n:'벚꽃 가랜드',cost:30},
+  summer:{id:'surf',n:'서핑보드',cost:30},
+  fall:{id:'wreath',n:'단풍 리스',cost:30},
+  winter:{id:'xmas',n:'크리스마스 트리',cost:30}
+};
+const SHOP={
+  potTomato:{cost:10,label:'방울토마토 화분',type:'indoor',id:'tomato'},
+  potStraw:{cost:10,label:'딸기 화분',type:'indoor',id:'strawberry'},
+  potCherry:{cost:10,label:'체리 화분',type:'indoor',id:'cherry'},
+  potGrape:{cost:10,label:'포도 화분',type:'indoor',id:'grape'},
+  potPeach:{cost:10,label:'복숭아 화분',type:'indoor',id:'peach'},
+  decorBasic:{cost:20,label:'나무 울타리',icon:'🪵',type:'gdecor',id:'fence'},
+  decorFountain:{cost:35,label:'돌 분수',icon:'⛲',type:'gdecor',id:'fountain'},
+  gardenPlot:{cost:15,label:'텃밭 칸 확장',icon:'🌱',type:'plot',id:'plot'}
+};
+const THEME_COST=200;
+const FLOWER_COST=5;
+const PET_COST=50;
+const CARE_REWARD=5;
+const ACT_REWARD=10;
+const MILESTONE_REWARD=100;
+const DAILY_ACT_CAP=15;
+
+/* ---- 시간 · 계절 ---- */
+function seasonOf(d=new Date()){const m=d.getMonth()+1;return m===12||m<3?'winter':m<6?'spring':m<9?'summer':'fall';}
+function isNight(){const h=new Date().getHours();return h>=20||h<6;}
+function nightKey(){const d=new Date();if(d.getHours()<6)d.setDate(d.getDate()-1);return dayKey(d);}
+function isSleeping(){return isNight()&&LV.sleepNight===nightKey();}
+function seasonYearKey(){return new Date().getFullYear()+'-'+seasonOf();}
+
+/* ---- 픽셀 스프라이트 엔진 ---- */
+function pxg(map,pal){
+  let out='';
+  map.forEach((row,y)=>{for(let x=0;x<row.length;x++){const c=pal[row[x]];
+    if(c)out+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>`;}});
+  return out;
+}
+const CHAR_M=[
+'....HHHHHHHH....',
+'...HHHHHHHHHH...',
+'..HHHHHHHHHHHH..',
+'..HHHHHHHHHHHH..',
+'..HHkkkkkkkkHH..',
+'..HkkkkkkkkkkH..',
+'..HkEkkkkkkEkH..',
+'..HkkkkkkkkkkH..',
+'..HkCkkMMkkCkH..',
+'...kkkkkkkkkk...',
+'....kkkkkkkk....',
+'...TTTTTTTTTT...',
+'..TTTTTTTTTTTT..',
+'.kTTTTTTTTTTTTk.',
+'.kTTTTTTTTTTTTk.',
+'..TTTTTTTTTTTT..',
+'...PPPP..PPPP...',
+'...PPPP..PPPP...',
+'...FFFF..FFFF...'
+];
+const CHAR_F=[
+'....HHHHHHHH....',
+'...HHHHHHHHHH...',
+'..HHHHHHHHHHHH..',
+'..HHHHHHHHHHHH..',
+'..HHkkkkkkkkHH..',
+'.HHkkkkkkkkkkHH.',
+'.HHkEkkkkkkEkHH.',
+'.HHkkkkkkkkkkHH.',
+'.HHkCkkMMkkCkHH.',
+'.HHkkkkkkkkkkHH.',
+'.HH..kkkkkk..HH.',
+'.HH.DDDDDDDD.HH.',
+'.H.DDDDDDDDDD.H.',
+'..kDDDDDDDDDDk..',
+'..kDDDDDDDDDDk..',
+'...DDDDDDDDDD...',
+'..DDDDDDDDDDDD..',
+'....kk....kk....',
+'....FF....FF....'
+];
+function charPal(w){
+  return {H:w===1?S.h1:S.h2,k:'#ffdcc0',E:'#3a2f2e',C:'#ffb0b8',M:'#e08a8a',
+    T:'#7da7e8',P:'#5b6c8f',F:'#7a4a2f',D:'#ff9ab5'};
+}
+function charG(w,x,y,k,cls=''){
+  const map=w===1?CHAR_M:CHAR_F;
+  return `<g class="${cls}" transform="translate(${x},${y}) scale(${k})">${pxg(map,charPal(w))}</g>`;
+}
+const DOG_MAP=[
+'..AA..............',
+'.AAAA.............',
+'.AAAA.......A.....',
+'.AEBA......AA.....',
+'.ABBN.....AA......',
+'..AAAAAAAAAA......',
+'..ABBBBBBBAA......',
+'..ABBBBBBBBA......',
+'..AAAAAAAAAA......',
+'...AA..AA.AA......',
+'...AA..AA.AA......'
+];
+const CAT_MAP=[
+'.A..A.............',
+'.AAAA.............',
+'.AEAA.......A.....',
+'.ABBA.......A.....',
+'..AAAAAAAAA.A.....',
+'..ABBBBBBAA.A.....',
+'..ABBBBBBBAAA.....',
+'..AAAAAAAAAA......',
+'...AA..AA.........',
+'...AA..AA.........'
+];
+function petG(p,x,y,k,cls='',clk=''){
+  const set=p.type==='dog'?DOG_BREEDS:CAT_BREEDS;
+  const b=set[p.breed]||Object.values(set)[0];
+  const map=p.type==='dog'?DOG_MAP:CAT_MAP;
+  const pal={A:b.A,B:b.B,E:'#2e2622',N:'#2e2622'};
+  return `<g class="${cls}" ${clk} transform="translate(${x},${y}) scale(${k})">${pxg(map,pal)}</g>`;
+}
+function petName(p){
+  const set=p.type==='dog'?DOG_BREEDS:CAT_BREEDS;
+  return (set[p.breed]||Object.values(set)[0]).n;
+}
+function petSvg(type,breed,size=44){
+  const p={type,breed};
+  const w=18,hh=type==='dog'?11:10;
+  return `<svg viewBox="0 0 ${w} ${hh}" width="${size}" height="${Math.round(size*hh/w)}" shape-rendering="crispEdges">${petG(p,0,0,1)}</svg>`;
+}
+
+/* ---- 꽃 그래픽 ---- */
+function flowerHead(type){
+  const f=FLOWERS[type]||FLOWERS.rose;
+  switch(type){
+    case 'sakura':case 'lily':{
+      const petals=type==='sakura'?5:6;
+      let h='';
+      for(let i=0;i<petals;i++)h+=`<ellipse cx="0" cy="-7" rx="4" ry="7" fill="${f.c1}" transform="rotate(${i*360/petals})"/>`;
+      return h+`<circle r="3.4" fill="${type==='sakura'?'#ffe27a':f.c2}"/>`;
+    }
+    case 'sunflower':case 'daisy':{
+      const petals=type==='sunflower'?12:9;
+      let h='';
+      for(let i=0;i<petals;i++)h+=`<ellipse cx="0" cy="-8" rx="2.6" ry="8" fill="${f.c1}" stroke="#00000012" transform="rotate(${i*360/petals})"/>`;
+      return h+`<circle r="4.6" fill="${f.c2}"/>`;
+    }
+    case 'tulip':
+      return `<path d="M-7 2 Q-8 -12 -3 -12 Q0 -6 0 -12 Q0 -6 3 -12 Q8 -12 7 2 Q4 7 0 7 Q-4 7 -7 2Z" fill="${f.c1}"/><path d="M-3 -11 Q0 -5 3 -11" stroke="${f.c2}" stroke-width="1.4" fill="none"/>`;
+    case 'lavender':{
+      let h='';
+      for(let i=0;i<5;i++)h+=`<circle cx="${(i%2?2.6:-2.6)}" cy="${-i*4.4}" r="3" fill="${i%2?f.c1:f.c2}"/><circle cx="0" cy="${-i*4.4-2}" r="2.6" fill="${f.c1}"/>`;
+      return h;
+    }
+    default: /* rose */
+      return `<circle r="8.4" fill="${f.c1}"/><circle r="5.8" fill="${f.c2}" cx="1" cy="-1"/><circle r="3.4" fill="${f.c1}" cx="-.6" cy=".6"/><path d="M-2 -1 Q1 -3 2 0 Q1 2 -1 1" stroke="#00000030" stroke-width="1" fill="none"/>`;
+  }
+}
+function flowerG(type,x,y,k=1){
+  return `<g transform="translate(${x},${y}) scale(${k})">
+    <path d="M0 0 L0 20" stroke="#5a9e4a" stroke-width="2"/>
+    <path d="M0 11 Q-7 8 -8 3 Q-2 5 0 9Z" fill="#6cb85a"/>
+    <g>${flowerHead(type)}</g></g>`;
+}
+function flowerSvg(type,size=46){
+  return `<svg viewBox="-14 -18 28 40" width="${size}" height="${Math.round(size*40/28)}">${flowerG(type,0,0,1)}</svg>`;
+}
+function vaseG(x,y,k=1){
+  return `<g transform="translate(${x},${y}) scale(${k})"><path d="M-6 0 Q-8 6 -5 12 L5 12 Q8 6 6 0 Z" fill="#7db3d9"/><path d="M-4 2 Q-5 6 -3.4 10" stroke="#ffffff70" stroke-width="1.6" fill="none"/></g>`;
+}
+
+function uid(){return 'i'+Date.now()+Math.random().toString(36).slice(2,5);}
+function dayKey(d=new Date()){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function toast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2200);
+}
+function popHearts(){
+  const h=$('heartsBar'); h.classList.remove('hpop'); void h.offsetWidth; h.classList.add('hpop');
+}
+
+async function saveLiving(){
+  const payload={...LV,garden:{...LV.garden,plots:(LV.garden.plots||[]).map(p=>p||{e:1})}};
+  await DB.setObj('living',payload); renderHearts(); renderLiving(); renderCareList();
+}
+async function earnHeart(kind,amount){
+  const dk=dayKey();
+  LV.dailyEarn[dk]=LV.dailyEarn[dk]||{};
+  const used=LV.dailyEarn[dk][kind]||0;
+  if(kind==='visit'){
+    if(LV.dailyEarn[dk].visitOnce)return;
+    LV.dailyEarn[dk].visitOnce=1;
+  }
+  if(kind!=='care'&&kind!=='milestone'&&kind!=='harvest'&&kind!=='sleep'&&kind!=='season'){
+    const total=Object.values(LV.dailyEarn[dk]).reduce((a,b)=>a+b,0);
+    if(total>=DAILY_ACT_CAP)return;
+    if(used>=3)return;
+    LV.dailyEarn[dk][kind]=used+1;
+  }
+  LV.hearts=(LV.hearts||0)+amount;
+  await saveLiving();
+  popHearts();
+  toast('💗 +' + amount + ' 하트!');
+}
+function scheduleCare(count){
+  const times=[]; const now=Date.now();
+  for(let i=0;i<count;i++){
+    const h=4+Math.random()*10;
+    times.push(now+h*3600000);
+  }
+  return times.sort((a,b)=>a-b);
+}
+function dueCare(schedule){return(schedule||[]).filter(t=>t<=Date.now()).length;}
+function nextCareLabel(schedule){
+  const d=(schedule||[]).filter(t=>t<=Date.now());
+  if(d.length)return d.length+'개 케어 필요!';
+  const n=(schedule||[]).find(t=>t>Date.now());
+  return n?'다음: '+new Date(n).toLocaleTimeString('ko',{hour:'2-digit',minute:'2-digit'}):'편안해요';
+}
+function checkMilestone(){
+  if(!S.start)return;
+  const t=new Date(); t.setHours(0,0,0,0);
+  const sd=new Date(S.start+'T00:00:00');
+  const days=Math.floor((t-sd)/864e5)+1;
+  const milestone=Math.floor(days/50)*50;
+  if(milestone>0&&milestone>(LV.lastMilestone||0)){
+    const bonus=Math.floor((milestone-(LV.lastMilestone||0))/50)*MILESTONE_REWARD;
+    LV.lastMilestone=milestone;
+    LV.hearts=(LV.hearts||0)+bonus;
+    toast('🎉 '+milestone+'일 달성! 💗+'+bonus);
+    saveLiving();
+  }
+}
 
 async function refreshLocal(n){ setD[n](await DB.load(n)); renderAll(); }
 
 function toArr(v){ return v?Object.entries(v).map(([id,o])=>({id,...o})):[]; }
 async function boot(){
   if(db){
-    ['events','annis','photos','notes'].forEach(n=>
+    ['events','annis','photos','notes','qa'].forEach(n=>
       db.ref(n).on('value',s=>{ setD[n](toArr(s.val())); renderAll(); }));
     db.ref('settings').on('value',s=>{ const v=s.val(); if(v){S={...S,...v};applySet();renderAll();} });
     db.ref('avatars').on('value',s=>{ AV=s.val()||{}; applyAv(); });
+    db.ref('living').on('value',s=>{ LV=mergeLiving(s.val()); renderHearts(); renderLiving(); renderCareList(); renderSeasonCard(); });
   }else{
     $('localbanner').style.display='block';
     AV=JSON.parse(localStorage.getItem('avatars')||'{}'); applyAv();
-    for(const n of ['events','annis','photos','notes']) setD[n](await DB.load(n));
+    for(const n of ['events','annis','photos','notes','qa']) setD[n](await DB.load(n));
+    LV=mergeLiving(await DB.getObj('living'));
   }
   S={...S,...await DB.getSet()};
-  applySet(); renderAll();
+  applySet(); renderAll(); checkMilestone();
+  if(!db && !localStorage.getItem('living')) await saveLiving();
 }
 
 function applySet(){
@@ -287,6 +751,7 @@ function applySet(){
   $('sn1').value=S.n1; $('sn2').value=S.n2; $('sstart').value=S.start||'';
   $('sh1').value=S.h1; $('sh2').value=S.h2;
   $('w1').textContent=S.n1; $('w2').textContent=S.n2;
+  if($('qw1')){$('qw1').textContent=S.n1; $('qw2').textContent=S.n2;}
   document.querySelectorAll('.hB').forEach(e=>e.setAttribute('fill',S.h1));
   document.querySelectorAll('.hG').forEach(e=>e.setAttribute('fill',S.h2));
   $('modeinfo').textContent = db ? '💑 같이 쓰기 켜짐 — 실시간 공유 중!' : '📱 내 기기 저장 모드';
@@ -330,6 +795,7 @@ function applyAv(){
 
 /* ---- 홈 ---- */
 function renderHome(){
+  checkMilestone();
   const t=new Date(); t.setHours(0,0,0,0);
   if(S.start){
     const sd=new Date(S.start+'T00:00:00');
@@ -419,6 +885,7 @@ $('pfile').onchange=async e=>{
     let img=await compress(f,700,.65);
     if(img.length>900000) img=await compress(f,480,.45);
     await DB.add('photos',{img,cap:$('pcap').value.trim(),date:todayStr()});
+    await earnHeart('photo',ACT_REWARD);
   }
   $('pcap').value=''; e.target.value='';
 };
@@ -455,6 +922,7 @@ function setWho(w){ who=w; localStorage.setItem('who',w);
 async function addNote(){
   const t=$('ntext').value.trim(); if(!t)return;
   await DB.add('notes',{who,text:t}); $('ntext').value='';
+  await earnHeart('note',ACT_REWARD);
 }
 $('ntext').addEventListener('keydown',e=>{if(e.key==='Enter')addNote();});
 function renderNotes(){
@@ -468,9 +936,637 @@ function renderNotes(){
 }
 const esc=s=>s.replace(/</g,'&lt;');
 
+/* ---- Q&A 질문방 ---- */
+function activeQA(){return qaList.filter(q=>!q.revealed).sort((a,b)=>b.ts-a.ts)[0];}
+async function startQA(){
+  const used=new Set(qaList.map(q=>q.question));
+  let pool=QA_POOL.filter(q=>!used.has(q));
+  if(!pool.length)pool=[...QA_POOL];
+  const question=pool[Math.floor(Math.random()*pool.length)];
+  await DB.add('qa',{question,a1:'',a2:'',revealed:false});
+  toast('새 질문이 도착했어요! 💑');
+}
+async function submitQAAns(id){
+  const el=$(`qa_in_${id}`); if(!el)return;
+  const text=el.value.trim(); if(!text)return;
+  const q=qaList.find(x=>x.id===id); if(!q)return;
+  const key='a'+who;
+  if(q[key]){toast('이미 답했어요!');return;}
+  if(db){await db.ref('qa/'+id).update({[key]:text});}
+  else{
+    const a=JSON.parse(localStorage.getItem('qa')||'[]');
+    const i=a.findIndex(x=>x.id===id); if(i>=0){a[i][key]=text; localStorage.setItem('qa',JSON.stringify(a)); setD.qa(a);}
+  }
+  await earnHeart('qa',ACT_REWARD);
+  renderQA();
+}
+async function revealQA(id){
+  const q=qaList.find(x=>x.id===id);
+  if(!q||!q.a1||!q.a2){toast('둘 다 답해야 열 수 있어요!');return;}
+  if(db){await db.ref('qa/'+id).update({revealed:true});}
+  else{
+    const a=JSON.parse(localStorage.getItem('qa')||'[]');
+    const i=a.findIndex(x=>x.id===id); if(i>=0){a[i].revealed=true; localStorage.setItem('qa',JSON.stringify(a)); setD.qa(a);}
+  }
+  renderQA();
+}
+function qaAnsText(val,isOwner,doneLabel){
+  if(!val)return isOwner?`<input type="text" id="qa_in_${activeQA().id}" placeholder="솔직하게 답해봐..." maxlength="200">`:'🔒 아직 비밀';
+  if(isOwner)return esc(val);
+  return '🔒 '+doneLabel+' 답변 완료';
+}
+function renderQA(){
+  const cur=activeQA();
+  if(cur){
+    const both=cur.a1&&cur.a2;
+    $('qaActive').innerHTML=`<div class="qcard">
+      <div class="hint">오늘의 커플 질문</div>
+      <div class="q">${esc(cur.question)}</div>
+      <div class="qans">
+        <div class="qbox"><div class="qlabel">${S.n1}의 답</div>
+          <div class="qtext">${qaAnsText(cur.a1,who===1,S.n1)}</div>
+          ${who===1&&!cur.a1?`<button class="btn sm" style="margin-top:6px" onclick="submitQAAns('${cur.id}')">답하기</button>`:''}
+          ${cur.a1?'<span class="seal">완료</span>':''}</div>
+        <div class="qbox"><div class="qlabel">${S.n2}의 답</div>
+          <div class="qtext">${qaAnsText(cur.a2,who===2,S.n2)}</div>
+          ${who===2&&!cur.a2?`<button class="btn sm" style="margin-top:6px" onclick="submitQAAns('${cur.id}')">답하기</button>`:''}
+          ${cur.a2?'<span class="seal">완료</span>':''}</div>
+      </div>
+      ${both?`<button class="btn" style="margin-top:10px;width:100%" onclick="revealQA('${cur.id}')">🎁 둘 다 답했어! 함께 열어보기</button>`:
+        '<div class="mut" style="margin-top:8px">둘 다 답하면 함께 열 수 있어요 ✨</div>'}
+    </div>`;
+  }else{
+    $('qaActive').innerHTML='<div class="mut" style="text-align:center;padding:16px">아직 진행 중인 질문이 없어요.<br>아래 버튼으로 새 질문을 뽑아보세요! 🎲</div>';
+  }
+  const hist=[...qaList].filter(q=>q.revealed).sort((a,b)=>b.ts-a.ts).slice(0,12);
+  $('qaHist').innerHTML=hist.map(q=>`<div class="qhistitem">
+    <b>${esc(q.question)}</b><br>
+    <small>${S.n1}:</small> ${esc(q.a1)}<br>
+    <small>${S.n2}:</small> ${esc(q.a2)}
+  </div>`).join('')||'<div class="mut">아직 열어본 Q&A가 없어요</div>';
+  $('qw1').classList.toggle('on',who===1); $('qw2').classList.toggle('on',who===2);
+}
+
+/* ---- 리빙룸 ---- */
+let locView='room';
+function renderHearts(){
+  $('heartNum').textContent=LV.hearts||0;
+}
+function setLoc(v){
+  locView=v;
+  ['Room','Garden','Shop'].forEach(n=>{const el=$('loc'+n); if(el)el.classList.toggle('on',v===n.toLowerCase());});
+  renderLiving();
+}
+function hashStr(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h;}
+function pinG(x,y,txt){
+  return `<g class="pin" transform="translate(${x},${y})"><circle r="8" fill="#ff8fab" stroke="#fff" stroke-width="1.5"/><text y="3.4" text-anchor="middle" font-size="9" fill="#fff" font-family="Jua">${txt}</text></g>`;
+}
+function windowSky(x,y,w,h){
+  const night=isNight(),s=seasonOf();
+  if(night){
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#1d2a52"/>
+      <circle cx="${x+w-20}" cy="${y+18}" r="10" fill="#f5ecc8"/><circle cx="${x+w-24}" cy="${y+15}" r="3" fill="#e3d9b0"/>
+      <circle class="twk" cx="${x+12}" cy="${y+12}" r="1.6" fill="#fff"/><circle class="twk t2" cx="${x+32}" cy="${y+28}" r="1.3" fill="#fff"/><circle class="twk t3" cx="${x+18}" cy="${y+44}" r="1.5" fill="#fff"/>`;
+  }
+  const sky={spring:'#a8dcf0',summer:'#8fd3f0',fall:'#b5d3e8',winter:'#cfdce8'}[s];
+  let inner=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${sky}"/>
+    <circle cx="${x+18}" cy="${y+16}" r="9" fill="#ffd94d"/>
+    <ellipse cx="${x+w-22}" cy="${y+20}" rx="13" ry="6" fill="#ffffffcc"/>`;
+  if(s==='spring')inner+=`<circle cx="${x+w-16}" cy="${y+h-14}" r="8" fill="#ffb7cf"/><circle cx="${x+w-30}" cy="${y+h-8}" r="6" fill="#ffc9da"/>`;
+  if(s==='summer')inner+=`<path d="M${x} ${y+h-8} Q${x+w/2} ${y+h-18} ${x+w} ${y+h-8} L${x+w} ${y+h} L${x} ${y+h}Z" fill="#7dc96a"/>`;
+  if(s==='fall')inner+=`<circle cx="${x+w-18}" cy="${y+h-12}" r="9" fill="#e8964f"/><circle cx="${x+w-33}" cy="${y+h-7}" r="6" fill="#d97b3f"/>`;
+  if(s==='winter')inner+=`<rect x="${x}" y="${y+h-10}" width="${w}" height="10" fill="#fff"/>`;
+  return inner;
+}
+function woodFloor(y,h){
+  let out=`<rect x="0" y="${y}" width="480" height="${h}" fill="#a97c50"/>`;
+  for(let i=1;i<h/22;i++)out+=`<line x1="0" y1="${y+i*22}" x2="480" y2="${y+i*22}" stroke="#966b43" stroke-width="1.6"/>`;
+  for(let i=0;i<8;i++)out+=`<line x1="${30+i*62}" y1="${y+(i%3)*22}" x2="${30+i*62}" y2="${y+(i%3)*22+22}" stroke="#966b43" stroke-width="1.4"/>`;
+  return out;
+}
+function garlandG(night){
+  let out=`<path d="M0 10 Q120 22 240 10 Q360 22 480 10" stroke="#8a6a55" stroke-width="1.6" fill="none"/>`;
+  const cols=['#ff8fab','#ffd24d','#7dc96a','#7da7e8','#c9a0e8'];
+  for(let i=0;i<10;i++){
+    const x=24+i*48, y=13+Math.sin(i*1.2)*4+4;
+    out+=`<circle class="${night?'twk t'+((i%3)+1):''}" cx="${x}" cy="${y}" r="3.4" fill="${cols[i%5]}" ${night?'':'opacity=".55"'}/>`;
+  }
+  return out;
+}
+function cropG(p,cx,cy){
+  const stage=p.stage||0, c=(FRUITS[p.type]||FRUITS.tomato).c;
+  if(stage===0)return `<circle cx="${cx-7}" cy="${cy+7}" r="2" fill="#e3d3a8"/><circle cx="${cx+2}" cy="${cy+9}" r="2" fill="#e3d3a8"/><circle cx="${cx+9}" cy="${cy+6}" r="2" fill="#e3d3a8"/>`;
+  if(stage===1)return `<path d="M${cx} ${cy+10} L${cx} ${cy-2}" stroke="#5a9e4a" stroke-width="2.4"/><path d="M${cx} ${cy+2} Q${cx-8} ${cy-2} ${cx-9} ${cy-8} Q${cx-2} ${cy-5} ${cx} ${cy}Z" fill="#6cb85a"/><path d="M${cx} ${cy+4} Q${cx+8} ${cy} ${cx+9} ${cy-6} Q${cx+2} ${cy-3} ${cx} ${cy+1}Z" fill="#7dc96a"/>`;
+  let out=`<circle cx="${cx-8}" cy="${cy+2}" r="7" fill="#5aa64a"/><circle cx="${cx+8}" cy="${cy+2}" r="7" fill="#6cb85a"/><circle cx="${cx}" cy="${cy-4}" r="8" fill="#7dc96a"/>`;
+  if(stage===3)out+=`<circle cx="${cx-6}" cy="${cy+2}" r="3" fill="${c}"/><circle cx="${cx+7}" cy="${cy-1}" r="3" fill="${c}"/>`;
+  if(stage>=4)out+=`<circle cx="${cx-7}" cy="${cy+2}" r="4.6" fill="${c}"/><circle cx="${cx+8}" cy="${cy-1}" r="4.6" fill="${c}"/><circle cx="${cx+1}" cy="${cy+6}" r="4.6" fill="${c}"/>
+    <text class="spark" x="${cx+14}" y="${cy-10}" font-size="10">✨</text>`;
+  return out;
+}
+function indoorPotG(p,x,y,k){
+  const stage=p.stage||0, c=(FRUITS[p.type]||FRUITS.tomato).c;
+  const ready=stage>=4, due=dueCare(p.care);
+  let plant='';
+  if(stage<=1)plant=`<path d="M0 -2 L0 -12" stroke="#5a9e4a" stroke-width="2"/><circle cx="-4" cy="-13" r="4" fill="#6cb85a"/><circle cx="4" cy="-14" r="4" fill="#7dc96a"/>`;
+  else{
+    plant=`<circle cx="-6" cy="-16" r="6" fill="#5aa64a"/><circle cx="6" cy="-16" r="6" fill="#6cb85a"/><circle cx="0" cy="-22" r="7" fill="#7dc96a"/>`;
+    if(stage===3)plant+=`<circle cx="-5" cy="-15" r="2.6" fill="${c}"/><circle cx="6" cy="-18" r="2.6" fill="${c}"/>`;
+    if(ready)plant+=`<circle cx="-6" cy="-15" r="3.8" fill="${c}"/><circle cx="6" cy="-18" r="3.8" fill="${c}"/><circle cx="0" cy="-12" r="3.8" fill="${c}"/>`;
+  }
+  return `<g class="clk" onclick="${ready?`harvestIndoor('${p.id}')`:`careIndoor('${p.id}')`}" transform="translate(${x},${y}) scale(${k})">
+    <path d="M-9 0 L9 0 L7 14 L-7 14Z" fill="#c9713f"/><rect x="-10" y="-3" width="20" height="5" rx="2" fill="#b35c31"/>
+    ${plant}${ready?`<text class="spark" x="10" y="-24" font-size="9">✨</text>`:''}${due&&!ready?pinG(12,-20,'💧'):''}</g>`;
+}
+function seasonDecorG(){
+  const s=seasonOf();
+  const it=SEASON_ITEMS[s];
+  if(!(LV.seasonDecor||[]).includes(it.id))return '';
+  if(s==='spring'){
+    let out=`<path d="M216 34 Q254 46 292 34" stroke="#8a6a55" stroke-width="1.4" fill="none"/>`;
+    for(let i=0;i<5;i++){const x=222+i*14,y=38+Math.sin(i*1.5)*3+3;
+      out+=`<g transform="translate(${x},${y}) scale(.5)">${flowerHead('sakura')}</g>`;}
+    return out;
+  }
+  if(s==='summer')return `<g transform="translate(300,120) rotate(8)"><ellipse cx="0" cy="0" rx="11" ry="34" fill="#5bc8e8"/><ellipse cx="0" cy="0" rx="5" ry="30" fill="#fff8"/><line x1="0" y1="-30" x2="0" y2="30" stroke="#3fa8d9" stroke-width="2"/></g>`;
+  if(s==='fall'){
+    let out='';
+    for(let i=0;i<8;i++){const a=i*45*Math.PI/180;
+      out+=`<circle cx="${25+Math.cos(a)*11}" cy="${118+Math.sin(a)*11}" r="4.4" fill="${i%2?'#e8964f':'#c9713f'}"/>`;}
+    return out+`<circle cx="25" cy="118" r="5" fill="#00000000"/>`;
+  }
+  /* winter: 벽난로 위 미니트리 + 양말 */
+  return `<g transform="translate(70,62)"><path d="M0 22 L10 22 L5 0Z" fill="#3d8a4f"/><path d="M1 16 L9 16 L5 4Z" fill="#4fa860"/><rect x="3.6" y="22" width="2.8" height="4" fill="#7a4a2f"/><text x="5" y="4" text-anchor="middle" font-size="7">⭐</text>
+    <circle class="twk" cx="3" cy="12" r="1.4" fill="#ff8fab"/><circle class="twk t2" cx="7" cy="17" r="1.4" fill="#ffd24d"/></g>
+    <g transform="translate(96,88)"><path d="M0 0 L0 10 Q0 15 5 15 Q9 15 9 11 L7 10 L7 0Z" fill="#d94360"/><rect x="-1" y="0" width="9" height="4" fill="#fff"/></g>
+    <g transform="translate(118,88)"><path d="M0 0 L0 10 Q0 15 5 15 Q9 15 9 11 L7 10 L7 0Z" fill="#4fa860"/><rect x="-1" y="0" width="9" height="4" fill="#fff"/></g>`;
+}
+function roomScene(){
+  const th=THEMES[LV.theme]||THEMES.cozy;
+  const night=isNight(), sleeping=isSleeping();
+  const fireStrong=night||seasonOf()==='winter'||seasonOf()==='fall';
+  let g=`<svg class="scene" viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg">`;
+  /* 벽 + 바닥 */
+  g+=`<rect width="480" height="190" fill="${th.wall}"/>
+      <rect y="158" width="480" height="32" fill="#d9b98a"/>
+      <line x1="0" y1="158" x2="480" y2="158" stroke="#c2a071" stroke-width="2"/>`;
+  for(let i=1;i<16;i++)g+=`<line x1="${i*30}" y1="160" x2="${i*30}" y2="190" stroke="#c9a878" stroke-width="1.2"/>`;
+  g+=woodFloor(190,130);
+  /* 러그 */
+  g+=`<ellipse cx="238" cy="268" rx="92" ry="30" fill="#e8b4a0"/><ellipse cx="238" cy="268" rx="72" ry="22" fill="#f2cdbf"/><ellipse cx="238" cy="268" rx="50" ry="15" fill="#e8b4a0"/>`;
+  /* 가랜드 조명 */
+  g+=garlandG(night);
+  /* 텃밭 문 */
+  g+=`<g class="clk" onclick="setLoc('garden')">
+      <rect x="6" y="84" width="40" height="106" rx="3" fill="#7a4a2f"/>
+      <rect x="10" y="88" width="32" height="98" rx="2" fill="#9a6a42"/>
+      <rect x="14" y="94" width="24" height="38" rx="2" fill="#b98a5a"/>
+      <rect x="14" y="140" width="24" height="38" rx="2" fill="#b98a5a"/>
+      <circle cx="38" cy="138" r="2.6" fill="#ffd24d"/>
+      <rect x="4" y="70" width="46" height="13" rx="4" fill="#8a6a55"/>
+      <text x="27" y="80" text-anchor="middle" font-size="9" fill="#fff" font-family="Jua">텃밭 🌿</text></g>`;
+  /* 벽난로 */
+  g+=`<rect x="58" y="88" width="92" height="102" fill="#b3adb8"/>
+      <rect x="58" y="88" width="92" height="102" fill="none" stroke="#948e9a" stroke-width="2"/>`;
+  for(let r=0;r<5;r++)for(let c2=0;c2<4;c2++)
+    g+=`<rect x="${62+c2*22+(r%2?8:0)}" y="${94+r*18}" width="18" height="13" rx="3" fill="#a29caa"/>`;
+  g+=`<rect x="52" y="82" width="104" height="10" rx="3" fill="#7a4a2f"/>
+      <path d="M74 190 L74 132 Q74 122 84 122 L124 122 Q134 122 134 132 L134 190Z" fill="#2c211d"/>
+      <rect x="80" y="176" width="20" height="8" rx="3" fill="#6b4226" transform="rotate(-12 90 180)"/>
+      <rect x="104" y="176" width="20" height="8" rx="3" fill="#7a4a2f" transform="rotate(10 114 180)"/>
+      <g class="flame"><path d="M104 184 Q92 168 100 152 Q103 162 107 156 Q114 166 112 176 Q118 170 116 162 Q124 174 116 184Z" fill="#f5852f"/>
+      <path d="M104 184 Q98 172 103 162 Q106 170 110 166 Q113 176 108 184Z" fill="#ffc94d"/></g>
+      ${fireStrong?'<ellipse cx="104" cy="176" rx="34" ry="18" fill="#ff9d3f" opacity=".18"/>':''}
+      <rect x="88" y="70" width="32" height="24" rx="3" fill="#fff" stroke="#d9b98a" stroke-width="2"/>
+      <text x="104" y="86" text-anchor="middle" font-size="12">💑</text>`;
+  /* 책장 */
+  g+=`<rect x="158" y="100" width="50" height="90" rx="3" fill="#8a5a35"/>
+      <rect x="162" y="106" width="42" height="22" fill="#6b4226"/>
+      <rect x="162" y="134" width="42" height="22" fill="#6b4226"/>
+      <rect x="162" y="162" width="42" height="22" fill="#6b4226"/>`;
+  const bcol=['#e8788a','#7da7e8','#7dc96a','#ffd24d','#c9a0e8','#e8964f'];
+  for(let sh=0;sh<3;sh++)for(let b=0;b<5;b++)
+    g+=`<rect x="${164+b*8}" y="${109+sh*28}" width="6" height="16" rx="1" fill="${bcol[(sh*5+b)%6]}"/>`;
+  /* 창문 */
+  g+=`<rect x="210" y="30" width="88" height="84" rx="4" fill="#7a4a2f"/>`;
+  g+=windowSky(216,36,76,72);
+  g+=`<line x1="254" y1="36" x2="254" y2="108" stroke="#7a4a2f" stroke-width="4"/>
+      <line x1="216" y1="72" x2="292" y2="72" stroke="#7a4a2f" stroke-width="4"/>
+      <path d="M210 30 L200 30 L204 114 L210 114Z" fill="${th.blanket}" opacity=".85"/>
+      <path d="M298 30 L308 30 L304 114 L298 114Z" fill="${th.blanket}" opacity=".85"/>`;
+  /* 빔프로젝터 + 스크린 */
+  g+=`<rect x="316" y="34" width="118" height="74" rx="4" fill="#fdfdf6" stroke="#c9bfa8" stroke-width="3"/>
+      <rect x="356" y="16" width="20" height="10" rx="3" fill="#5b5560"/><circle cx="366" cy="26" r="2.6" fill="#8fd3f0"/>
+      <polygon points="366,28 322,40 428,40" fill="#fff" opacity="${night?.16:.08}"/>
+      <text x="375" y="66" text-anchor="middle" font-size="17">🎬</text>
+      <text x="375" y="90" text-anchor="middle" font-size="11" fill="#c98a9a" font-family="Jua">${esc(S.n1)} ♥ ${esc(S.n2)}</text>`;
+  /* 침대 */
+  g+=`<rect x="452" y="148" width="16" height="106" rx="4" fill="#7a4a2f"/>
+      <rect x="336" y="196" width="120" height="52" rx="8" fill="#f5efe3"/>
+      <rect x="336" y="212" width="120" height="40" rx="8" fill="${th.blanket}"/>
+      <line x1="344" y1="224" x2="448" y2="224" stroke="#ffffff44" stroke-width="3"/>
+      <line x1="344" y1="236" x2="448" y2="236" stroke="#ffffff44" stroke-width="3"/>
+      <rect x="418" y="198" width="30" height="14" rx="5" fill="#fff"/>
+      <rect x="384" y="198" width="30" height="14" rx="5" fill="#fff"/>
+      <rect x="332" y="244" width="8" height="14" fill="#7a4a2f"/><rect x="448" y="244" width="8" height="14" fill="#7a4a2f"/>`;
+  /* 자쿠지 */
+  const inTub=!sleeping&&night;
+  g+=`<ellipse cx="88" cy="262" rx="52" ry="26" fill="#7a4a2f"/>
+      <ellipse cx="88" cy="258" rx="46" ry="21" fill="#97663f"/>
+      <ellipse cx="88" cy="256" rx="38" ry="16" fill="#86cbe8"/>
+      <path d="M62 254 Q74 248 86 254 Q98 260 110 254" stroke="#b8e4f5" stroke-width="2.4" fill="none"/>
+      <g class="steam"><path d="M70 240 Q66 232 70 226" stroke="#ffffffaa" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+      <g class="steam s2"><path d="M88 238 Q92 230 88 224" stroke="#ffffffaa" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+      <g class="steam s3"><path d="M106 240 Q102 232 106 226" stroke="#ffffffaa" stroke-width="3" fill="none" stroke-linecap="round"/></g>`;
+  /* 테이블 + 화병 */
+  g+=`<rect x="258" y="212" width="56" height="8" rx="3" fill="#8a5a35"/>
+      <rect x="264" y="220" width="6" height="22" fill="#7a4a2f"/><rect x="302" y="220" width="6" height="22" fill="#7a4a2f"/>`;
+  if(LV.vase){
+    const due=dueCare(LV.vase.care);
+    g+=`<g class="clk" onclick="careVase()">${vaseG(286,198,1)}${flowerG(LV.vase.flower,286,182,.85)}${due?pinG(302,178,'💧'):''}</g>`;
+  }else{
+    g+=vaseG(286,198,1);
+  }
+  /* 실내 화분 */
+  LV.indoor.forEach((p,i)=>{ g+=indoorPotG(p,i===0?176:330,i===0?282:270,1.15); });
+  /* 계절 한정 데코 */
+  g+=seasonDecorG();
+  /* 캐릭터 & 펫 */
+  if(!sleeping){
+    const h1=hashStr(dayKey()+'1'), spots=[[142,186],[224,192],[196,176],[288,230]];
+    const i1=h1%spots.length, i2=(i1+1+(h1>>3)%(spots.length-1))%spots.length;
+    if(inTub){
+      g+=`<g class="bobp">${charG(1,62,212,1.7)}</g><g class="bobp b2">${charG(2,94,210,1.7)}</g>
+          <ellipse cx="88" cy="264" rx="44" ry="14" fill="#86cbe8"/>
+          <path d="M40 262 Q88 294 136 262" stroke="#7a4a2f" stroke-width="9" fill="none"/>`;
+    }else{
+      g+=`<g class="bobp">${charG(1,spots[i1][0],spots[i1][1],2.6)}</g>
+          <g class="bobp b2">${charG(2,spots[i2][0],spots[i2][1],2.6)}</g>`;
+    }
+  }
+  LV.pets.forEach((p,i)=>{
+    const due=dueCare(p.care);
+    const pp=[[196,238],[246,246],[168,252]][i%3];
+    g+=petG(p,pp[0],pp[1],2.3,'wagp clk',`onclick="carePet('${p.id}')"`);
+    if(due)g+=pinG(pp[0]+22,pp[1]-10,'🍚');
+  });
+  /* 밤 오버레이 */
+  if(night){
+    g+=`<rect width="480" height="320" fill="#1b2440" opacity="${sleeping?.52:.38}" pointer-events="none"/>
+        <ellipse cx="104" cy="170" rx="46" ry="30" fill="#ff9d3f" opacity=".2" pointer-events="none"/>`;
+  }
+  /* 취침 연출 */
+  if(sleeping){
+    g+=`${charG(1,352,196,1.7)}${charG(2,394,194,1.7)}
+        <rect x="336" y="216" width="120" height="36" rx="8" fill="${th.blanket}"/>
+        <line x1="344" y1="230" x2="448" y2="230" stroke="#ffffff44" stroke-width="3"/>
+        <text class="zz" x="380" y="186" font-size="13" fill="#fff" font-family="Jua">z</text>
+        <text class="zz z2" x="392" y="176" font-size="16" fill="#fff" font-family="Jua">Z</text>
+        <text class="zz z3" x="406" y="166" font-size="19" fill="#fff" font-family="Jua">Z</text>`;
+  }
+  g+='</svg>';
+  return `<div class="living-scene">${g}</div>`;
+}
+function sleepBarHtml(){
+  if(isSleeping())return `<div class="sleep-bar"><span>💤 둘 다 꿈나라예요... 아침 6시에 만나요</span><button class="btn sm ghost" disabled>자는 중</button></div>`;
+  if(isNight())return `<div class="sleep-bar"><span>🌙 밤이 깊었어요</span><button class="btn sm" onclick="goSleep()">잠자러 가기 +10💗</button></div>`;
+  return `<div class="sleep-bar"><span>☀️ 해가 떠 있어요</span><span style="font-size:11px;color:#c7a3ad">밤 8시부터 잘 수 있어요</span></div>`;
+}
+async function goSleep(){
+  if(!isNight()){toast('밤(20시~)에만 잘 수 있어요 🌙');return;}
+  if(LV.sleepNight===nightKey()){toast('이미 자고 있어요 💤');return;}
+  LV.sleepNight=nightKey();
+  LV.hearts=(LV.hearts||0)+10;
+  await saveLiving(); popHearts(); toast('잘 자요 💤 +10💗');
+}
+function renderLiving(){
+  renderHearts();
+  const v=locView||'room';
+  ['Room','Garden','Shop'].forEach(n=>{const el=$('loc'+n); if(el)el.classList.toggle('on',v===n.toLowerCase());});
+  if(v==='shop'){ renderShop(); return; }
+  if(v==='garden'){ renderGarden(); return; }
+  $('livingView').innerHTML=roomScene()+sleepBarHtml()
+    +'<div class="mut">문🚪을 누르면 텃밭으로! 반려동물·화병·화분을 눌러 케어할 수 있어요 (+5💗)</div>';
+}
+function renderShop(){
+  const s=seasonOf(), si=SEASON_ITEMS[s], sm=SEASON_META[s];
+  const petFull=LV.pets.length>=3;
+  let h=`<div class="stitle">🐶 강아지 분양 (💗${PET_COST}) <small style="color:#c7a3ad">최대 3마리</small></div><div class="shop-grid g3">`;
+  for(const[b,info] of Object.entries(DOG_BREEDS)){
+    const owned=LV.pets.some(p=>p.type==='dog'&&p.breed===b);
+    h+=`<div class="shop-item ${owned||petFull?'disabled':''}" onclick="buyPet('dog','${b}')">
+      <span class="si">${petSvg('dog',b)}</span>${info.n}<span class="cost">${owned?'함께 살아요 💕':'💗 '+PET_COST}</span></div>`;
+  }
+  h+=`</div><div class="stitle" style="margin-top:14px">🐱 고양이 분양 (💗${PET_COST})</div><div class="shop-grid g3">`;
+  for(const[b,info] of Object.entries(CAT_BREEDS)){
+    const owned=LV.pets.some(p=>p.type==='cat'&&p.breed===b);
+    h+=`<div class="shop-item ${owned||petFull?'disabled':''}" onclick="buyPet('cat','${b}')">
+      <span class="si">${petSvg('cat',b)}</span>${info.n}<span class="cost">${owned?'함께 살아요 💕':'💗 '+PET_COST}</span></div>`;
+  }
+  h+=`</div><div class="stitle" style="margin-top:14px">🌸 꽃 & 화병 (💗${FLOWER_COST})</div><div class="shop-grid g3">`;
+  for(const[f,info] of Object.entries(FLOWERS)){
+    const cur=LV.vase&&LV.vase.flower===f;
+    h+=`<div class="shop-item ${cur?'disabled':''}" onclick="buyFlower('${f}')">
+      <span class="si">${flowerSvg(f,30)}</span>${info.n}<span class="cost">${cur?'꽂혀 있어요':'💗 '+FLOWER_COST}</span></div>`;
+  }
+  h+=`</div><div class="stitle" style="margin-top:14px">🪴 미니과일 화분 (💗10) <small style="color:#c7a3ad">최대 2개</small></div><div class="shop-grid g3">`;
+  for(const[k,item] of Object.entries(SHOP)){
+    if(item.type!=='indoor')continue;
+    const full=LV.indoor.length>=2;
+    h+=`<div class="shop-item ${full?'disabled':''}" onclick="buyItem('${k}')">
+      <span class="si">${potSvg(item.id)}</span>${FRUITS[item.id].n}<span class="cost">💗 ${item.cost}</span></div>`;
+  }
+  h+=`</div><div class="stitle" style="margin-top:14px">${sm.e} ${sm.n} 한정</div><div class="shop-grid">`;
+  {
+    const owned=(LV.seasonDecor||[]).includes(si.id);
+    h+=`<div class="shop-item ${owned?'disabled':''}" onclick="buySeasonItem()">
+      <span class="si">${seasonItemSvg(s)}</span>${si.n}<span class="cost">${owned?'보유 중 ✓':'💗 '+si.cost}</span></div>
+      <div class="shop-item" style="pointer-events:none;background:#fff6f9"><span class="si" style="font-size:26px;line-height:44px">${sm.e}</span>다음 계절에 새 아이템!<span class="cost">시즌 한정</span></div>`;
+  }
+  h+='</div><div class="stitle" style="margin-top:14px">🌿 텃밭 꾸미기</div><div class="shop-grid g3">';
+  for(const[k,item] of Object.entries(SHOP)){
+    if(item.type==='indoor')continue;
+    let disabled=false, sub='';
+    if(item.type==='gdecor'&&LV.garden.decor===item.id)disabled=true;
+    if(item.type==='plot'){
+      disabled=LV.garden.plots.some(x=>x===null);
+      sub=disabled?'빈 칸 있음':'+1칸';
+    }
+    h+=`<div class="shop-item ${disabled?'disabled':''}" onclick="buyItem('${k}')">
+      <span class="si" style="font-size:26px;line-height:44px">${item.icon}</span>${item.label}<span class="cost">💗 ${item.cost} ${sub}</span></div>`;
+  }
+  h+=`</div><div class="stitle" style="margin-top:14px">🏠 인테리어 (💗${THEME_COST})</div><div class="shop-grid">`;
+  for(const[t,info] of Object.entries(THEMES)){
+    const owned=(LV.themes||[]).includes(t);
+    h+=`<div class="shop-item ${LV.theme===t?'disabled':''}" onclick="buyTheme('${t}')">
+      <span class="sw" style="background:linear-gradient(135deg,${info.wall},${info.blanket})"></span><br>${info.e} ${info.n}<span class="cost">${LV.theme===t?'적용 중':owned?'무료 적용':'💗 '+THEME_COST}</span></div>`;
+  }
+  h+='</div>';
+  $('livingView').innerHTML=h;
+}
+function potSvg(fr,size=40){
+  const c=(FRUITS[fr]||FRUITS.tomato).c;
+  return `<svg viewBox="0 0 24 30" width="${Math.round(size*0.8)}" height="${size}">
+    <path d="M5 14 L19 14 L17 28 L7 28Z" fill="#c9713f"/><rect x="4" y="12" width="16" height="4" rx="1.4" fill="#b35c31"/>
+    <path d="M12 12 L12 4" stroke="#5a9e4a" stroke-width="2"/>
+    <circle cx="8" cy="6" r="3.4" fill="#6cb85a"/><circle cx="16" cy="5" r="3.4" fill="#6cb85a"/><circle cx="12" cy="3" r="3" fill="#7dc96a"/>
+    <circle cx="9" cy="9" r="2.6" fill="${c}"/><circle cx="15" cy="8" r="2.6" fill="${c}"/></svg>`;
+}
+function seasonItemSvg(s){
+  if(s==='spring')return `<svg viewBox="-4 -14 60 26" width="60" height="26"><path d="M0 -8 Q26 4 52 -8" stroke="#8a6a55" stroke-width="1.4" fill="none"/><g transform="translate(6,-4) scale(.5)">${flowerHead('sakura')}</g><g transform="translate(26,0) scale(.5)">${flowerHead('sakura')}</g><g transform="translate(46,-4) scale(.5)">${flowerHead('sakura')}</g></svg>`;
+  if(s==='summer')return `<svg viewBox="-16 -38 32 76" width="22" height="46"><ellipse rx="11" ry="34" fill="#5bc8e8"/><ellipse rx="5" ry="30" fill="#fff8"/><line y1="-30" y2="30" stroke="#3fa8d9" stroke-width="2"/></svg>`;
+  if(s==='fall'){
+    let out='';
+    for(let i=0;i<8;i++){const a=i*45*Math.PI/180;
+      out+=`<circle cx="${Math.cos(a)*12}" cy="${Math.sin(a)*12}" r="4.6" fill="${i%2?'#e8964f':'#c9713f'}"/>`;}
+    return `<svg viewBox="-18 -18 36 36" width="40" height="40">${out}</svg>`;
+  }
+  return `<svg viewBox="0 -4 12 32" width="20" height="46"><path d="M0 22 L11 22 L5.5 0Z" fill="#3d8a4f"/><path d="M1 16 L10 16 L5.5 4Z" fill="#4fa860"/><rect x="4" y="22" width="3" height="4" fill="#7a4a2f"/><circle cx="3.4" cy="12" r="1.4" fill="#ff8fab"/><circle cx="7.5" cy="17" r="1.4" fill="#ffd24d"/></svg>`;
+}
+function renderGarden(){
+  const night=isNight(), s=seasonOf();
+  const rows=Math.max(2,Math.ceil(LV.garden.plots.length/3));
+  const H=200+rows*78+16;
+  const skyC=night?'#16203d':{spring:'#a8dcf0',summer:'#8fd3f0',fall:'#bdd3e0',winter:'#c9d8e8'}[s];
+  const gndC={spring:'#93cf72',summer:'#7ec95e',fall:'#c9a25a',winter:'#e8eef5'}[s];
+  let g=`<svg class="scene" viewBox="0 0 480 ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  g+=`<rect width="480" height="150" fill="${skyC}"/><rect y="140" width="480" height="${H-140}" fill="${gndC}"/>
+      <ellipse cx="240" cy="146" rx="260" ry="14" fill="${gndC}"/>`;
+  if(night){
+    g+=`<circle cx="404" cy="46" r="16" fill="#f5ecc8"/><circle cx="397" cy="41" r="5" fill="#e3d9b0"/>
+        <circle class="twk" cx="60" cy="34" r="2" fill="#fff"/><circle class="twk t2" cx="150" cy="22" r="1.6" fill="#fff"/>
+        <circle class="twk t3" cx="250" cy="40" r="1.8" fill="#fff"/><circle class="twk" cx="330" cy="20" r="1.5" fill="#fff"/>`;
+    if(s==='summer')g+=`<circle class="twk" cx="180" cy="120" r="2.4" fill="#ffe27a"/><circle class="twk t2" cx="290" cy="130" r="2.4" fill="#ffe27a"/><circle class="twk t3" cx="360" cy="115" r="2.4" fill="#ffe27a"/>`;
+  }else{
+    g+=`<circle cx="410" cy="46" r="17" fill="#ffd94d"/>`;
+    for(let i=0;i<8;i++){const a=i*45*Math.PI/180;
+      g+=`<line x1="${410+Math.cos(a)*22}" y1="${46+Math.sin(a)*22}" x2="${410+Math.cos(a)*29}" y2="${46+Math.sin(a)*29}" stroke="#ffd94d" stroke-width="3" stroke-linecap="round"/>`;}
+    g+=`<g><ellipse cx="120" cy="40" rx="26" ry="11" fill="#ffffffdd"/><ellipse cx="140" cy="34" rx="18" ry="9" fill="#ffffffdd"/></g>
+        <ellipse cx="290" cy="26" rx="22" ry="9" fill="#ffffffbb"/>`;
+    if(s==='spring'||s==='summer')g+=`<g class="twk"><ellipse cx="296" cy="96" rx="5" ry="3.4" fill="#ff9ab5" transform="rotate(-24 296 96)"/><ellipse cx="304" cy="96" rx="5" ry="3.4" fill="#ffb7cf" transform="rotate(24 304 96)"/><circle cx="300" cy="97" r="1.6" fill="#5b4a4f"/></g>`;
+  }
+  /* 나무 */
+  g+=`<rect x="66" y="96" width="14" height="56" rx="4" fill="#7a4a2f"/>`;
+  if(s==='winter'){
+    g+=`<path d="M73 100 L58 78 M73 104 L88 80 M73 96 L73 70" stroke="#7a4a2f" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="58" cy="76" r="7" fill="#fff"/><circle cx="88" cy="78" r="7" fill="#fff"/><circle cx="73" cy="66" r="8" fill="#fff"/>`;
+  }else{
+    const leaf={spring:'#ffb7cf',summer:'#5aa64a',fall:'#e8964f'}[s];
+    const leaf2={spring:'#ff9ab5',summer:'#6cb85a',fall:'#d97b3f'}[s];
+    g+=`<circle cx="52" cy="80" r="20" fill="${leaf2}"/><circle cx="94" cy="80" r="20" fill="${leaf2}"/><circle cx="73" cy="60" r="26" fill="${leaf}"/><circle cx="73" cy="84" r="20" fill="${leaf}"/>`;
+    if(s==='fall')g+=`<circle cx="108" cy="120" r="3" fill="#d97b3f"/><circle cx="46" cy="128" r="3" fill="#e8964f"/>`;
+  }
+  if(s==='winter')g+=`<g transform="translate(430,108)"><circle cy="18" r="13" fill="#fff"/><circle r="9" fill="#fff"/><circle cx="-3" cy="-2" r="1.3" fill="#333"/><circle cx="3" cy="-2" r="1.3" fill="#333"/><path d="M0 1 L5 3" stroke="#e8964f" stroke-width="2.4"/><rect x="-8" y="-14" width="16" height="4" fill="#5b4a4f"/><rect x="-5" y="-22" width="10" height="9" fill="#5b4a4f"/></g>`;
+  /* 울타리 / 분수 */
+  if(LV.garden.decor==='fence'||LV.garden.decor==='fountain'){
+    for(let i=0;i<10;i++)g+=`<rect x="${128+i*36}" y="118" width="8" height="34" rx="3" fill="#b98a5a"/><path d="M${128+i*36} 118 L${132+i*36} 112 L${136+i*36} 118Z" fill="#b98a5a"/>`;
+    g+=`<rect x="124" y="126" width="340" height="5" fill="#a5794c"/><rect x="124" y="140" width="340" height="5" fill="#a5794c"/>`;
+  }
+  if(LV.garden.decor==='fountain'){
+    g+=`<ellipse cx="386" cy="166" rx="38" ry="13" fill="#a8b2bd"/><ellipse cx="386" cy="162" rx="32" ry="10" fill="#86cbe8"/>
+        <rect x="380" y="128" width="12" height="34" rx="3" fill="#949ea8"/><ellipse cx="386" cy="128" rx="14" ry="5" fill="#a8b2bd"/>
+        <g class="steam"><path d="M386 124 Q382 114 386 106" stroke="#86cbe8" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+        <g class="steam s2"><path d="M392 124 Q396 116 393 108" stroke="#a8dcf0" stroke-width="2.6" fill="none" stroke-linecap="round"/></g>`;
+  }
+  /* 돌아가는 문 */
+  g+=`<g class="clk" onclick="setLoc('room')">
+      <rect x="8" y="150" width="44" height="14" rx="4" fill="#8a6a55"/>
+      <text x="30" y="161" text-anchor="middle" font-size="10" fill="#fff" font-family="Jua">🏠 거실로</text></g>`;
+  /* 팻말 */
+  g+=`<rect x="196" y="112" width="88" height="22" rx="5" fill="#8a6a55"/><rect x="232" y="134" width="8" height="16" fill="#7a5a45"/>
+      <text x="240" y="128" text-anchor="middle" font-size="12" fill="#ffeeda" font-family="Jua">우리 텃밭 🌿</text>
+      <rect x="0" y="168" width="480" height="14" rx="4" fill="#c4a06a" opacity=".55"/>`;
+  /* 밭 */
+  LV.garden.plots.forEach((p,i)=>{
+    const col=i%3,row=Math.floor(i/3);
+    const x=24+col*152, y=182+row*78, w=136, hh=64;
+    if(!p){
+      g+=`<g class="clk" onclick="plantGarden(${i})">
+        <rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="9" fill="#9a6a3e" stroke="#6f4728" stroke-width="2"/>
+        <line x1="${x+10}" y1="${y+18}" x2="${x+w-10}" y2="${y+18}" stroke="#7a5230" stroke-width="2"/>
+        <line x1="${x+10}" y1="${y+32}" x2="${x+w-10}" y2="${y+32}" stroke="#7a5230" stroke-width="2"/>
+        <line x1="${x+10}" y1="${y+46}" x2="${x+w-10}" y2="${y+46}" stroke="#7a5230" stroke-width="2"/>
+        <text x="${x+w/2}" y="${y+hh/2-2}" text-anchor="middle" font-size="16" fill="#ffeeda">➕</text>
+        <text x="${x+w/2}" y="${y+hh/2+16}" text-anchor="middle" font-size="10" fill="#ffeeda" font-family="Jua">씨앗 심기 💗10</text></g>`;
+      return;
+    }
+    const ready=(p.stage||0)>=4, due=dueCare(p.care);
+    g+=`<g class="clk" onclick="${ready?`harvestPlot(${i})`:`careGarden(${i})`}">
+      <rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="9" fill="#8a5c36"/>
+      <line x1="${x+10}" y1="${y+16}" x2="${x+w-10}" y2="${y+16}" stroke="#6f4728" stroke-width="3"/>
+      <line x1="${x+10}" y1="${y+32}" x2="${x+w-10}" y2="${y+32}" stroke="#6f4728" stroke-width="3"/>
+      <line x1="${x+10}" y1="${y+48}" x2="${x+w-10}" y2="${y+48}" stroke="#6f4728" stroke-width="3"/>
+      ${cropG(p,x+w/2,y+30)}
+      <text x="${x+w/2}" y="${y+hh-5}" text-anchor="middle" font-size="9.5" fill="#ffeeda" font-family="Jua">${(FRUITS[p.type]||FRUITS.tomato).n} · ${ready?'수확하기!':['씨앗','새싹','자람','거의 다!','수확'][p.stage||0]}</text>
+      ${due&&!ready?pinG(x+w-12,y+10,'💧'):''}</g>`;
+  });
+  if(night)g+=`<rect width="480" height="${H}" fill="#1b2440" opacity=".34" pointer-events="none"/>`;
+  g+='</svg>';
+  $('livingView').innerHTML=`<div class="living-scene">${g}</div>
+    <div class="mut">밭을 눌러 심고(💗10) · 물주면 +5💗 · 다 자라면 수확 +15💗</div>`;
+}
+function renderCareList(){
+  const items=[];
+  LV.pets.forEach(p=>items.push({label:(p.type==='dog'?'🐶 ':'🐱 ')+petName(p),due:dueCare(p.care),fn:`carePet('${p.id}')`,status:nextCareLabel(p.care)}));
+  if(LV.vase)items.push({label:'🌸 '+(FLOWERS[LV.vase.flower]||FLOWERS.rose).n,due:dueCare(LV.vase.care),fn:'careVase()',status:nextCareLabel(LV.vase.care)});
+  LV.indoor.forEach(p=>items.push({label:(FRUITS[p.type]||FRUITS.tomato).e+' '+(FRUITS[p.type]||FRUITS.tomato).n+' 화분',due:dueCare(p.care),fn:`careIndoor('${p.id}')`,status:nextCareLabel(p.care)}));
+  LV.garden.plots.forEach((p,i)=>{if(p&&p.stage<4)items.push({label:'🌿 텃밭 '+(i+1)+' ('+(FRUITS[p.type]||FRUITS.tomato).n+')',due:dueCare(p.care),fn:`careGarden(${i})`,status:nextCareLabel(p.care)});});
+  if(!items.length){$('careList').innerHTML='';return;}
+  $('careList').innerHTML='<div class="stitle" style="margin-top:12px">🧡 케어 현황</div>'+items.map(it=>
+    `<div class="status-row"><span>${it.label} <small style="color:#c7a3ad">${it.status}</small></span>
+    <button class="care-btn ${it.due?'urgent':''}" onclick="${it.fn}">${it.due?'케어하기':'관리'}</button></div>`
+  ).join('');
+}
+async function buyPet(type,breed){
+  if(LV.pets.length>=3){toast('반려동물은 3마리까지 키울 수 있어요');return;}
+  if(LV.pets.some(p=>p.type===type&&p.breed===breed)){toast('이미 함께 살고 있어요!');return;}
+  if((LV.hearts||0)<PET_COST){toast('하트가 부족해요 💔');return;}
+  LV.hearts-=PET_COST;
+  LV.pets.push({id:uid(),type,breed,care:scheduleCare(1+Math.floor(Math.random()*3))});
+  await saveLiving();
+  toast((type==='dog'?'🐶 ':'🐱 ')+(type==='dog'?DOG_BREEDS:CAT_BREEDS)[breed].n+'가 이사왔어요!');
+  if(locView==='shop')renderShop();
+}
+async function buyItem(key){
+  const item=SHOP[key]; if(!item)return;
+  if((LV.hearts||0)<item.cost){toast('하트가 부족해요 💔');return;}
+  if(item.type==='indoor'){
+    if(LV.indoor.length>=2){toast('화분은 2개까지!');return;}
+    LV.indoor.push({id:uid(),type:item.id,stage:0,care:scheduleCare(1+Math.floor(Math.random()*2)),plantedAt:Date.now()});
+  }else if(item.type==='gdecor'){
+    LV.garden.decor=item.id;
+  }else if(item.type==='plot'){
+    if(LV.garden.plots.some(x=>x===null)){toast('아직 빈 텃밭 칸이 있어요!');return;}
+    LV.garden.plots.push(null);
+  }
+  LV.hearts-=item.cost;
+  await saveLiving();
+  toast('구매 완료! 🛍️');
+  if(locView==='shop')renderShop();
+}
+async function buySeasonItem(){
+  const si=SEASON_ITEMS[seasonOf()];
+  if((LV.seasonDecor||[]).includes(si.id)){toast('이미 보유 중이에요');return;}
+  if((LV.hearts||0)<si.cost){toast('하트가 부족해요 💔');return;}
+  LV.hearts-=si.cost;
+  LV.seasonDecor=[...(LV.seasonDecor||[]),si.id];
+  await saveLiving();
+  toast(si.n+' 설치 완료! 거실을 확인해보세요');
+  if(locView==='shop')renderShop();
+}
+async function buyFlower(f){
+  if(LV.vase&&LV.vase.flower===f){toast('이미 꽂혀 있는 꽃이에요');return;}
+  if((LV.hearts||0)<FLOWER_COST){toast('하트가 부족해요 💔');return;}
+  LV.hearts-=FLOWER_COST;
+  LV.vase={flower:f,care:scheduleCare(1+Math.floor(Math.random()*2))};
+  await saveLiving();
+  toast((FLOWERS[f]||FLOWERS.rose).n+' 꽃으로 교체!');
+  if(locView==='shop')renderShop();
+}
+async function buyTheme(t){
+  if(LV.theme===t){toast('이미 적용 중이에요');return;}
+  const owned=(LV.themes||[]).includes(t);
+  if(!owned){
+    if((LV.hearts||0)<THEME_COST){toast('하트가 부족해요 💔');return;}
+    LV.hearts-=THEME_COST;
+    if(!LV.themes.includes(t))LV.themes.push(t);
+  }
+  LV.theme=t;
+  await saveLiving();
+  toast(THEMES[t].e+' '+THEMES[t].n+' 적용!');
+  if(locView==='shop')renderShop();
+}
+async function doCare(ref){
+  if(!ref)return false;
+  if(!dueCare(ref.care)){toast('아직 케어 시간이 아니에요');return false;}
+  ref.care=(ref.care||[]).filter(t=>t>Date.now());
+  ref.care.push(...scheduleCare(1));
+  if(ref.stage!==undefined&&ref.stage<4){
+    ref.stage=(ref.stage||0)+1;
+    if(ref.stage>=4)toast('🎉 다 자랐어요! 수확할 수 있어요');
+  }
+  await earnHeart('care',CARE_REWARD);
+  return true;
+}
+async function carePet(id){
+  const p=LV.pets.find(x=>x.id===id);
+  if(await doCare(p))await saveLiving();
+}
+async function careVase(){
+  if(await doCare(LV.vase))await saveLiving();
+}
+async function careIndoor(id){
+  const p=LV.indoor.find(x=>x.id===id);
+  if(await doCare(p))await saveLiving();
+}
+async function careGarden(i){
+  const p=LV.garden.plots[i];
+  if(await doCare(p))await saveLiving();
+}
+async function plantGarden(i){
+  const types=Object.keys(FRUITS);
+  const type=types[Math.floor(Math.random()*types.length)];
+  if((LV.hearts||0)<10){toast('씨앗은 💗10 필요');return;}
+  LV.hearts-=10;
+  LV.garden.plots[i]={type,stage:0,care:scheduleCare(2),plantedAt:Date.now()};
+  await saveLiving();
+  toast(FRUITS[type].e+' '+FRUITS[type].n+' 씨앗을 심었어요!');
+}
+async function harvestPlot(i){
+  const p=LV.garden.plots[i]; if(!p||p.stage<4)return;
+  LV.garden.plots[i]=null;
+  await earnHeart('harvest',15);
+  await saveLiving();
+  toast((FRUITS[p.type]||FRUITS.tomato).e+' 수확! 💗+15');
+}
+async function harvestIndoor(id){
+  const i=LV.indoor.findIndex(x=>x.id===id);
+  const p=LV.indoor[i]; if(!p||p.stage<4)return;
+  LV.indoor.splice(i,1);
+  await earnHeart('harvest',12);
+  await saveLiving();
+  toast((FRUITS[p.type]||FRUITS.tomato).e+' 수확! 💗+12');
+}
+
+/* ---- 계절 이벤트 ---- */
+function applySeason(){
+  const s=seasonOf(), m=SEASON_META[s];
+  if(!document.body.classList.contains(m.cls)){
+    document.body.className=m.cls;
+    $('apptitle').textContent='우리 아지트 '+m.e;
+  }
+  const fx=$('fx');
+  if(fx.dataset.s!==s){
+    fx.dataset.s=s;
+    const n=s==='summer'?7:14;
+    fx.innerHTML=Array.from({length:n},()=>{
+      const l=Math.random()*100, d=7+Math.random()*9, de=Math.random()*10;
+      return `<i class="${m.fx}" style="left:${l}%;animation-duration:${d}s;animation-delay:-${de}s"></i>`;
+    }).join('');
+  }
+}
+function renderSeasonCard(){
+  const el=$('seasonCard'); if(!el)return;
+  const s=seasonOf(), m=SEASON_META[s], key=seasonYearKey();
+  const got=!!(LV.seasonGift||{})[key];
+  el.innerHTML=`<div class="stitle">${m.e} ${m.n} 이벤트</div>
+    <div style="font-size:13px;color:#8a6f77;line-height:1.5">${m.msg}<br><small style="color:#c7a3ad">상점에 ${m.n} 한정 아이템이 있어요</small></div>
+    <div class="frow"><button class="btn sm ${got?'ghost':''}" ${got?'disabled':''} onclick="claimSeason()">${got?m.e+' 선물 받음 ✓':m.n+' 선물 받기 +30💗'}</button></div>`;
+}
+async function claimSeason(){
+  const key=seasonYearKey();
+  if((LV.seasonGift||{})[key])return;
+  LV.seasonGift={...(LV.seasonGift||{}),[key]:1};
+  LV.hearts=(LV.hearts||0)+30;
+  await saveLiving(); popHearts();
+  toast(SEASON_META[seasonOf()].e+' 계절 선물 +30💗');
+  renderSeasonCard();
+}
+setInterval(()=>{ applySeason(); renderLiving(); renderSeasonCard(); },60000);
+
+
 /* ---- 백업 ---- */
 function bkExport(){
-  const blob=new Blob([JSON.stringify({S,AV,events,annis,photos,notes})],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({S,AV,events,annis,photos,notes,qa:qaList,living:LV})],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='우리아지트_백업_'+todayStr()+'.json'; a.click();
 }
@@ -479,8 +1575,9 @@ $('bkfile').onchange=async e=>{
   if(!confirm('백업을 불러올까요? (기존 데이터에 추가됩니다)'))return;
   if(d.S){S={...S,...d.S}; await DB.setSet(S); applySet();}
   if(d.AV) await saveAv(d.AV);
-  for(const n of ['events','annis','photos','notes'])
+  for(const n of ['events','annis','photos','notes','qa'])
     for(const o of d[n]||[]){delete o.id; await DB.add(n,o);}
+  if(d.living){LV=mergeLiving(d.living); await saveLiving();}
   alert('불러왔어요!'); e.target.value='';
 };
 
@@ -488,9 +1585,10 @@ $('bkfile').onchange=async e=>{
 function go(i,btn){
   document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('on',j===i));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===btn));
+  if(i===4||i===5)earnHeart('visit',ACT_REWARD).catch(()=>{});
 }
-function renderAll(){ renderHome(); renderCal(); renderPhotos(); renderNotes(); }
-setWho(who); boot();
+function renderAll(){ renderHome(); renderSeasonCard(); renderCal(); renderPhotos(); renderNotes(); renderQA(); renderHearts(); renderLiving(); renderCareList(); }
+setWho(who); applySeason(); boot();
 </script>
 </body>
 </html>
