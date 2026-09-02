@@ -406,11 +406,22 @@ function defaultLiving(){
     themes:['cozy'],sleepNight:'',seasonGift:{},seasonDecor:[]
   };
 }
+function normalizePlots(plots){
+  let arr;
+  if(Array.isArray(plots)) arr=plots.map(p=>(p&&!p.e)?p:null);
+  else if(plots&&typeof plots==='object'){
+    const idx=Object.keys(plots).map(Number).filter(n=>!isNaN(n));
+    const max=Math.max(5,...idx);
+    arr=Array.from({length:max+1},(_,i)=>plots[i]&&!plots[i].e?plots[i]:null);
+  }else arr=[null,null,null,null,null,null];
+  while(arr.length<6) arr.push(null);
+  return arr;
+}
 function mergeLiving(v){
   const d=defaultLiving();
   if(!v)return d;
   return{...d,...v,pets:v.pets||[],indoor:v.indoor||[],garden:{...d.garden,...(v.garden||{}),
-    plots:(v.garden&&v.garden.plots)||d.garden.plots},themes:v.themes||d.themes,dailyEarn:v.dailyEarn||{},
+    plots:normalizePlots(v.garden&&v.garden.plots)},themes:v.themes||d.themes,dailyEarn:v.dailyEarn||{},
     seasonGift:v.seasonGift||{},seasonDecor:v.seasonDecor||[]};
 }
 
@@ -662,7 +673,8 @@ function popHearts(){
 }
 
 async function saveLiving(){
-  await DB.setObj('living',LV); renderHearts(); renderLiving(); renderCareList();
+  const payload={...LV,garden:{...LV.garden,plots:(LV.garden.plots||[]).map(p=>p||{e:1})}};
+  await DB.setObj('living',payload); renderHearts(); renderLiving(); renderCareList();
 }
 async function earnHeart(kind,amount){
   const dk=dayKey();
@@ -1361,16 +1373,20 @@ function renderGarden(){
       <text x="30" y="161" text-anchor="middle" font-size="10" fill="#fff" font-family="Jua">🏠 거실로</text></g>`;
   /* 팻말 */
   g+=`<rect x="196" y="112" width="88" height="22" rx="5" fill="#8a6a55"/><rect x="232" y="134" width="8" height="16" fill="#7a5a45"/>
-      <text x="240" y="128" text-anchor="middle" font-size="12" fill="#ffeeda" font-family="Jua">우리 텃밭 🌿</text>`;
+      <text x="240" y="128" text-anchor="middle" font-size="12" fill="#ffeeda" font-family="Jua">우리 텃밭 🌿</text>
+      <rect x="0" y="168" width="480" height="14" rx="4" fill="#c4a06a" opacity=".55"/>`;
   /* 밭 */
   LV.garden.plots.forEach((p,i)=>{
     const col=i%3,row=Math.floor(i/3);
     const x=24+col*152, y=182+row*78, w=136, hh=64;
     if(!p){
       g+=`<g class="clk" onclick="plantGarden(${i})">
-        <rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="9" fill="#00000014" stroke="#8a5c36" stroke-width="2" stroke-dasharray="6 5"/>
-        <text x="${x+w/2}" y="${y+hh/2}" text-anchor="middle" font-size="17" fill="#7a5230">➕</text>
-        <text x="${x+w/2}" y="${y+hh/2+17}" text-anchor="middle" font-size="10" fill="#7a5230" font-family="Jua">씨앗 심기 💗10</text></g>`;
+        <rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="9" fill="#9a6a3e" stroke="#6f4728" stroke-width="2"/>
+        <line x1="${x+10}" y1="${y+18}" x2="${x+w-10}" y2="${y+18}" stroke="#7a5230" stroke-width="2"/>
+        <line x1="${x+10}" y1="${y+32}" x2="${x+w-10}" y2="${y+32}" stroke="#7a5230" stroke-width="2"/>
+        <line x1="${x+10}" y1="${y+46}" x2="${x+w-10}" y2="${y+46}" stroke="#7a5230" stroke-width="2"/>
+        <text x="${x+w/2}" y="${y+hh/2-2}" text-anchor="middle" font-size="16" fill="#ffeeda">➕</text>
+        <text x="${x+w/2}" y="${y+hh/2+16}" text-anchor="middle" font-size="10" fill="#ffeeda" font-family="Jua">씨앗 심기 💗10</text></g>`;
       return;
     }
     const ready=(p.stage||0)>=4, due=dueCare(p.care);
