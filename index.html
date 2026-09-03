@@ -176,11 +176,153 @@ body.season-winter h1{color:#6f93c9}
 #fx i.wi{width:8px;height:8px;background:#fff;border-radius:50%;box-shadow:0 0 5px #cfe4ff}
 #fx i.su{width:6px;height:6px;background:#ffe9a0;border-radius:50%;opacity:.75}
 .sleep-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;background:#fffafb;border:2px solid #ffe0e8;border-radius:14px;padding:8px 12px;font-size:13px;color:#8a6f77}
+
+/* 2026 polish — cozy pocket diorama */
+:root{
+  --berry:#d9577b;--berry-deep:#a83f60;--berry-soft:#fff0f5;--rose-line:#ffd3df;
+  --cocoa:#59464d;--muted:#80656e;--paper:#fffdfd;--shadow:0 12px 32px rgba(177,76,105,.13);
+}
+html{background:#fff3f6;scroll-behavior:smooth}
+body{font-family:'Jua',sans-serif;font-size:16px;line-height:1.45;background:
+  radial-gradient(circle at 12% 5%,rgba(255,255,255,.95),transparent 28%),
+  radial-gradient(circle at 88% 16%,rgba(255,194,211,.35),transparent 30%),
+  linear-gradient(180deg,#fff6f8,#ffe9f0);color:var(--cocoa)}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.45;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:22px 22px}
+.wrap{padding:14px 14px calc(104px + env(safe-area-inset-bottom))}
+h1{font-size:24px;color:var(--berry-deep);letter-spacing:-.02em;text-shadow:0 2px 0 #fff}
+h1,.stitle,button,.badge,.dday .big,.qcard .hint,.qcard .q,.scene-title,.shop-heading h3,.shop-hero strong{font-family:'Jua',sans-serif;font-weight:400}
+.card{position:relative;border:1px solid rgba(255,211,223,.85);background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(255,250,252,.96));box-shadow:var(--shadow);overflow:visible}
+.card::before{content:'';position:absolute;inset:0 0 auto;height:1px;background:rgba(255,255,255,.95);pointer-events:none}
+.stitle{font-size:16px;color:var(--berry-deep);letter-spacing:-.01em}
+.mut{font-size:13px;line-height:1.55;color:var(--muted)}
+.hearts{min-height:34px;padding:5px 13px;border:1px solid #ffd5e0;background:rgba(255,255,255,.86);box-shadow:0 5px 14px rgba(226,86,124,.13);backdrop-filter:blur(10px);color:var(--berry-deep)}
+.toast{top:max(16px,env(safe-area-inset-top));font-size:14px;box-shadow:0 8px 24px rgba(142,42,72,.25)}
+.btn{min-height:40px;border:1px solid rgba(255,255,255,.4);background:linear-gradient(180deg,#cf5275,#b83d62);box-shadow:0 5px 12px rgba(171,56,91,.25);transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}
+.btn:hover{filter:saturate(1.08);box-shadow:0 7px 16px rgba(230,83,124,.3)}
+.btn:active{transform:translateY(1px) scale(.98)}
+.btn.sm{min-height:36px;padding:7px 13px;font-size:14px}
+.btn.ghost{border-color:#ffd8e3;background:#fff4f7;color:var(--berry-deep)}
+.btn:disabled{opacity:.58;cursor:not-allowed;box-shadow:none;filter:grayscale(.08)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[role=button]:focus-visible{outline:3px solid rgba(168,63,96,.32);outline-offset:3px}
+input[type=text],input[type=date],textarea{min-height:42px;font-size:16px;border-color:#ffd7e2;background:#fff;box-shadow:inset 0 1px 2px rgba(112,60,76,.04)}
+input:focus,textarea:focus{border-color:#ff8eac;box-shadow:0 0 0 3px rgba(255,143,171,.15)}
+.quick-links button{min-height:72px;font-size:14px;color:var(--berry-deep);background:linear-gradient(145deg,#fff,#fff5f8);box-shadow:0 5px 14px rgba(226,86,124,.08);transition:transform .16s ease,box-shadow .16s ease}
+.quick-links button:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(226,86,124,.13)}
+nav{bottom:0;padding:3px 5px max(3px,env(safe-area-inset-bottom));border:1px solid rgba(255,217,227,.9);background:rgba(255,255,255,.9);box-shadow:0 -8px 28px rgba(133,55,78,.13);backdrop-filter:blur(18px);z-index:8}
+nav button{min-height:57px;font-size:11px;color:#7d626b;border-radius:15px;transition:background .16s ease,color .16s ease,transform .16s ease}
+nav button span{font-size:20px}
+nav button.on{background:linear-gradient(180deg,#fff3f7,#ffe9f0);color:var(--berry-deep);transform:translateY(-1px)}
+
+/* Q&A — answer, seal, consent, reveal */
+.qa-lead{display:flex;gap:10px;align-items:flex-start;margin:2px 0 12px;color:var(--muted);font-size:14px;line-height:1.55}
+.qa-lead .mini-lock{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:12px;background:linear-gradient(145deg,#fff2ca,#ffd98c);box-shadow:inset 0 0 0 1px #efc56e;color:#885f26}
+.q-who{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0 12px}
+.q-person{position:relative;display:grid;grid-template-columns:38px 1fr;grid-template-rows:auto auto;column-gap:9px;align-items:center;min-height:66px;border:1.5px solid #f2d6df;background:#fff;border-radius:17px;padding:9px 10px;text-align:left;font-family:inherit;color:var(--cocoa);cursor:pointer;box-shadow:0 4px 12px rgba(137,69,90,.06);transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease}
+.q-person:hover{transform:translateY(-1px);border-color:#ffadc2}
+.q-person.on{border-color:#f36f94;background:linear-gradient(145deg,#fff8fa,#ffedf3);box-shadow:0 7px 18px rgba(230,83,124,.14),inset 0 0 0 1px rgba(255,255,255,.75)}
+.q-person .q-avatar{grid-row:1/3;display:grid;place-items:center;width:38px;height:38px;border-radius:13px;background:#fff1f5;font-size:21px}
+.q-person:nth-child(2) .q-avatar{background:#f4edff}
+.q-person .q-name{align-self:end;font-size:15px;line-height:1.1}
+.q-person small{align-self:start;font-size:12px;line-height:1.2;color:var(--muted);margin-top:4px}
+.q-person.on::after{content:'선택';position:absolute;right:8px;top:7px;padding:2px 6px;border-radius:999px;background:#f36f94;color:#fff;font-size:10px}
+.qa-trust-note{margin:-4px 2px 10px;color:#80656e;font-size:12px;line-height:1.45;text-align:center}
+.qcard{position:relative;padding:17px 14px 14px;border:1.5px solid #f7c9d6;background:
+  radial-gradient(circle at 100% 0,rgba(255,201,216,.46),transparent 32%),
+  linear-gradient(145deg,#fffafd,#fff1f6);box-shadow:inset 0 1px 0 #fff,0 9px 24px rgba(190,80,112,.1);text-align:left;overflow:hidden}
+.qcard::after{content:'?';position:absolute;right:12px;top:-24px;font-size:92px;color:rgba(242,95,135,.065);transform:rotate(8deg);pointer-events:none}
+.qcard .hint{display:inline-flex;align-items:center;min-height:25px;padding:3px 9px;border-radius:999px;background:#fff;color:var(--berry-deep);border:1px solid #ffd4df;font-size:12px}
+.qcard .q{position:relative;z-index:1;margin:11px 0 13px;color:#6b3d4d;font-size:18px;line-height:1.55;text-align:left;word-break:keep-all}
+.qans{gap:10px}
+.qbox{position:relative;padding:12px;border:1.5px solid #f0d8df;background:rgba(255,255,255,.9);border-radius:17px;box-shadow:0 4px 12px rgba(118,61,78,.055);text-align:left}
+.qbox.active{border-color:#ff91ad;box-shadow:0 0 0 3px rgba(255,143,171,.1),0 5px 14px rgba(118,61,78,.06)}
+.qbox.locked{border-style:solid;border-color:#eadde1;background:linear-gradient(145deg,#fbf9fa,#f6f2f3)}
+.qbox .qlabel{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;color:#8a6974;font-size:13px}
+.qbox .qlabel strong{color:var(--berry-deep);font-size:14px;font-weight:400}
+.qbox textarea{display:block;min-height:86px;resize:vertical;line-height:1.5}
+.q-answer-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.q-answer-actions small{max-width:55%;font-size:11px;line-height:1.35;color:#a58b93}
+.q-lock{display:grid;grid-template-columns:42px 1fr;gap:9px;align-items:center;min-height:58px;border-radius:13px;padding:8px 10px;background:rgba(255,255,255,.72)}
+.q-lock .lock-orb{grid-row:1/3;display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:linear-gradient(145deg,#ffefbd,#ffd078);box-shadow:inset 0 0 0 1px #efc56e,0 4px 9px rgba(161,113,36,.13);font-size:20px}
+.q-lock strong{align-self:end;color:#715967;font-size:14px;font-weight:400}
+.q-lock small{align-self:start;color:#a18890;font-size:12px;line-height:1.3}
+.qa-progress{display:flex;align-items:center;gap:7px;margin:11px 1px 2px;color:#9b7c85;font-size:12px}
+.qa-progress .track{flex:1;height:7px;border-radius:999px;background:#f1e6e9;overflow:hidden}
+.qa-progress .fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,#ff9cb5,#ee6489);transition:width .25s ease}
+.consent-board{margin-top:12px;padding:12px;border:1px solid #f0d1da;border-radius:16px;background:rgba(255,255,255,.78);text-align:left}
+.consent-title{display:flex;align-items:center;gap:7px;color:#785b65;font-size:14px}
+.consent-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+.consent-status{display:flex;align-items:center;justify-content:center;gap:5px;min-height:34px;border-radius:11px;background:#f4eef0;color:#967c84;font-size:12px}
+.consent-status.ok{background:#e9f8ef;color:#43855e}
+.consent-action{width:100%;margin-top:9px}
+.qa-privacy{margin-top:8px;color:#a48991;font-size:11px;line-height:1.45;text-align:center}
+.qhistitem{margin-top:8px;padding:11px 12px;border:1px solid #f4dce3;border-radius:14px;background:#fffafb;line-height:1.55}
+.qhistitem:last-child{border:1px solid #f4dce3}
+.qhistitem b{display:block;margin-bottom:5px;color:#76505e;font-size:14px}
+.qhistitem .hist-answer{display:grid;grid-template-columns:auto 1fr;gap:6px;margin-top:3px;color:#735f66}
+.qhistitem .hist-answer small{color:var(--berry-deep);font-size:12px}
+.seal{margin-left:0;background:#edf8f1;color:#4e8b64}
+
+/* room, garden and shop */
+.loc-tabs{position:relative;z-index:1;gap:5px;margin:13px 0 10px;padding:5px;border:1px solid #f0dbe1;border-radius:16px;background:#f8f2f4}
+.loc-tabs button{min-height:42px;border:0;border-radius:12px;padding:9px 6px;background:transparent;color:#9b8088;font-size:14px;transition:background .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease}
+.loc-tabs button.on{border:0;background:#fff;color:var(--berry-deep);box-shadow:0 4px 12px rgba(128,66,85,.1);transform:translateY(-1px)}
+.scene-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 1px 8px}
+.scene-title{font-size:14px;color:#765d65}
+.scene-chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.scene-chip{display:inline-flex;align-items:center;min-height:25px;padding:3px 8px;border:1px solid #eed8df;border-radius:999px;background:#fff9fb;color:#8d7079;font-size:11px}
+.living-scene{border:3px solid #fff;outline:1px solid rgba(115,72,84,.16);border-radius:20px;background:#d8a987;box-shadow:0 12px 28px rgba(82,49,39,.22),inset 0 0 0 1px rgba(255,255,255,.6);isolation:isolate}
+.living-scene::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:17px;box-shadow:inset 0 0 26px rgba(57,30,34,.16),inset 0 1px 0 rgba(255,255,255,.6)}
+.living-scene::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(118deg,rgba(255,255,255,.13),transparent 24%,transparent 78%,rgba(73,35,46,.07));mix-blend-mode:soft-light}
+.living-scene svg.scene{position:relative;z-index:1;filter:saturate(1.08) contrast(1.015)}
+.scene .clk{outline:none;transition:filter .15s ease}
+.scene .clk:hover{filter:brightness(1.08) drop-shadow(0 2px 2px rgba(71,39,47,.23))}
+.living-help{margin:9px 3px 0;padding-left:18px;position:relative}
+.living-help::before{content:'✦';position:absolute;left:1px;color:#e58aa4}
+.sleep-bar{min-height:48px;margin-top:10px;border:1px solid #efd6de;background:linear-gradient(145deg,#fff,#fff7fa);box-shadow:0 4px 12px rgba(113,58,77,.07);font-size:14px}
+.shop-hero{position:sticky;top:8px;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:3px 0 9px;padding:12px 13px;border:1px solid rgba(255,255,255,.2);border-radius:17px;background:linear-gradient(135deg,rgba(86,56,67,.96),rgba(126,70,91,.96));color:#fff;box-shadow:0 8px 18px rgba(91,55,68,.2);backdrop-filter:blur(10px)}
+.shop-hero strong{font-size:15px;font-weight:400}.shop-hero small{display:block;margin-top:2px;color:#f7dce5;font-size:11px}
+.shop-wallet{display:flex;align-items:center;gap:5px;white-space:nowrap;border-radius:999px;padding:6px 10px;background:rgba(255,255,255,.13);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);font-size:14px}
+.shop-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:5px;border:1px solid #f0dbe1;border-radius:15px;background:#faf5f7}
+.shop-cats button{min-height:38px;border:0;border-radius:11px;background:#fff;color:#795e67;font-family:inherit;font-size:11px;cursor:pointer;box-shadow:0 3px 9px rgba(108,54,72,.055)}
+.shop-cats button:active{transform:scale(.97)}
+.shop-section{margin-top:13px;padding:12px;border:1px solid #f0dde3;border-radius:18px;background:linear-gradient(145deg,#fff,#fff9fb)}
+.shop-section[id]{scroll-margin-top:86px}
+.shop-heading{display:flex;align-items:center;gap:9px}
+.shop-heading-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:12px;background:#fff0f4;font-size:18px}
+.shop-heading h3{color:#755a64;font-size:15px;font-weight:400;line-height:1.2}.shop-heading p{margin-top:3px;color:#a58b93;font-size:11px;line-height:1.25}
+.shop-grid{gap:9px;margin-top:10px}
+.shop-item{position:relative;width:100%;min-height:112px;border:1px solid #f0d8df;border-radius:16px;padding:10px 7px;background:linear-gradient(150deg,#fff,#fff7fa);box-shadow:0 5px 13px rgba(111,57,75,.07);font-family:inherit;font-size:13px;color:#6c555d;cursor:pointer;overflow:hidden;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.shop-item:hover{transform:translateY(-2px) scale(1.01);border-color:#f6a8bc;box-shadow:0 9px 17px rgba(133,63,86,.12)}
+.shop-item:active{transform:translateY(0) scale(.985)}
+.shop-item .si,.shop-item .shop-art{display:grid;place-items:center;width:62px;height:54px;margin:0 auto 4px;border-radius:15px;background:radial-gradient(circle,#fff 35%,#fff0f4 100%)}
+.shop-item .si svg,.shop-item .shop-art svg{max-width:55px;max-height:48px;filter:drop-shadow(0 3px 2px rgba(74,42,51,.12))}
+.shop-item .shop-name{display:block;min-height:34px;line-height:1.25;word-break:keep-all}
+.shop-item .cost{display:inline-flex;align-items:center;justify-content:center;min-height:24px;margin-top:5px;padding:3px 8px;border-radius:999px;background:#fff0f4;color:var(--berry-deep);font-size:11px}
+.shop-item.disabled,.shop-item:disabled{opacity:.62;cursor:default;filter:grayscale(.08);pointer-events:none}
+.shop-item.disabled::after,.shop-item:disabled::after{content:'✓';position:absolute;right:7px;top:7px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#7cc496;color:#fff;font-size:11px;box-shadow:0 2px 6px rgba(69,127,89,.2)}
+.shop-preview{cursor:default;pointer-events:none}.shop-preview::after{content:'COMING';position:absolute;right:-26px;top:14px;width:88px;padding:3px 0;background:#d8a84d;color:#fff;font-size:9px;transform:rotate(38deg)}
+.sw{width:48px;height:48px;border:3px solid #fff;border-radius:15px;box-shadow:0 3px 9px rgba(77,41,51,.14)}
+.sw{position:relative;display:block;overflow:hidden}.sw i{position:absolute;left:10px;right:10px;bottom:5px;height:9px;border:2px solid rgba(255,255,255,.72);border-radius:50%}
+.garden-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+.garden-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:58px;border:1px solid #eadce0;border-radius:14px;background:linear-gradient(145deg,#fff,#f9f5f6);color:#765f67}
+.garden-stat b{font-size:19px;color:#6f8f54;font-weight:400}.garden-stat small{font-size:11px;color:#967f87}.garden-stat.ready{border-color:#f0cc9a;background:#fff8eb}.garden-stat.ready b{color:#c77a2e}
+.status-row{min-height:48px;padding:8px 3px;border-color:#f1dde3;font-size:14px}
+.care-btn{min-height:34px;color:var(--berry-deep);font-size:13px}
+.who button{min-height:36px;color:#795e67}.who button.on{color:var(--berry-deep)}
+body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.season-winter h1{color:#4f6f9e}
+
+@media(max-width:380px){
+  .wrap{padding-left:10px;padding-right:10px}.card{padding:14px}.q-person{grid-template-columns:32px 1fr;padding:8px}.q-person .q-avatar{width:32px;height:32px;font-size:18px}
+  .shop-grid.g3{grid-template-columns:repeat(2,1fr)}.qcard .q{font-size:17px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 </style>
 </head>
 <body>
 <div id="fx"></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="wrap">
 <h1 id="apptitle">우리 아지트 💗</h1>
 <div class="hbar"><div></div><div class="hearts" id="heartsBar">💗 <b id="heartNum">0</b></div></div>
@@ -271,11 +413,15 @@ body.season-winter h1{color:#6f93c9}
 <div class="page" id="p5">
   <div class="card">
     <div class="stitle">💑 커플 Q&A 질문방</div>
-    <div class="mut">랜덤 질문에 각자 답하고, 둘 다 쓰면 함께 열어봐요!</div>
-    <div class="who"><button id="qw1" onclick="setWho(1)">나</button><button id="qw2" onclick="setWho(2)">너</button></div>
+    <div class="qa-lead"><span class="mini-lock">🔐</span><span>각자 답하면 바로 잠겨요. 두 사람 모두 공개에 동의한 뒤에만 함께 볼 수 있어요.</span></div>
+    <div class="q-who" role="group" aria-label="답변할 사람 선택">
+      <button class="q-person" id="qw1" type="button" onclick="setWho(1)" aria-pressed="false"><span class="q-avatar">👨</span><span class="q-name">나</span><small>이름을 눌러 답변하기</small></button>
+      <button class="q-person" id="qw2" type="button" onclick="setWho(2)" aria-pressed="false"><span class="q-avatar">👩</span><span class="q-name">너</span><small>이름을 눌러 답변하기</small></button>
+    </div>
+    <div class="qa-trust-note">로그인 대신 이름을 고르는 방식이에요. 각자 자기 이름으로 답해 주세요.</div>
     <div id="qaActive"></div>
     <div class="frow" style="margin-top:10px">
-      <button class="btn sm" onclick="startQA()">🎲 새 질문 뽑기</button>
+      <button class="btn sm" id="qaNewBtn" onclick="startQA()">🎲 새 질문 뽑기</button>
     </div>
   </div>
   <div class="card qhist">
@@ -288,7 +434,7 @@ body.season-winter h1{color:#6f93c9}
 <div class="page" id="p6">
   <div class="card">
     <div class="stitle">🏡 우리 리빙룸</div>
-    <div class="mut">스타듀밸리 감성! 하트💗로 꾸미고 키워요 · 활동마다 +10 · 50일마다 +100</div>
+    <div class="mut">하트를 모아서 집을 꾸미기 - 하트는 활동마다 +10, 50일마다 +100개</div>
     <div class="loc-tabs">
       <button id="locRoom" class="on" onclick="setLoc('room')">🏠 거실</button>
       <button id="locGarden" onclick="setLoc('garden')">🌿 텃밭</button>
@@ -336,7 +482,7 @@ body.season-winter h1{color:#6f93c9}
 </div>
 
 <nav>
-  <button class="on" onclick="go(0,this)"><span>🏠</span>홈</button>
+  <button class="on" aria-current="page" onclick="go(0,this)"><span>🏠</span>홈</button>
   <button onclick="go(1,this)"><span>📅</span>달력</button>
   <button onclick="go(2,this)"><span>📸</span>추억</button>
   <button onclick="go(3,this)"><span>💌</span>한마디</button>
@@ -358,8 +504,9 @@ const FIREBASE_CONFIG = {
   appId: "1:708230288823:web:36466e7dd1b753f3918432"
 };
 
+const LOCAL_PREVIEW=new URLSearchParams(location.search).has('local-preview');
 let db=null;
-if(FIREBASE_CONFIG){ firebase.initializeApp(FIREBASE_CONFIG); db=firebase.database(); }
+if(FIREBASE_CONFIG&&!LOCAL_PREVIEW){ firebase.initializeApp(FIREBASE_CONFIG); db=firebase.database(); }
 
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,'0');
@@ -402,7 +549,7 @@ const setD={events:a=>events=a,annis:a=>annis=a,photos:a=>photos=a,notes:a=>note
 function defaultLiving(){
   return{
     hearts:20,lastMilestone:0,dailyEarn:{},locView:'room',
-    theme:'cozy',vase:null,pets:[],indoor:[],garden:{plots:[null,null,null,null,null,null],decor:'basic'},
+    theme:'cozy',vase:null,pets:[],indoor:[],garden:{plots:[null,null,null,null,null,null],decor:'basic',ownedDecor:[]},
     themes:['cozy'],sleepNight:'',seasonGift:{},seasonDecor:[]
   };
 }
@@ -420,8 +567,15 @@ function normalizePlots(plots){
 function mergeLiving(v){
   const d=defaultLiving();
   if(!v)return d;
+  const savedGarden=v.garden||{};
+  const rawDecor=savedGarden.ownedDecor;
+  const legacyDecor=savedGarden.decor==='fountain'?['fence','fountain']:
+    (savedGarden.decor&&savedGarden.decor!=='basic')?[savedGarden.decor]:[];
+  const ownedDecor=Array.isArray(rawDecor)?rawDecor:
+    rawDecor&&typeof rawDecor==='object'?Object.values(rawDecor).filter(Boolean):
+    legacyDecor;
   return{...d,...v,pets:v.pets||[],indoor:v.indoor||[],garden:{...d.garden,...(v.garden||{}),
-    plots:normalizePlots(v.garden&&v.garden.plots)},themes:v.themes||d.themes,dailyEarn:v.dailyEarn||{},
+    plots:normalizePlots(v.garden&&v.garden.plots),ownedDecor},themes:v.themes||d.themes,dailyEarn:v.dailyEarn||{},
     seasonGift:v.seasonGift||{},seasonDecor:v.seasonDecor||[]};
 }
 
@@ -462,10 +616,10 @@ const FRUITS={
   peach:{n:'복숭아',e:'🍑',c:'#f5a878'}
 };
 const THEMES={
-  cozy:{n:'코지 핑크',e:'🌸',wall:'#f7dbe3',blanket:'#e8788a'},
-  mint:{n:'민트',e:'🍃',wall:'#d8efe4',blanket:'#5eb896'},
-  lavender:{n:'라벤더',e:'💜',wall:'#e6def5',blanket:'#9d7fd9'},
-  sunset:{n:'선셋',e:'🌅',wall:'#f9dcc0',blanket:'#e8964f'}
+  cozy:{n:'코지 핑크',e:'🌸',wall:'#f7dbe3',blanket:'#d9667c',floor:'#aa7950',floorLine:'#8f643f',trim:'#d3aa76',rug:'#d99486',rug2:'#f2c6ba'},
+  mint:{n:'민트 가든',e:'🍃',wall:'#d8efe4',blanket:'#4ca080',floor:'#a9825d',floorLine:'#8c6849',trim:'#b38e64',rug:'#76bda5',rug2:'#c9eadf'},
+  lavender:{n:'라벤더 문',e:'💜',wall:'#e6def5',blanket:'#8567c5',floor:'#92745c',floorLine:'#775c48',trim:'#a98f78',rug:'#9c82cf',rug2:'#ddd1f1'},
+  sunset:{n:'선셋 오렌지',e:'🌅',wall:'#f9dcc0',blanket:'#d97835',floor:'#a96f48',floorLine:'#885639',trim:'#c9905e',rug:'#dc8751',rug2:'#f3c69b'}
 };
 const DOG_BREEDS={
   golden:{n:'골든리트리버',A:'#e0a952',B:'#f2cf8e'},
@@ -672,28 +826,50 @@ function popHearts(){
   const h=$('heartsBar'); h.classList.remove('hpop'); void h.offsetWidth; h.classList.add('hpop');
 }
 
+function livingPayload(state){
+  return{...state,garden:{...state.garden,plots:(state.garden.plots||[]).map(p=>p||{e:1})}};
+}
 async function saveLiving(){
-  const payload={...LV,garden:{...LV.garden,plots:(LV.garden.plots||[]).map(p=>p||{e:1})}};
-  await DB.setObj('living',payload); renderHearts(); renderLiving(); renderCareList();
+  await DB.setObj('living',livingPayload(LV)); renderHearts(); renderLiving(); renderCareList();
+}
+function grantHeart(state,kind,amount,dk){
+  state.dailyEarn=state.dailyEarn||{};
+  state.dailyEarn[dk]=state.dailyEarn[dk]||{};
+  const used=state.dailyEarn[dk][kind]||0;
+  if(kind==='visit'){
+    if(state.dailyEarn[dk].visitOnce)return false;
+    state.dailyEarn[dk].visitOnce=1;
+  }
+  if(kind!=='care'&&kind!=='milestone'&&kind!=='harvest'&&kind!=='sleep'&&kind!=='season'){
+    const total=Object.values(state.dailyEarn[dk]).reduce((a,b)=>a+(Number(b)||0),0);
+    if(total>=DAILY_ACT_CAP)return false;
+    if(used>=3)return false;
+    state.dailyEarn[dk][kind]=used+1;
+  }
+  state.hearts=(state.hearts||0)+amount;
+  return true;
 }
 async function earnHeart(kind,amount){
   const dk=dayKey();
-  LV.dailyEarn[dk]=LV.dailyEarn[dk]||{};
-  const used=LV.dailyEarn[dk][kind]||0;
-  if(kind==='visit'){
-    if(LV.dailyEarn[dk].visitOnce)return;
-    LV.dailyEarn[dk].visitOnce=1;
+  const atomicKinds=['qa','note','photo','visit'];
+  if(db&&atomicKinds.includes(kind)){
+    const tx=await db.ref('living').transaction(raw=>{
+      const next=mergeLiving(raw);
+      if(!grantHeart(next,kind,amount,dk))return;
+      return livingPayload(next);
+    });
+    if(!tx.committed)return false;
+    LV=mergeLiving(tx.snapshot.val());
+    renderHearts(); renderLiving(); renderCareList();
+    popHearts();
+    toast('💗 +' + amount + ' 하트!');
+    return true;
   }
-  if(kind!=='care'&&kind!=='milestone'&&kind!=='harvest'&&kind!=='sleep'&&kind!=='season'){
-    const total=Object.values(LV.dailyEarn[dk]).reduce((a,b)=>a+b,0);
-    if(total>=DAILY_ACT_CAP)return;
-    if(used>=3)return;
-    LV.dailyEarn[dk][kind]=used+1;
-  }
-  LV.hearts=(LV.hearts||0)+amount;
+  if(!grantHeart(LV,kind,amount,dk))return false;
   await saveLiving();
   popHearts();
   toast('💗 +' + amount + ' 하트!');
+  return true;
 }
 function scheduleCare(count){
   const times=[]; const now=Date.now();
@@ -751,7 +927,10 @@ function applySet(){
   $('sn1').value=S.n1; $('sn2').value=S.n2; $('sstart').value=S.start||'';
   $('sh1').value=S.h1; $('sh2').value=S.h2;
   $('w1').textContent=S.n1; $('w2').textContent=S.n2;
-  if($('qw1')){$('qw1').textContent=S.n1; $('qw2').textContent=S.n2;}
+  if($('qw1')){
+    $('qw1').querySelector('.q-name').textContent=S.n1;
+    $('qw2').querySelector('.q-name').textContent=S.n2;
+  }
   document.querySelectorAll('.hB').forEach(e=>e.setAttribute('fill',S.h1));
   document.querySelectorAll('.hG').forEach(e=>e.setAttribute('fill',S.h2));
   $('modeinfo').textContent = db ? '💑 같이 쓰기 켜짐 — 실시간 공유 중!' : '📱 내 기기 저장 모드';
@@ -917,8 +1096,16 @@ function openP(i){
 
 /* ---- 한마디 ---- */
 let who=+(localStorage.getItem('who')||1);
-function setWho(w){ who=w; localStorage.setItem('who',w);
-  $('w1').classList.toggle('on',w===1); $('w2').classList.toggle('on',w===2); }
+function setWho(w){
+  who=Number(w)===2?2:1;
+  localStorage.setItem('who',who);
+  [['w1',1],['w2',2],['qw1',1],['qw2',2]].forEach(([id,slot])=>{
+    const el=$(id); if(!el)return;
+    el.classList.toggle('on',who===slot);
+    el.setAttribute('aria-pressed',String(who===slot));
+  });
+  if(typeof renderQA==='function')renderQA();
+}
 async function addNote(){
   const t=$('ntext').value.trim(); if(!t)return;
   await DB.add('notes',{who,text:t}); $('ntext').value='';
@@ -934,77 +1121,192 @@ function renderNotes(){
   }).join('')||'<div class="mut">첫 한마디를 남겨보세요 💌</div>';
   $('nlist').scrollTop=$('nlist').scrollHeight;
 }
-const esc=s=>s.replace(/</g,'&lt;');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+}[c]));
 
 /* ---- Q&A 질문방 ---- */
+let qaStarting=false;
+let renderedQAId=null;
+const qaDrafts={};
+const qaDraftKey=(id,slot)=>id+':'+slot;
+function saveQADraft(id,slot,value){qaDrafts[qaDraftKey(id,slot)]=String(value||'').slice(0,200);}
+function captureQADrafts(){
+  if(!renderedQAId)return;
+  [1,2].forEach(slot=>{
+    const el=$(`qa_in_${renderedQAId}_${slot}`);
+    if(el)saveQADraft(renderedQAId,slot,el.value);
+  });
+}
 function activeQA(){return qaList.filter(q=>!q.revealed).sort((a,b)=>b.ts-a.ts)[0];}
 async function startQA(){
+  if(qaStarting)return;
+  if(activeQA()){
+    toast('진행 중인 질문을 먼저 함께 열어주세요 🔐');
+    return;
+  }
+  qaStarting=true;
+  renderQA();
   const used=new Set(qaList.map(q=>q.question));
   let pool=QA_POOL.filter(q=>!used.has(q));
   if(!pool.length)pool=[...QA_POOL];
   const question=pool[Math.floor(Math.random()*pool.length)];
-  await DB.add('qa',{question,a1:'',a2:'',revealed:false});
-  toast('새 질문이 도착했어요! 💑');
-}
-async function submitQAAns(id){
-  const el=$(`qa_in_${id}`); if(!el)return;
-  const text=el.value.trim(); if(!text)return;
-  const q=qaList.find(x=>x.id===id); if(!q)return;
-  const key='a'+who;
-  if(q[key]){toast('이미 답했어요!');return;}
-  if(db){await db.ref('qa/'+id).update({[key]:text});}
-  else{
-    const a=JSON.parse(localStorage.getItem('qa')||'[]');
-    const i=a.findIndex(x=>x.id===id); if(i>=0){a[i][key]=text; localStorage.setItem('qa',JSON.stringify(a)); setD.qa(a);}
+  const payload={question,a1:'',a2:'',consent1:false,consent2:false,revealed:false,ts:Date.now()};
+  try{
+    if(db){
+      const key=db.ref('qa').push().key;
+      const tx=await db.ref('qa').transaction(raw=>{
+        const all=raw||{};
+        if(Object.values(all).some(q=>q&&!q.revealed))return;
+        all[key]=payload;
+        return all;
+      });
+      if(!tx.committed){toast('이미 진행 중인 질문이 있어요 🔐');return;}
+      qaList=toArr(tx.snapshot.val());
+    }else{
+      const {ts,...localPayload}=payload;
+      await DB.add('qa',localPayload);
+    }
+    toast('새 질문이 도착했어요! 💑');
+  }finally{
+    qaStarting=false;
+    renderQA();
   }
+}
+
+function qaConsent(q,slot){return q&&q['consent'+slot]===true;}
+function qaStatus(q,slot){
+  if(!q)return '질문을 기다리는 중';
+  if(q['a'+slot])return qaConsent(q,slot)?'공개 동의 완료':'답변 잠금 완료';
+  return who===slot?'지금 답변할 차례':'이름을 눌러 답변하기';
+}
+async function mutateQA(id,mutate){
+  if(db){
+    const tx=await db.ref('qa/'+id).transaction(raw=>{
+      if(!raw)return;
+      const next=mutate({...raw});
+      return next||undefined;
+    });
+    if(!tx.committed)return null;
+    const next={id,...tx.snapshot.val()};
+    qaList=qaList.map(q=>q.id===id?next:q);
+    return next;
+  }
+  const list=JSON.parse(localStorage.getItem('qa')||'[]');
+  const i=list.findIndex(q=>q.id===id); if(i<0)return null;
+  const next=mutate({...list[i]}); if(!next)return null;
+  list[i]=next;
+  localStorage.setItem('qa',JSON.stringify(list));
+  setD.qa(list);
+  return next;
+}
+async function submitQAAns(id,slot){
+  slot=Number(slot);
+  if(slot!==who){toast('선택된 이름이 바뀌었어요. 다시 확인해 주세요');renderQA();return;}
+  const el=$(`qa_in_${id}_${slot}`); if(!el)return;
+  const text=el.value.trim().slice(0,200); if(!text){toast('답변을 먼저 적어주세요');return;}
+  const q=qaList.find(x=>x.id===id); if(!q||q.revealed)return;
+  const key='a'+slot;
+  if(q[key]){toast('이미 답변을 잠갔어요 🔒');renderQA();return;}
+  if(!confirm('답변을 잠글까요? 잠근 뒤에는 둘이 함께 열 때까지 다시 보거나 수정할 수 없어요.'))return;
+  const saved=await mutateQA(id,next=>{
+    if(next.revealed||next[key])return null;
+    next[key]=text;
+    next['consent'+slot]=false;
+    next.updatedAt=Date.now();
+    return next;
+  });
+  if(!saved){toast('답변이 이미 저장됐어요. 화면을 새로 맞출게요');renderQA();return;}
+  delete qaDrafts[qaDraftKey(id,slot)];
   await earnHeart('qa',ACT_REWARD);
+  toast('답변을 잠갔어요 🔒');
   renderQA();
 }
-async function revealQA(id){
+async function toggleQAConsent(id,slot){
+  slot=Number(slot);
+  if(slot!==who){toast('먼저 내 이름을 선택해 주세요');renderQA();return;}
   const q=qaList.find(x=>x.id===id);
-  if(!q||!q.a1||!q.a2){toast('둘 다 답해야 열 수 있어요!');return;}
-  if(db){await db.ref('qa/'+id).update({revealed:true});}
-  else{
-    const a=JSON.parse(localStorage.getItem('qa')||'[]');
-    const i=a.findIndex(x=>x.id===id); if(i>=0){a[i].revealed=true; localStorage.setItem('qa',JSON.stringify(a)); setD.qa(a);}
-  }
+  if(!q||q.revealed||!q.a1||!q.a2){toast('두 사람의 답변이 모두 필요해요');return;}
+  const willConsent=!qaConsent(q,slot);
+  const saved=await mutateQA(id,next=>{
+    if(next.revealed||!next.a1||!next.a2)return null;
+    next['consent'+slot]=willConsent;
+    next.updatedAt=Date.now();
+    if(next.consent1===true&&next.consent2===true){
+      next.revealed=true;
+      next.revealedAt=Date.now();
+    }
+    return next;
+  });
+  if(!saved){renderQA();return;}
+  if(saved.revealed)toast('두 사람 모두 동의했어요! 답변을 열었어요 💞');
+  else toast(willConsent?'내 공개 동의를 남겼어요 ✓':'공개 동의를 취소했어요');
   renderQA();
 }
-function qaAnsText(val,isOwner,doneLabel){
-  if(!val)return isOwner?`<input type="text" id="qa_in_${activeQA().id}" placeholder="솔직하게 답해봐..." maxlength="200">`:'🔒 아직 비밀';
-  if(isOwner)return esc(val);
-  return '🔒 '+doneLabel+' 답변 완료';
+function qaAnswerBox(q,slot){
+  const answer=q['a'+slot];
+  const selected=who===slot;
+  const name=slot===1?S.n1:S.n2;
+  const state=answer?(qaConsent(q,slot)?'공개 동의 ✓':'잠금 완료'):selected?'답변 작성 중':'대기 중';
+  let body='';
+  if(answer){
+    body=`<div class="q-lock"><span class="lock-orb">🔒</span><strong>${esc(name)}님의 답변이 잠겼어요</strong><small>서로 공개에 동의할 때까지 내용은 보이지 않아요.</small></div>`;
+  }else if(selected){
+    const draft=qaDrafts[qaDraftKey(q.id,slot)]||'';
+    body=`<textarea id="qa_in_${q.id}_${slot}" maxlength="200" aria-label="${esc(name)}의 답변" placeholder="솔직한 마음을 적어보세요..." oninput="saveQADraft('${q.id}',${slot},this.value)">${esc(draft)}</textarea>
+      <div class="q-answer-actions"><small>제출하면 바로 잠기며 수정할 수 없어요.</small><button class="btn sm" type="button" onclick="submitQAAns('${q.id}',${slot})">답변 잠그기 🔒</button></div>`;
+  }else{
+    body=`<div class="q-lock"><span class="lock-orb">🗝️</span><strong>${esc(name)}님의 답변을 기다려요</strong><small>위에서 ${esc(name)} 이름을 누르면 답변할 수 있어요.</small></div>`;
+  }
+  return `<div class="qbox ${answer?'locked':selected?'active':''}"><div class="qlabel"><strong>${esc(name)}의 답</strong><span class="seal">${state}</span></div>${body}</div>`;
 }
 function renderQA(){
+  captureQADrafts();
   const cur=activeQA();
+  renderedQAId=cur?cur.id:null;
+  [1,2].forEach(slot=>{
+    const btn=$('qw'+slot); if(!btn)return;
+    const name=slot===1?S.n1:S.n2;
+    btn.classList.toggle('on',who===slot);
+    btn.setAttribute('aria-pressed',String(who===slot));
+    btn.setAttribute('aria-label',name+' 선택, '+qaStatus(cur,slot));
+    const nameEl=btn.querySelector('.q-name'); if(nameEl)nameEl.textContent=name;
+    const statusEl=btn.querySelector('small'); if(statusEl)statusEl.textContent=qaStatus(cur,slot);
+  });
+  const newBtn=$('qaNewBtn');
+  if(newBtn){newBtn.disabled=!!cur||qaStarting;newBtn.textContent=qaStarting?'질문을 가져오는 중…':cur?'🔐 진행 중인 질문이 있어요':'🎲 새 질문 뽑기';}
   if(cur){
-    const both=cur.a1&&cur.a2;
+    const answered=(cur.a1?1:0)+(cur.a2?1:0);
+    const both=answered===2;
+    const selectedConsent=qaConsent(cur,who);
+    const consent=`<div class="consent-board">
+      <div class="consent-title">🤝 <span>답변을 함께 공개할까요?</span></div>
+      <div class="consent-grid">
+        <div class="consent-status ${qaConsent(cur,1)?'ok':''}">${qaConsent(cur,1)?'✓':'○'} ${esc(S.n1)} ${qaConsent(cur,1)?'동의':'대기'}</div>
+        <div class="consent-status ${qaConsent(cur,2)?'ok':''}">${qaConsent(cur,2)?'✓':'○'} ${esc(S.n2)} ${qaConsent(cur,2)?'동의':'대기'}</div>
+      </div>
+      <button class="btn sm ${selectedConsent?'ghost':''} consent-action" type="button" onclick="toggleQAConsent('${cur.id}',${who})">${selectedConsent?'↩ 내 동의 취소':'🔓 '+esc(who===1?S.n1:S.n2)+' 공개 동의하기'}</button>
+      <div class="qa-privacy">한 사람만 동의한 동안에는 두 답변 모두 계속 잠겨 있어요.</div>
+    </div>`;
     $('qaActive').innerHTML=`<div class="qcard">
-      <div class="hint">오늘의 커플 질문</div>
+      <div class="hint">💌 오늘의 커플 질문</div>
       <div class="q">${esc(cur.question)}</div>
       <div class="qans">
-        <div class="qbox"><div class="qlabel">${S.n1}의 답</div>
-          <div class="qtext">${qaAnsText(cur.a1,who===1,S.n1)}</div>
-          ${who===1&&!cur.a1?`<button class="btn sm" style="margin-top:6px" onclick="submitQAAns('${cur.id}')">답하기</button>`:''}
-          ${cur.a1?'<span class="seal">완료</span>':''}</div>
-        <div class="qbox"><div class="qlabel">${S.n2}의 답</div>
-          <div class="qtext">${qaAnsText(cur.a2,who===2,S.n2)}</div>
-          ${who===2&&!cur.a2?`<button class="btn sm" style="margin-top:6px" onclick="submitQAAns('${cur.id}')">답하기</button>`:''}
-          ${cur.a2?'<span class="seal">완료</span>':''}</div>
+        ${qaAnswerBox(cur,1)}
+        ${qaAnswerBox(cur,2)}
       </div>
-      ${both?`<button class="btn" style="margin-top:10px;width:100%" onclick="revealQA('${cur.id}')">🎁 둘 다 답했어! 함께 열어보기</button>`:
-        '<div class="mut" style="margin-top:8px">둘 다 답하면 함께 열 수 있어요 ✨</div>'}
+      <div class="qa-progress"><span>${answered}/2 답변 완료</span><span class="track"><span class="fill" style="width:${answered*50}%"></span></span></div>
+      ${both?consent:'<div class="qa-privacy">제출된 답변은 작성한 사람에게도 바로 잠겨요.</div>'}
     </div>`;
   }else{
-    $('qaActive').innerHTML='<div class="mut" style="text-align:center;padding:16px">아직 진행 중인 질문이 없어요.<br>아래 버튼으로 새 질문을 뽑아보세요! 🎲</div>';
+    $('qaActive').innerHTML='<div class="mut" style="text-align:center;padding:18px 12px">아직 진행 중인 질문이 없어요.<br>새 질문을 뽑고 먼저 답할 이름을 골라주세요 🎲</div>';
   }
   const hist=[...qaList].filter(q=>q.revealed).sort((a,b)=>b.ts-a.ts).slice(0,12);
   $('qaHist').innerHTML=hist.map(q=>`<div class="qhistitem">
-    <b>${esc(q.question)}</b><br>
-    <small>${S.n1}:</small> ${esc(q.a1)}<br>
-    <small>${S.n2}:</small> ${esc(q.a2)}
+    <b>${esc(q.question)}</b>
+    <span class="hist-answer"><small>${esc(S.n1)}</small><span>${esc(q.a1)}</span></span>
+    <span class="hist-answer"><small>${esc(S.n2)}</small><span>${esc(q.a2)}</span></span>
   </div>`).join('')||'<div class="mut">아직 열어본 Q&A가 없어요</div>';
-  $('qw1').classList.toggle('on',who===1); $('qw2').classList.toggle('on',who===2);
 }
 
 /* ---- 리빙룸 ---- */
@@ -1016,6 +1318,21 @@ function setLoc(v){
   locView=v;
   ['Room','Garden','Shop'].forEach(n=>{const el=$('loc'+n); if(el)el.classList.toggle('on',v===n.toLowerCase());});
   renderLiving();
+}
+function pendingCareCount(){
+  let total=0;
+  LV.pets.forEach(p=>total+=dueCare(p.care));
+  if(LV.vase)total+=dueCare(LV.vase.care);
+  LV.indoor.forEach(p=>total+=dueCare(p.care));
+  LV.garden.plots.forEach(p=>{if(p&&p.stage<4)total+=dueCare(p.care);});
+  return total;
+}
+function sceneToolbar(title){
+  const season=SEASON_META[seasonOf()];
+  const due=pendingCareCount();
+  return `<div class="scene-toolbar"><span class="scene-title">${title}</span><span class="scene-chips">
+    <span class="scene-chip">${season.e} ${season.n}</span><span class="scene-chip">${isNight()?'🌙 밤':'☀️ 낮'}</span>
+    <span class="scene-chip">${due?'💧 케어 '+due:'✨ 모두 편안'}</span></span></div>`;
 }
 function hashStr(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h;}
 function pinG(x,y,txt){
@@ -1038,10 +1355,10 @@ function windowSky(x,y,w,h){
   if(s==='winter')inner+=`<rect x="${x}" y="${y+h-10}" width="${w}" height="10" fill="#fff"/>`;
   return inner;
 }
-function woodFloor(y,h){
-  let out=`<rect x="0" y="${y}" width="480" height="${h}" fill="#a97c50"/>`;
-  for(let i=1;i<h/22;i++)out+=`<line x1="0" y1="${y+i*22}" x2="480" y2="${y+i*22}" stroke="#966b43" stroke-width="1.6"/>`;
-  for(let i=0;i<8;i++)out+=`<line x1="${30+i*62}" y1="${y+(i%3)*22}" x2="${30+i*62}" y2="${y+(i%3)*22+22}" stroke="#966b43" stroke-width="1.4"/>`;
+function woodFloor(y,h,fill='#a97c50',line='#966b43'){
+  let out=`<rect x="0" y="${y}" width="480" height="${h}" fill="${fill}"/>`;
+  for(let i=1;i<h/22;i++)out+=`<line x1="0" y1="${y+i*22}" x2="480" y2="${y+i*22}" stroke="${line}" stroke-width="1.6"/>`;
+  for(let i=0;i<8;i++)out+=`<line x1="${30+i*62}" y1="${y+(i%3)*22}" x2="${30+i*62}" y2="${y+(i%3)*22+22}" stroke="${line}" stroke-width="1.4"/>`;
   return out;
 }
 function garlandG(night){
@@ -1066,6 +1383,8 @@ function cropG(p,cx,cy){
 function indoorPotG(p,x,y,k){
   const stage=p.stage||0, c=(FRUITS[p.type]||FRUITS.tomato).c;
   const ready=stage>=4, due=dueCare(p.care);
+  const action=ready?`harvestIndoor('${p.id}')`:`careIndoor('${p.id}')`;
+  const label=(FRUITS[p.type]||FRUITS.tomato).n+(ready?' 수확하기':' 화분 케어하기');
   let plant='';
   if(stage<=1)plant=`<path d="M0 -2 L0 -12" stroke="#5a9e4a" stroke-width="2"/><circle cx="-4" cy="-13" r="4" fill="#6cb85a"/><circle cx="4" cy="-14" r="4" fill="#7dc96a"/>`;
   else{
@@ -1073,7 +1392,7 @@ function indoorPotG(p,x,y,k){
     if(stage===3)plant+=`<circle cx="-5" cy="-15" r="2.6" fill="${c}"/><circle cx="6" cy="-18" r="2.6" fill="${c}"/>`;
     if(ready)plant+=`<circle cx="-6" cy="-15" r="3.8" fill="${c}"/><circle cx="6" cy="-18" r="3.8" fill="${c}"/><circle cx="0" cy="-12" r="3.8" fill="${c}"/>`;
   }
-  return `<g class="clk" onclick="${ready?`harvestIndoor('${p.id}')`:`careIndoor('${p.id}')`}" transform="translate(${x},${y}) scale(${k})">
+  return `<g class="clk" role="button" tabindex="0" aria-label="${label}" onclick="${action}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${action}}" transform="translate(${x},${y}) scale(${k})">
     <path d="M-9 0 L9 0 L7 14 L-7 14Z" fill="#c9713f"/><rect x="-10" y="-3" width="20" height="5" rx="2" fill="#b35c31"/>
     ${plant}${ready?`<text class="spark" x="10" y="-24" font-size="9">✨</text>`:''}${due&&!ready?pinG(12,-20,'💧'):''}</g>`;
 }
@@ -1107,23 +1426,25 @@ function roomScene(){
   let g=`<svg class="scene" viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg">`;
   /* 벽 + 바닥 */
   g+=`<rect width="480" height="190" fill="${th.wall}"/>
-      <rect y="158" width="480" height="32" fill="#d9b98a"/>
-      <line x1="0" y1="158" x2="480" y2="158" stroke="#c2a071" stroke-width="2"/>`;
-  for(let i=1;i<16;i++)g+=`<line x1="${i*30}" y1="160" x2="${i*30}" y2="190" stroke="#c9a878" stroke-width="1.2"/>`;
-  g+=woodFloor(190,130);
+      <rect y="158" width="480" height="32" fill="${th.trim}"/>
+      <line x1="0" y1="158" x2="480" y2="158" stroke="${th.floorLine}" stroke-width="2"/>`;
+  for(let i=1;i<16;i++)g+=`<line x1="${i*30}" y1="160" x2="${i*30}" y2="190" stroke="${th.floorLine}" stroke-width="1.2" opacity=".7"/>`;
+  g+=woodFloor(190,130,th.floor,th.floorLine);
   /* 러그 */
-  g+=`<ellipse cx="238" cy="268" rx="92" ry="30" fill="#e8b4a0"/><ellipse cx="238" cy="268" rx="72" ry="22" fill="#f2cdbf"/><ellipse cx="238" cy="268" rx="50" ry="15" fill="#e8b4a0"/>`;
+  g+=`<ellipse cx="238" cy="270" rx="96" ry="32" fill="#4a2530" opacity=".14"/>
+      <ellipse cx="238" cy="268" rx="92" ry="30" fill="${th.rug}"/><ellipse cx="238" cy="268" rx="72" ry="22" fill="${th.rug2}"/><ellipse cx="238" cy="268" rx="50" ry="15" fill="${th.rug}"/>`;
   /* 가랜드 조명 */
   g+=garlandG(night);
   /* 텃밭 문 */
-  g+=`<g class="clk" onclick="setLoc('garden')">
+  g+=`<g class="clk" role="button" tabindex="0" aria-label="텃밭으로 이동" onclick="setLoc('garden')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setLoc('garden')}">
+      <rect x="0" y="62" width="56" height="132" fill="transparent"/>
       <rect x="6" y="84" width="40" height="106" rx="3" fill="#7a4a2f"/>
       <rect x="10" y="88" width="32" height="98" rx="2" fill="#9a6a42"/>
       <rect x="14" y="94" width="24" height="38" rx="2" fill="#b98a5a"/>
       <rect x="14" y="140" width="24" height="38" rx="2" fill="#b98a5a"/>
       <circle cx="38" cy="138" r="2.6" fill="#ffd24d"/>
       <rect x="4" y="70" width="46" height="13" rx="4" fill="#8a6a55"/>
-      <text x="27" y="80" text-anchor="middle" font-size="9" fill="#fff" font-family="Jua">텃밭 🌿</text></g>`;
+      <text x="27" y="80" text-anchor="middle" font-size="12" fill="#fff" font-family="Jua">텃밭</text></g>`;
   /* 벽난로 */
   g+=`<rect x="58" y="88" width="92" height="102" fill="#b3adb8"/>
       <rect x="58" y="88" width="92" height="102" fill="none" stroke="#948e9a" stroke-width="2"/>`;
@@ -1182,7 +1503,7 @@ function roomScene(){
       <rect x="264" y="220" width="6" height="22" fill="#7a4a2f"/><rect x="302" y="220" width="6" height="22" fill="#7a4a2f"/>`;
   if(LV.vase){
     const due=dueCare(LV.vase.care);
-    g+=`<g class="clk" onclick="careVase()">${vaseG(286,198,1)}${flowerG(LV.vase.flower,286,182,.85)}${due?pinG(302,178,'💧'):''}</g>`;
+    g+=`<g class="clk" role="button" tabindex="0" aria-label="화병 케어하기" onclick="careVase()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();careVase()}">${vaseG(286,198,1)}${flowerG(LV.vase.flower,286,182,.85)}${due?pinG(302,178,'💧'):''}</g>`;
   }else{
     g+=vaseG(286,198,1);
   }
@@ -1206,7 +1527,7 @@ function roomScene(){
   LV.pets.forEach((p,i)=>{
     const due=dueCare(p.care);
     const pp=[[196,238],[246,246],[168,252]][i%3];
-    g+=petG(p,pp[0],pp[1],2.3,'wagp clk',`onclick="carePet('${p.id}')"`);
+    g+=petG(p,pp[0],pp[1],2.3,'wagp clk',`role="button" tabindex="0" aria-label="${petName(p)} 케어하기" onclick="carePet('${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();carePet('${p.id}')}"`);
     if(due)g+=pinG(pp[0]+22,pp[1]-10,'🍚');
   });
   /* 밤 오버레이 */
@@ -1244,63 +1565,91 @@ function renderLiving(){
   ['Room','Garden','Shop'].forEach(n=>{const el=$('loc'+n); if(el)el.classList.toggle('on',v===n.toLowerCase());});
   if(v==='shop'){ renderShop(); return; }
   if(v==='garden'){ renderGarden(); return; }
-  $('livingView').innerHTML=roomScene()+sleepBarHtml()
-    +'<div class="mut">문🚪을 누르면 텃밭으로! 반려동물·화병·화분을 눌러 케어할 수 있어요 (+5💗)</div>';
+  $('livingView').innerHTML=sceneToolbar('둘만의 포근한 거실')+roomScene()+sleepBarHtml()
+    +'<div class="mut living-help">문을 누르면 텃밭으로 이동해요. 반려동물·화병·화분을 돌보면 +5💗</div>';
 }
+function shopCard(image,name,status,action,disabled=false,extra=''){
+  const attrs=disabled?'disabled aria-disabled="true"':`onclick="${action}"`;
+  return `<button type="button" class="shop-item ${extra}" ${attrs} aria-label="${esc(name+' '+status)}">
+    <span class="shop-art">${image}</span><span class="shop-name">${esc(name)}</span><span class="cost">${status}</span></button>`;
+}
+function shopSection(id,icon,title,subtitle,cards,grid='g3'){
+  return `<section class="shop-section" id="${id}"><div class="shop-heading"><span class="shop-heading-icon">${icon}</span><div><h3>${title}</h3><p>${subtitle}</p></div></div><div class="shop-grid ${grid}">${cards}</div></section>`;
+}
+function jumpShop(id){const el=$(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
 function renderShop(){
   const s=seasonOf(), si=SEASON_ITEMS[s], sm=SEASON_META[s];
   const petFull=LV.pets.length>=3;
-  let h=`<div class="stitle">🐶 강아지 분양 (💗${PET_COST}) <small style="color:#c7a3ad">최대 3마리</small></div><div class="shop-grid g3">`;
+  let h=`<div class="shop-hero"><span><strong>아지트 상점</strong><small>모은 하트로 우리 공간을 채워요</small></span><span class="shop-wallet">💗 ${LV.hearts||0}</span></div>
+    <div class="shop-cats" role="navigation" aria-label="상점 카테고리">
+      <button type="button" onclick="jumpShop('shop-pets')">🐾 반려동물</button><button type="button" onclick="jumpShop('shop-plants')">🌸 식물</button>
+      <button type="button" onclick="jumpShop('shop-garden')">🌿 텃밭</button><button type="button" onclick="jumpShop('shop-interior')">🏠 인테리어</button>
+    </div>`;
+
+  let cards='';
   for(const[b,info] of Object.entries(DOG_BREEDS)){
     const owned=LV.pets.some(p=>p.type==='dog'&&p.breed===b);
-    h+=`<div class="shop-item ${owned||petFull?'disabled':''}" onclick="buyPet('dog','${b}')">
-      <span class="si">${petSvg('dog',b)}</span>${info.n}<span class="cost">${owned?'함께 살아요 💕':'💗 '+PET_COST}</span></div>`;
+    const disabled=owned||petFull;
+    const status=owned?'함께 살아요 ✓':petFull?'세 마리 가족 완성':'💗 '+PET_COST;
+    cards+=shopCard(petSvg('dog',b),info.n,status,`buyPet('dog','${b}')`,disabled);
   }
-  h+=`</div><div class="stitle" style="margin-top:14px">🐱 고양이 분양 (💗${PET_COST})</div><div class="shop-grid g3">`;
+  h+=shopSection('shop-pets','🐶','강아지 친구','반려동물은 강아지와 고양이를 합쳐 최대 3마리',cards);
+
+  cards='';
   for(const[b,info] of Object.entries(CAT_BREEDS)){
     const owned=LV.pets.some(p=>p.type==='cat'&&p.breed===b);
-    h+=`<div class="shop-item ${owned||petFull?'disabled':''}" onclick="buyPet('cat','${b}')">
-      <span class="si">${petSvg('cat',b)}</span>${info.n}<span class="cost">${owned?'함께 살아요 💕':'💗 '+PET_COST}</span></div>`;
+    const disabled=owned||petFull;
+    const status=owned?'함께 살아요 ✓':petFull?'세 마리 가족 완성':'💗 '+PET_COST;
+    cards+=shopCard(petSvg('cat',b),info.n,status,`buyPet('cat','${b}')`,disabled);
   }
-  h+=`</div><div class="stitle" style="margin-top:14px">🌸 꽃 & 화병 (💗${FLOWER_COST})</div><div class="shop-grid g3">`;
+  h+=shopSection('shop-cats','🐱','고양이 친구','한 번 함께 살게 된 친구는 계속 아지트에 머물러요',cards);
+
+  cards='';
   for(const[f,info] of Object.entries(FLOWERS)){
-    const cur=LV.vase&&LV.vase.flower===f;
-    h+=`<div class="shop-item ${cur?'disabled':''}" onclick="buyFlower('${f}')">
-      <span class="si">${flowerSvg(f,30)}</span>${info.n}<span class="cost">${cur?'꽂혀 있어요':'💗 '+FLOWER_COST}</span></div>`;
+    const current=LV.vase&&LV.vase.flower===f;
+    cards+=shopCard(flowerSvg(f,34),info.n,current?'현재 꽃병에 있어요':'💗 '+FLOWER_COST,`buyFlower('${f}')`,current);
   }
-  h+=`</div><div class="stitle" style="margin-top:14px">🪴 미니과일 화분 (💗10) <small style="color:#c7a3ad">최대 2개</small></div><div class="shop-grid g3">`;
+  h+=shopSection('shop-plants','🌸','꽃과 화병','작은 꽃 한 송이로 거실 분위기를 바꿔보세요',cards);
+
+  cards='';
   for(const[k,item] of Object.entries(SHOP)){
     if(item.type!=='indoor')continue;
     const full=LV.indoor.length>=2;
-    h+=`<div class="shop-item ${full?'disabled':''}" onclick="buyItem('${k}')">
-      <span class="si">${potSvg(item.id)}</span>${FRUITS[item.id].n}<span class="cost">💗 ${item.cost}</span></div>`;
+    cards+=shopCard(potSvg(item.id,44),FRUITS[item.id].n,full?'화분 자리 가득':'💗 '+item.cost,`buyItem('${k}')`,full);
   }
-  h+=`</div><div class="stitle" style="margin-top:14px">${sm.e} ${sm.n} 한정</div><div class="shop-grid">`;
-  {
-    const owned=(LV.seasonDecor||[]).includes(si.id);
-    h+=`<div class="shop-item ${owned?'disabled':''}" onclick="buySeasonItem()">
-      <span class="si">${seasonItemSvg(s)}</span>${si.n}<span class="cost">${owned?'보유 중 ✓':'💗 '+si.cost}</span></div>
-      <div class="shop-item" style="pointer-events:none;background:#fff6f9"><span class="si" style="font-size:26px;line-height:44px">${sm.e}</span>다음 계절에 새 아이템!<span class="cost">시즌 한정</span></div>`;
-  }
-  h+='</div><div class="stitle" style="margin-top:14px">🌿 텃밭 꾸미기</div><div class="shop-grid g3">';
+  h+=shopSection('shop-pots','🪴','미니 과일 화분','거실에는 화분을 최대 2개 둘 수 있어요',cards);
+
+  const seasonOwned=(LV.seasonDecor||[]).includes(si.id);
+  cards=shopCard(seasonItemSvg(s),si.n,seasonOwned?'보유 중 ✓':'💗 '+si.cost,'buySeasonItem()',seasonOwned);
+  cards+=`<div class="shop-item shop-preview" aria-hidden="true"><span class="shop-art" style="font-size:30px">${sm.e}</span><span class="shop-name">다음 계절에도 새 장식</span><span class="cost">시즌 컬렉션</span></div>`;
+  h+=shopSection('shop-season',sm.e,sm.n+' 한정 장식','이번 계절에만 만날 수 있는 특별한 장식',cards,'');
+
+  cards='';
   for(const[k,item] of Object.entries(SHOP)){
     if(item.type==='indoor')continue;
-    let disabled=false, sub='';
-    if(item.type==='gdecor'&&LV.garden.decor===item.id)disabled=true;
+    let disabled=false,status='💗 '+item.cost;
+    if(item.type==='gdecor'){
+      const current=LV.garden.decor===item.id;
+      const owned=(LV.garden.ownedDecor||[]).includes(item.id);
+      disabled=current;
+      status=current?'현재 적용 중':owned?'보유 · 무료 적용':'💗 '+item.cost;
+    }
     if(item.type==='plot'){
       disabled=LV.garden.plots.some(x=>x===null);
-      sub=disabled?'빈 칸 있음':'+1칸';
+      status=disabled?'빈 밭부터 심어주세요':'💗 '+item.cost+' · 1칸 추가';
     }
-    h+=`<div class="shop-item ${disabled?'disabled':''}" onclick="buyItem('${k}')">
-      <span class="si" style="font-size:26px;line-height:44px">${item.icon}</span>${item.label}<span class="cost">💗 ${item.cost} ${sub}</span></div>`;
+    cards+=shopCard(`<span style="font-size:29px">${item.icon}</span>`,item.label,status,`buyItem('${k}')`,disabled);
   }
-  h+=`</div><div class="stitle" style="margin-top:14px">🏠 인테리어 (💗${THEME_COST})</div><div class="shop-grid">`;
+  h+=shopSection('shop-garden','🌿','텃밭 꾸미기','구매한 장식은 하트 없이 다시 적용할 수 있어요',cards);
+
+  cards='';
   for(const[t,info] of Object.entries(THEMES)){
-    const owned=(LV.themes||[]).includes(t);
-    h+=`<div class="shop-item ${LV.theme===t?'disabled':''}" onclick="buyTheme('${t}')">
-      <span class="sw" style="background:linear-gradient(135deg,${info.wall},${info.blanket})"></span><br>${info.e} ${info.n}<span class="cost">${LV.theme===t?'적용 중':owned?'무료 적용':'💗 '+THEME_COST}</span></div>`;
+    const owned=(LV.themes||[]).includes(t),current=LV.theme===t;
+    const preview=`<span class="sw" style="background:linear-gradient(180deg,${info.wall} 0 62%,${info.floor} 62% 100%)"><i style="background:${info.rug}"></i></span>`;
+    const status=current?'현재 적용 중':owned?'보유 · 무료 적용':'💗 '+THEME_COST;
+    cards+=shopCard(preview,info.e+' '+info.n,status,`buyTheme('${t}')`,current);
   }
-  h+='</div>';
+  h+=shopSection('shop-interior','🏠','인테리어 테마','벽·바닥·러그·침구가 한 번에 달라져요',cards,'');
   $('livingView').innerHTML=h;
 }
 function potSvg(fr,size=40){
@@ -1368,41 +1717,47 @@ function renderGarden(){
         <g class="steam s2"><path d="M392 124 Q396 116 393 108" stroke="#a8dcf0" stroke-width="2.6" fill="none" stroke-linecap="round"/></g>`;
   }
   /* 돌아가는 문 */
-  g+=`<g class="clk" onclick="setLoc('room')">
-      <rect x="8" y="150" width="44" height="14" rx="4" fill="#8a6a55"/>
-      <text x="30" y="161" text-anchor="middle" font-size="10" fill="#fff" font-family="Jua">🏠 거실로</text></g>`;
+  g+=`<g class="clk" role="button" tabindex="0" aria-label="거실로 이동" onclick="setLoc('room')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setLoc('room')}">
+      <rect x="2" y="140" width="64" height="36" rx="9" fill="#8a6a55"/>
+      <text x="34" y="163" text-anchor="middle" font-size="14" fill="#fff" font-family="Jua">🏠 거실</text></g>`;
   /* 팻말 */
   g+=`<rect x="196" y="112" width="88" height="22" rx="5" fill="#8a6a55"/><rect x="232" y="134" width="8" height="16" fill="#7a5a45"/>
-      <text x="240" y="128" text-anchor="middle" font-size="12" fill="#ffeeda" font-family="Jua">우리 텃밭 🌿</text>
+      <text x="240" y="128" text-anchor="middle" font-size="15" fill="#ffeeda" font-family="Jua">우리 텃밭 🌿</text>
       <rect x="0" y="168" width="480" height="14" rx="4" fill="#c4a06a" opacity=".55"/>`;
   /* 밭 */
   LV.garden.plots.forEach((p,i)=>{
     const col=i%3,row=Math.floor(i/3);
     const x=24+col*152, y=182+row*78, w=136, hh=64;
     if(!p){
-      g+=`<g class="clk" onclick="plantGarden(${i})">
+      g+=`<g class="clk" role="button" tabindex="0" aria-label="${i+1}번 밭에 씨앗 심기" onclick="plantGarden(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();plantGarden(${i})}">
         <rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="9" fill="#9a6a3e" stroke="#6f4728" stroke-width="2"/>
         <line x1="${x+10}" y1="${y+18}" x2="${x+w-10}" y2="${y+18}" stroke="#7a5230" stroke-width="2"/>
         <line x1="${x+10}" y1="${y+32}" x2="${x+w-10}" y2="${y+32}" stroke="#7a5230" stroke-width="2"/>
         <line x1="${x+10}" y1="${y+46}" x2="${x+w-10}" y2="${y+46}" stroke="#7a5230" stroke-width="2"/>
         <text x="${x+w/2}" y="${y+hh/2-2}" text-anchor="middle" font-size="16" fill="#ffeeda">➕</text>
-        <text x="${x+w/2}" y="${y+hh/2+16}" text-anchor="middle" font-size="10" fill="#ffeeda" font-family="Jua">씨앗 심기 💗10</text></g>`;
+        <text x="${x+w/2}" y="${y+hh/2+17}" text-anchor="middle" font-size="13" fill="#ffeeda" font-family="Jua">씨앗 심기 · 10💗</text></g>`;
       return;
     }
     const ready=(p.stage||0)>=4, due=dueCare(p.care);
-    g+=`<g class="clk" onclick="${ready?`harvestPlot(${i})`:`careGarden(${i})`}">
+    const action=ready?`harvestPlot(${i})`:`careGarden(${i})`;
+    const crop=(FRUITS[p.type]||FRUITS.tomato);
+    g+=`<g class="clk" role="button" tabindex="0" aria-label="${i+1}번 ${crop.n} ${ready?'수확하기':'케어하기'}" onclick="${action}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${action}}">
       <rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="9" fill="#8a5c36"/>
       <line x1="${x+10}" y1="${y+16}" x2="${x+w-10}" y2="${y+16}" stroke="#6f4728" stroke-width="3"/>
       <line x1="${x+10}" y1="${y+32}" x2="${x+w-10}" y2="${y+32}" stroke="#6f4728" stroke-width="3"/>
       <line x1="${x+10}" y1="${y+48}" x2="${x+w-10}" y2="${y+48}" stroke="#6f4728" stroke-width="3"/>
       ${cropG(p,x+w/2,y+30)}
-      <text x="${x+w/2}" y="${y+hh-5}" text-anchor="middle" font-size="9.5" fill="#ffeeda" font-family="Jua">${(FRUITS[p.type]||FRUITS.tomato).n} · ${ready?'수확하기!':['씨앗','새싹','자람','거의 다!','수확'][p.stage||0]}</text>
+      <text x="${x+w/2}" y="${y+hh-5}" text-anchor="middle" font-size="12.5" fill="#ffeeda" font-family="Jua">${crop.n} · ${ready?'수확!':['씨앗','새싹','자람','거의 다!','수확'][p.stage||0]}</text>
       ${due&&!ready?pinG(x+w-12,y+10,'💧'):''}</g>`;
   });
   if(night)g+=`<rect width="480" height="${H}" fill="#1b2440" opacity=".34" pointer-events="none"/>`;
   g+='</svg>';
-  $('livingView').innerHTML=`<div class="living-scene">${g}</div>
-    <div class="mut">밭을 눌러 심고(💗10) · 물주면 +5💗 · 다 자라면 수확 +15💗</div>`;
+  const empty=LV.garden.plots.filter(p=>!p).length;
+  const ready=LV.garden.plots.filter(p=>p&&(p.stage||0)>=4).length;
+  const growing=LV.garden.plots.length-empty-ready;
+  $('livingView').innerHTML=sceneToolbar('햇살 머무는 우리 텃밭')+`<div class="living-scene">${g}</div>
+    <div class="garden-summary"><span class="garden-stat"><b>${growing}</b><small>자라는 중</small></span><span class="garden-stat ready"><b>${ready}</b><small>수확 가능</small></span><span class="garden-stat"><b>${empty}</b><small>빈 밭</small></span></div>
+    <div class="mut living-help">밭을 눌러 심고 10💗 · 물주면 +5💗 · 다 자라면 수확 +15💗</div>`;
 }
 function renderCareList(){
   const items=[];
@@ -1428,19 +1783,28 @@ async function buyPet(type,breed){
 }
 async function buyItem(key){
   const item=SHOP[key]; if(!item)return;
-  if((LV.hearts||0)<item.cost){toast('하트가 부족해요 💔');return;}
   if(item.type==='indoor'){
     if(LV.indoor.length>=2){toast('화분은 2개까지!');return;}
-    LV.indoor.push({id:uid(),type:item.id,stage:0,care:scheduleCare(1+Math.floor(Math.random()*2)),plantedAt:Date.now()});
-  }else if(item.type==='gdecor'){
-    LV.garden.decor=item.id;
   }else if(item.type==='plot'){
     if(LV.garden.plots.some(x=>x===null)){toast('아직 빈 텃밭 칸이 있어요!');return;}
+  }else if(item.type==='gdecor'&&LV.garden.decor===item.id){
+    toast('이미 텃밭에 적용 중이에요');return;
+  }
+  const decorOwned=item.type==='gdecor'&&(LV.garden.ownedDecor||[]).includes(item.id);
+  const cost=decorOwned?0:item.cost;
+  if((LV.hearts||0)<cost){toast('하트가 부족해요 💔');return;}
+  if(item.type==='indoor'){
+    LV.indoor.push({id:uid(),type:item.id,stage:0,care:scheduleCare(1+Math.floor(Math.random()*2)),plantedAt:Date.now()});
+  }else if(item.type==='gdecor'){
+    LV.garden.ownedDecor=LV.garden.ownedDecor||[];
+    if(!decorOwned)LV.garden.ownedDecor.push(item.id);
+    LV.garden.decor=item.id;
+  }else if(item.type==='plot'){
     LV.garden.plots.push(null);
   }
-  LV.hearts-=item.cost;
+  LV.hearts-=cost;
   await saveLiving();
-  toast('구매 완료! 🛍️');
+  toast(decorOwned?'보유한 장식을 다시 적용했어요 🌿':'구매 완료! 🛍️');
   if(locView==='shop')renderShop();
 }
 async function buySeasonItem(){
@@ -1584,7 +1948,12 @@ $('bkfile').onchange=async e=>{
 /* ---- 공통 ---- */
 function go(i,btn){
   document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('on',j===i));
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===btn));
+  document.querySelectorAll('nav button').forEach(b=>{
+    const active=b===btn;
+    b.classList.toggle('on',active);
+    if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+  });
+  window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   if(i===4||i===5)earnHeart('visit',ACT_REWARD).catch(()=>{});
 }
 function renderAll(){ renderHome(); renderSeasonCard(); renderCal(); renderPhotos(); renderNotes(); renderQA(); renderHearts(); renderLiving(); renderCareList(); }
