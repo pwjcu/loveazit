@@ -43,5 +43,7 @@ vm.runInContext(fs.readFileSync('assets/fortune-sync.js','utf8'),sandbox,{filena
   check(rejected,'wrong couple code cannot decrypt');
   check(api.validEditorial(api.defaultEditorial),'default editorial validates');
   check(!api.validEditorial({...api.defaultEditorial,dailyMessages:[['<script>']]}),'bad editorial rejected');
+  rejected=false;try{api.normalizeFortuneCode('AZIT-not-a-real-code');}catch{rejected=true;}
+  check(rejected,'malformed connection code rejected');
   process.stdout.write(`fortune-sync: ${checks} checks passed\n`);
 })().catch(error=>{console.error(error);process.exitCode=1;});
