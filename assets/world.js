@@ -3,6 +3,8 @@ let worldBusy=false;
 async function changeWorld(edit){
   if(worldBusy){toast('잠깐만요, 저장하고 있어요');return false;}
   worldBusy=true;
+  const focusKey=document.activeElement?.dataset?.worldFocus;
+  $('livingView')?.setAttribute('aria-busy','true');
   let message='';
   try{
     if(db){
@@ -21,16 +23,81 @@ async function changeWorld(edit){
       await DB.setObj('living',livingPayload(next));LV=next;
     }
     renderHearts();renderLiving();renderCareList();
+    if(typeof renderCouple==='function')renderCouple();
+    if(typeof renderSettingsExtras==='function')renderSettingsExtras();
+    if(focusKey)Array.from(document.querySelectorAll('[data-world-focus]')).find(el=>el.dataset.worldFocus===focusKey)?.focus({preventScroll:true});
     if(message)toast(message);
     return true;
   }catch(error){console.error('아지트 저장 실패',error);toast('저장하지 못했어요. 연결을 확인하고 다시 눌러주세요');return false;}
-  finally{worldBusy=false;}
+  finally{worldBusy=false;$('livingView')?.removeAttribute('aria-busy');}
 }
 function spendWorld(state,cost){if(state.hearts<cost)return false;state.hearts-=cost;return true;}
 function worldFail(message){return{ok:false,message};}
 let worldStill=localStorage.getItem('azit-still')==='1';
-function toggleWorldMotion(){worldStill=!worldStill;localStorage.setItem('azit-still',worldStill?'1':'0');renderLiving();}
-function worldControls(){return `<div class="world-actions"><button type="button" aria-pressed="${worldStill}" onclick="toggleWorldMotion()">${worldStill?'▶ 움직임 켜기':'Ⅱ 움직임 쉬기'}</button><small>친구를 누르면 반가워해요</small></div>`;}
+function toggleWorldMotion(){worldStill=!worldStill;localStorage.setItem('azit-still',worldStill?'1':'0');renderLiving();document.querySelector('[data-world-focus="motion"]')?.focus({preventScroll:true});}
+function worldControls(){return `<div class="world-actions"><small>작은 친구와 소품을 눌러보세요</small><button type="button" data-world-focus="motion" aria-pressed="${worldStill}" onclick="toggleWorldMotion()">${worldStill?'▶ 움직임 켜기':'Ⅱ 움직임 쉬기'}</button></div>`;}
+
+/* Appearance keeps the original pixel maps and changes only their palette/accessory. */
+const originalCharPalette=charPal;
+charPal=function(w){
+  const base=originalCharPalette(Number(w)),look=LV.characters?.[String(w)]||{};
+  const colors=['#e98fa5','#e7b46b','#86b7a0','#739bc2','#9c87bd','#6e6670'];
+  const color=(value,fallback)=>colors.includes(value)?value:fallback;
+  return{...base,H:color(look.hair,base.H),T:color(look.shirt,base.T),D:color(look.shirt,base.D)};
+};
+charG=function(w,x,y,k,cls=''){
+  const accessory=LV.characters?.[String(w)]?.accessory;
+  const accessories={
+    bow:'<path d="M9 0h2v1h1V0h2v3h-2V2h-1v1H9Z" fill="#e97797"/><rect x="11" y="1" width="1" height="1" fill="#ffe4bd"/>',
+    cap:'<path d="M4-1h8v1h1v2H3V0h1Z" fill="#729b94"/><path d="M8 2h7v1H8Z" fill="#476f76"/><rect x="7" y="0" width="2" height="1" fill="#fce5b4"/>',
+    flower:'<path d="M12 0h2v1h1v2h-1v1h-2V3h-1V1h1Z" fill="#fff0bd"/><rect x="12" y="1" width="2" height="2" fill="#dc9c5c"/><rect x="14" y="3" width="1" height="2" fill="#79a276"/>'
+  };
+  return `<g class="${cls}" transform="translate(${x},${y}) scale(${k})" shape-rendering="crispEdges">${pxg(Number(w)===1?CHAR_M:CHAR_F,charPal(w))}${accessories[accessory]||''}</g>`;
+};
+
+function worldProduceTotal(state=LV){return Object.keys(FRUITS).reduce((n,id)=>n+Math.max(0,Math.floor(Number(state.pantry?.[id])||0)),0);}
+function worldNextTask(place){
+  const plots=LV.garden.plots,ready=plots.findIndex(p=>p&&p.stage>=4),thirsty=plots.findIndex(p=>p&&p.stage<4&&dueCare(p.care));
+  const hungry=LV.pets.find(p=>dueCare(p.care));
+  if(place==='room'&&hungry&&!isSleeping())return{icon:'paw',title:petName(hungry)+'의 식사 시간',note:'밥 한 그릇과 다정한 인사를 건네요',button:'밥 챙겨주기',action:`interactPet('${hungry.id}','feed')`};
+  if(ready>=0)return{icon:'basket',title:'통통하게 익었어요',note:(ready+1)+'번 밭에서 수확물 2개를 담아가요',button:'수확하러 가기',action:place==='garden'?`collectPlot(${ready})`:"setLoc('garden')"};
+  if(thirsty>=0)return{icon:'water',title:'새싹이 물을 기다려요',note:(thirsty+1)+'번 밭에 물을 주면 한 단계 자라요',button:'물 주러 가기',action:place==='garden'?`waterPlot(${thirsty})`:"setLoc('garden')"};
+  const empty=plots.findIndex(p=>!p);
+  if(empty>=0&&LV.hearts>=3)return{icon:'sprout',title:'다음 수확을 시작해요',note:'씨앗 3하트 · 수확물로 편지와 질문을 즐겨요',button:'씨앗 고르기',action:place==='garden'?`plotPicker(${empty})`:"setLoc('garden')"};
+  if(worldProduceTotal())return{icon:'basket',title:'바구니에 담긴 작은 선물',note:'수확물로 비둘기를 응원하거나 특별 질문을 열어요',button:'바구니 열기',action:'openWorldPantry()'};
+  if(place==='room'&&LV.pets.length&&!isSleeping())return{icon:'paw',title:'오늘도 네 곁에',note:'공놀이와 쓰다듬기로 조금씩 더 친해져요',button:'같이 놀기',action:`interactPet('${LV.pets[0].id}','play')`};
+  return{icon:'moon',title:isSleeping()?'포근한 꿈을 꾸는 중':'느긋하게 쉬어가는 시간',note:plots.some(Boolean)?'흙이 촉촉해요. 다음 물주기 때 만나요':'편지 한 장으로 오늘의 마음을 전해요',button:'편지 보러 가기',action:'openPigeonLetters()'};
+}
+function worldIcon(kind){
+  const art={
+    basket:'<path d="M5 11h22l-3 15H8Z" fill="#c89461" stroke="#8d684d" stroke-width="2"/><path d="M10 11Q16-1 22 11M11 16v7m5-7v7m5-7v7" fill="none" stroke="#f6d9a4" stroke-width="2"/><path d="M9 9V6h5v5m3 0V5h5v6" fill="#8dad72"/>',
+    sprout:'<path d="M16 26V12" stroke="#719062" stroke-width="3"/><path d="M15 18Q3 18 5 7Q16 7 15 18M17 15Q17 3 28 4Q28 15 17 15" fill="#89ad72"/><path d="M7 28h19" stroke="#c09971" stroke-width="3"/>',
+    water:'<path d="M16 3Q4 17 7 23Q16 34 25 23Q28 17 16 3" fill="#84b8c7" stroke="#608c9f" stroke-width="2"/><path d="M11 19v4h4" stroke="#e4f5f2" stroke-width="2" fill="none"/>',
+    paw:'<path d="M16 14Q9 13 8 23Q7 30 16 26Q25 30 24 23Q23 13 16 14" fill="#c58d9d"/><g fill="#d9abb4"><ellipse cx="6" cy="13" rx="3" ry="4"/><ellipse cx="12" cy="7" rx="3" ry="4"/><ellipse cx="20" cy="7" rx="3" ry="4"/><ellipse cx="26" cy="13" rx="3" ry="4"/></g>',
+    moon:'<path d="M22 4Q9 1 6 14Q4 28 19 28Q26 28 29 21Q14 26 13 13Q12 7 22 4" fill="#d4b574"/><path d="M26 6v6m-3-3h6" stroke="#baa0bc" stroke-width="2"/>'
+  };
+  return `<svg viewBox="0 0 32 32" aria-hidden="true">${art[kind]||art.sprout}</svg>`;
+}
+function worldDashboardHtml(place){
+  const task=worldNextTask(place),count=worldProduceTotal();
+  return `<section class="world-dashboard" aria-label="아지트의 작은 할 일"><div class="world-dashboard-top"><span class="world-kicker">오늘의 작은 행복</span><button type="button" class="pantry-chip" data-world-focus="pantry" onclick="openWorldPantry()">${worldIcon('basket')}<span>수확 바구니 <b>${count}</b></span></button></div><div class="world-objective"><span class="world-objective-icon">${worldIcon(task.icon)}</span><div><strong>${esc(task.title)}</strong><p>${esc(task.note)}</p></div><button type="button" data-world-focus="objective" onclick="${task.action}">${task.button}<span aria-hidden="true"> ↗</span></button></div></section>`;
+}
+function openWorldPantry(){
+  const total=worldProduceTotal();
+  openAzitDialog('우리의 수확 바구니',`<div class="pantry-intro">${worldIcon('basket')}<div><strong>직접 기른 선물 ${total}개</strong><p>마당에서 자란 마음을 함께 나눠요.</p></div></div><div class="pantry-grid">${Object.entries(FRUITS).map(([id,f])=>`<div class="pantry-crop ${(LV.pantry?.[id]||0)>0?'has-produce':''}"><svg viewBox="0 0 60 46" aria-hidden="true">${cropG({type:id,stage:4},30,24)}</svg><span>${f.n}</span><b>${Math.max(0,Math.floor(Number(LV.pantry?.[id])||0))}<small>개</small></b></div>`).join('')}</div><div class="pantry-uses"><button type="button" onclick="document.getElementById('azitDialog').close();openPigeonLetters()"><b>비둘기에게 간식 주기 ↗</b><span>수확물 1개로 편지 도착을 앞당겨요</span></button><button type="button" onclick="document.getElementById('azitDialog').close();openProduceQna()"><b>둘만의 특별 질문 ↗</b><span>수확물 4개로 새로운 이야기를 시작해요</span></button></div><p class="dialog-note">수확물은 함께 쓰는 바구니에 차곡차곡 모여요.</p>`);
+}
+function gardenGuideHtml(){return `<div class="garden-guide garden-journey"><strong>새싹에서 작은 선물까지</strong><ol><li><b>01</b><span>씨앗 심기<small>3하트</small></span></li><li><b>02</b><span>물주기 4번<small>첫 물은 바로 · 이후 4시간</small></span></li><li><b>03</b><span>수확물 2개<small>편지 간식 · 특별 질문</small></span></li></ol></div>`;}
+
+function roomAtmosphereG(){
+  const night=isNight(),th=THEMES[LV.theme]||THEMES.cozy;
+  return `<g pointer-events="none" aria-hidden="true"><path d="M217 114H290L351 223H211Z" fill="${night?'#bcd4ee':'#fff4cf'}" opacity="${night?.07:.15}"/><path d="M255 114 275 221M215 166H319" stroke="${th.floor}" stroke-width="4" opacity=".25"/>
+    <rect x="8" y="194" width="48" height="14" rx="3" fill="#ead1a6"/><path d="M11 197h42M11 205h42" stroke="#bc8e68" stroke-width="1.5"/><text x="32" y="203" text-anchor="middle" font-family="Jua" font-size="6" fill="#846344">WELCOME</text>
+    <g transform="translate(180 65)"><circle r="15" fill="#8a6b60"/><circle r="12" fill="#fff0d5"/><path d="M0-8V0L5 3" fill="none" stroke="#8b6b71" stroke-width="2"/><path d="M-10 0h2M8 0h2M0-10v2M0 8v2" stroke="#c4a382" stroke-width="1.5"/><circle r="2" fill="#c88d91"/></g>
+    <ellipse cx="238" cy="268" rx="82" ry="26" fill="none" stroke="#fff4db" stroke-width="1.2" stroke-dasharray="2 4" opacity=".65"/>
+    <path d="M144 295h9m-4-4v8M300 290h9m-4-4v8" stroke="#efdab6" stroke-width="2" opacity=".55"/>
+    <g transform="translate(259 123)"><path d="M0 0h22v2H0Z" fill="#a68069"/><path d="M2-8h6v7H2Zm11 1h6v6h-6Z" fill="#f7e8cc"/><path d="M8-7h3v4H8m11-3h3v4h-3" stroke="#f7e8cc" fill="none" stroke-width="1.4"/></g>
+    <g class="room-motes" fill="${night?'#ffe0b2':'#fff5d7'}" opacity=".6"><rect x="236" y="138" width="2" height="2"/><rect x="279" y="175" width="2" height="2"/><rect x="247" y="210" width="2" height="2"/></g></g>`;
+}
 
 function openAzitDialog(title,body){
   const d=$('azitDialog');
@@ -70,8 +137,8 @@ function petSceneG(place){
     const y=place==='room'?260:164;
     const name=petName(p),sleeping=isSleeping();
     out+=`<g transform="translate(${x},${y})" data-pet-id="${esc(p.id)}"><g class="${sleeping?'pet-snooze':'pet-roam pet-'+i}">
-      <g class="clk" role="button" tabindex="0" aria-label="${esc(name)} 쓰다듬기" onclick="interactPet('${p.id}','stroke')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();interactPet('${p.id}','stroke')}">
-      <rect x="-8" y="-12" width="68" height="62" rx="12" fill="transparent"/><ellipse cx="24" cy="34" rx="25" ry="6" fill="#3d2937" opacity=".17"/>
+      <g class="clk pet-target" role="button" tabindex="0" data-world-focus="pet-${esc(p.id)}" aria-label="${esc(name)} 쓰다듬기 · ${esc(petStatus(p))}" onclick="interactPet('${p.id}','stroke')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();interactPet('${p.id}','stroke')}">
+      <rect class="scene-hitbox" x="-13" y="-20" width="80" height="80" rx="12" fill="transparent"/><ellipse cx="24" cy="34" rx="25" ry="6" fill="#3d2937" opacity=".17"/>
       ${petG(p,0,0,p.breed==='husky'?2.25:3,sleeping?'':'pet-idle')}
       ${p.lastAction&&Date.now()-p.lastAction.at<60000&&p.lastAction.kind==='play'?'<g class="pet-ball"><circle cx="58" cy="31" r="6" fill="#e49caa" stroke="#fff0d0" stroke-width="2"/><path d="M54 27Q61 30 56 36" stroke="#fff0d0" stroke-width="1.5" fill="none"/></g>':''}
       ${p.lastAction&&Date.now()-p.lastAction.at<60000&&p.lastAction.kind==='feed'?'<path d="M45 29H65L62 36H48Z" fill="#8cb2c0"/><ellipse cx="55" cy="29" rx="9" ry="3" fill="#ac8059"/>':''}
@@ -82,26 +149,29 @@ function petSceneG(place){
   return out;
 }
 function petFamilyHtml(){
-  if(!LV.pets.length)return `<div class="garden-guide"><span>🐾</span><span>상점에서 만난 친구가 우리 집에 살아요.<br>쓰다듬고, 이름을 지어주고, 마당에서 함께 놀아요.</span></div>`;
-  return '<div class="pet-family">'+LV.pets.map(p=>{
+  if(!LV.pets.length)return `<div class="pet-empty">${worldIcon('paw')}<div><strong>작은 발자국을 기다려요</strong><p>상점에서 만난 친구와 매일 조금씩 친해져요.</p></div><button type="button" onclick="setLoc('shop');jumpShop('shop-pets')">친구 만나기</button></div>`;
+  return '<section class="pet-family" aria-label="우리 집 친구들"><div class="pet-family-title"><strong>우리 집 친구들</strong><span>'+LV.pets.length+' / 3</span></div>'+LV.pets.map(p=>{
     const affection=Math.min(100,p.affection||0),place=p.place||'room';
-    return `<article><header>${petSvg(p.type,p.breed,64)}<div><strong>${esc(petName(p))}</strong><p>${esc(petStatus(p))}</p></div><span class="pet-state">${place==='room'?'거실':'마당'}</span></header>
+    const hungry=dueCare(p.care),sleeping=isSleeping();
+    return `<article class="${hungry&&!sleeping?'pet-needs-care':''}"><header><span class="pet-portrait">${petSvg(p.type,p.breed,64)}</span><div><strong>${esc(petName(p))}</strong><p>${esc(petStatus(p))}</p></div><span class="pet-state">${place==='room'?'거실':'마당'}</span></header>
       <div class="pet-affection" role="meter" aria-label="${esc(petName(p))} 친밀도" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${affection}"><i style="width:${affection}%"></i></div>
-      <p>친밀도 ${affection} · ${affection>=60?'눈빛만 봐도 통하는 가족':affection>=20?'함께 있는 시간이 좋아요':'천천히 서로 알아가는 중'}</p>
-      <div class="pet-actions"><button onclick="interactPet('${p.id}','stroke')">쓰다듬기</button><button onclick="interactPet('${p.id}','feed')">밥주기${dueCare(p.care)?' +5💗':''}</button><button onclick="interactPet('${p.id}','play')">공놀이</button><button onclick="movePet('${p.id}')">${place==='room'?'마당에 보내기':'집에 데려오기'}</button><button onclick="namePet('${p.id}')">이름 짓기</button></div></article>`;
-  }).join('')+'</div>';
+      <p class="pet-bond-caption"><span>친밀도 <b>${affection}</b></span>${affection>=60?'눈빛만 봐도 통하는 가족':affection>=20?'함께 있는 시간이 좋아요':'천천히 서로 알아가는 중'}</p>
+      <div class="pet-actions"><button type="button" data-world-focus="stroke-${esc(p.id)}" onclick="interactPet('${p.id}','stroke')" ${sleeping?'disabled':''}>쓰다듬기</button><button type="button" data-world-focus="feed-${esc(p.id)}" class="${hungry?'pet-feed-ready':''}" onclick="interactPet('${p.id}','feed')" ${sleeping?'disabled':''}>${hungry?'밥 챙겨주기':'간식주기'}</button><button type="button" data-world-focus="play-${esc(p.id)}" onclick="interactPet('${p.id}','play')" ${sleeping?'disabled':''}>공놀이</button></div><div class="pet-manage"><button type="button" data-world-focus="move-${esc(p.id)}" onclick="movePet('${p.id}')">${place==='room'?'마당에 보내기 ↗':'집에 데려오기 ↗'}</button><button type="button" data-world-focus="name-${esc(p.id)}" onclick="namePet('${p.id}')">이름 짓기</button></div></article>`;
+  }).join('')+'</section>';
 }
 async function interactPet(id,kind){
   if(!['stroke','feed','play'].includes(kind))return;
+  if(isSleeping()){toast('새근새근 자고 있어요. 아침에 인사해 주세요');return;}
   const now=Date.now();
   await changeWorld(state=>{
     const p=state.pets.find(p=>p.id===id);if(!p)return worldFail('친구를 찾을 수 없어요');
-    let reward=0;
-    if(kind==='feed'&&dueCare(p.care)){p.care=scheduleCare(1);state.hearts+=CARE_REWARD;reward=CARE_REWARD;}
+    const hadMeal=kind==='feed'&&dueCare(p.care);
+    let reward=false;
+    if(hadMeal){p.care=scheduleCare(1);reward=grantHeart(state,'care',CARE_REWARD,dayKey());}
     const canBond=!p.lastBond||now-p.lastBond>=60000;
     if(canBond){p.affection=Math.min(100,(p.affection||0)+(kind==='play'?3:2));p.lastBond=now;}
     p.lastAction={kind,at:now};
-    return{message:petName(p)+(kind==='stroke'?'가 손에 얼굴을 부벼요 ♥':kind==='play'?'가 공을 물고 돌아왔어요!':reward?'가 맛있게 먹었어요! +5💗':'가 간식을 오물오물 먹어요')};
+    return{message:petName(p)+(kind==='stroke'?'가 손에 얼굴을 부벼요 ♥':kind==='play'?'가 공을 물고 돌아왔어요!':hadMeal?'가 맛있게 먹었어요!'+(reward?' +'+CARE_REWARD+'💗':''):'가 간식을 오물오물 먹어요')};
   });
 }
 async function movePet(id){
@@ -189,8 +259,8 @@ function themeDetailG(){
   return out;
 }
 function furnitureShopHtml(){return shopSection('shop-furniture','🛋️','소품 편집숍','같은 자리의 소품은 교체돼요 · 보유한 소품은 무료로 다시 배치',Object.entries(FURNITURE).map(([id,f])=>{
-  const owned=LV.ownedFurniture.includes(id),active=LV.furniture[f.slot]===id;
-  return shopCard(furnitureArt(f.kind),f.n,active?'배치 중 · 보관하기':owned?'보유 · 무료 배치':'💗 '+f.cost,`buyFurniture('${id}')`,false).replace('</span><span class="cost">',`</span><small class="furniture-description">${f.desc}</small><span class="cost">`);
+  const owned=LV.ownedFurniture.includes(id),active=LV.furniture[f.slot]===id,short=!owned&&LV.hearts<f.cost;
+  return shopCard(furnitureArt(f.kind),f.n,active?'배치 중 · 보관하기':owned?'보유 · 무료 배치':'💗 '+f.cost,`buyFurniture('${id}')`,false,`furniture-card ${active?'is-placed':owned?'is-owned':''}`).replace('</span><span class="cost">',`</span><small class="furniture-description">${f.desc}</small><span class="furniture-room">${f.slot.startsWith('yard')?'마당 소품':'거실 소품'}${short?' · '+(f.cost-LV.hearts)+'💗 더 모아요':''}</span><span class="cost">`);
 }).join(''));}
 async function buyFurniture(id){const f=FURNITURE[id];if(!f)return;await changeWorld(state=>{
   if(state.furniture[f.slot]===id){delete state.furniture[f.slot];return{message:f.n+'를 보관했어요'};}
@@ -199,16 +269,16 @@ async function buyFurniture(id){const f=FURNITURE[id];if(!f)return;await changeW
 });}
 
 function plotPicker(i){
-  if(LV.garden.plots[i]!==null)return;
-  openAzitDialog((i+1)+'번 밭 · 무엇을 심을까요?',`<p class="dialog-note">씨앗 10💗 · 물주기 4번으로 수확해요.<br>첫 물은 바로 줄 수 있고, 다음 물주기는 4시간 뒤예요.</p><div class="seed-choice">${Object.entries(FRUITS).map(([id,f])=>`<button onclick="plantSeed(${i},'${id}')"><svg viewBox="0 0 60 42">${cropG({type:id,stage:4},30,20)}</svg>${f.n}<small style="display:block">10💗</small></button>`).join('')}</div>`);
+  if(!Number.isInteger(i)||i<0||i>=LV.garden.plots.length||LV.garden.plots[i])return;
+  openAzitDialog((i+1)+'번 밭 · 무엇을 심을까요?',`<p class="dialog-note">씨앗 3💗 · 물주기 4번 뒤 수확물 2개가 생겨요.<br>첫 물은 바로, 다음 물주기는 4시간 뒤예요.</p><div class="seed-choice">${Object.entries(FRUITS).map(([id,f])=>`<button type="button" onclick="plantSeed(${i},'${id}')" ${LV.hearts<3?'disabled':''}><svg viewBox="0 0 60 42" aria-hidden="true">${cropG({type:id,stage:4},30,20)}</svg><b>${f.n}</b><small>씨앗 3💗 · 수확물 2개</small></button>`).join('')}</div>${LV.hearts<3?'<p class="form-error" role="status">씨앗을 심으려면 3하트가 필요해요.</p>':''}`);
 }
 async function plantSeed(i,type){
   if(!FRUITS[type])return;
-  const ok=await changeWorld(state=>{if(!Number.isInteger(i)||i<0||i>=state.garden.plots.length||state.garden.plots[i])return worldFail('이미 작물이 자라는 밭이에요');if(!spendWorld(state,10))return worldFail('씨앗은 10💗가 필요해요');state.garden.plots[i]={type,stage:0,care:[Date.now()],plantedAt:Date.now()};return{message:FRUITS[type].n+' 씨앗을 심었어요. 첫 물을 주세요!'};});
+  const ok=await changeWorld(state=>{if(!Number.isInteger(i)||i<0||i>=state.garden.plots.length||state.garden.plots[i])return worldFail('이미 작물이 자라는 밭이에요');if(!spendWorld(state,3))return worldFail('씨앗은 3💗가 필요해요');state.garden.plots[i]={type,stage:0,care:[Date.now()],plantedAt:Date.now()};return{message:FRUITS[type].n+' 씨앗을 심었어요. 첫 물을 주세요!'};});
   if(ok)$('azitDialog').close();
 }
-async function waterPlot(i){await changeWorld(state=>{const p=state.garden.plots[i];if(!p||p.stage>=4)return worldFail('수확할 수 있는 작물인지 확인해 주세요');if(!dueCare(p.care))return worldFail('촉촉한 흙이에요. '+nextCareLabel(p.care));p.stage=(p.stage||0)+1;p.care=p.stage>=4?[]:[Date.now()+4*3600000];p.wateredAt=Date.now();state.hearts+=CARE_REWARD;return{message:p.stage>=4?'다 자랐어요! 눌러서 수확하세요 · +5💗':'물을 주니 한 뼘 자랐어요 · +5💗'};});}
-async function collectPlot(i){await changeWorld(state=>{const p=state.garden.plots[i];if(!p||p.stage<4)return worldFail('아직 자라는 중이에요');state.garden.plots[i]=null;state.hearts+=15;state.garden.harvests=(state.garden.harvests||0)+1;return{message:FRUITS[p.type].n+' 수확! +15💗'};});}
+async function waterPlot(i){await changeWorld(state=>{const p=Number.isInteger(i)&&state.garden.plots[i];if(!p||p.stage>=4)return worldFail('수확할 수 있는 작물인지 확인해 주세요');if(!dueCare(p.care))return worldFail('촉촉한 흙이에요. '+nextCareLabel(p.care));p.stage=(p.stage||0)+1;p.care=p.stage>=4?[]:[Date.now()+4*3600000];p.wateredAt=Date.now();return{message:p.stage>=4?'다 자랐어요! 수확물 2개를 바구니에 담아보세요':'물을 주니 한 뼘 자랐어요 · '+p.stage+'/4'};});}
+async function collectPlot(i){await changeWorld(state=>{const p=Number.isInteger(i)&&state.garden.plots[i];if(!p||p.stage<4||!FRUITS[p.type])return worldFail('아직 자라는 중이에요');state.garden.plots[i]=null;state.pantry=state.pantry||{};state.pantry[p.type]=Math.max(0,Math.floor(Number(state.pantry[p.type])||0))+2;state.garden.harvests=(state.garden.harvests||0)+1;return{message:FRUITS[p.type].n+' 2개 수확! 바구니에 담았어요'};});}
 function gardenTextureG(H){
   let g='<path d="M0 219H480M0 319H480" stroke="#e5d3a0" stroke-width="13" opacity=".8"/>';
   for(let i=0;i<7;i++)g+=`<ellipse cx="${83+i*47}" cy="${188+(i%2)*8}" rx="13" ry="5" fill="#e8d2a9" stroke="#b7a17b" stroke-width="1"/>`;
@@ -217,21 +287,25 @@ function gardenTextureG(H){
   for(let i=0;i<12;i++){const x=i%2?466:10,y=234+Math.floor(i/2)*31;g+=`<path d="M${x} ${y+5}v-8" stroke="#748650" stroke-width="2"/><circle cx="${x}" cy="${y-5}" r="4" fill="${['#fff0c6','#e9b2b8','#dbb3d9'][i%3]}"/><circle cx="${x}" cy="${y-5}" r="1.5" fill="#e2b861"/>`;}
   return g;
 }
-function gardenHillsG(){const winter=seasonOf()==='winter';return `<path d="M0 145Q50 91 113 125T242 129Q337 89 480 133V153H0Z" fill="${isNight()?'#344b56':winter?'#c4d8dc':'#a9b985'}"/><path d="M0 151Q114 108 224 147Q348 109 480 145V158H0Z" fill="${isNight()?'#435a54':winter?'#d9e5e8':'#c0c08a'}"/>`;}
+function gardenHillsG(){const winter=seasonOf()==='winter';return `<path d="M0 145Q50 91 113 125T242 129Q337 89 480 133V153H0Z" fill="${isNight()?'#344b56':winter?'#c4d8dc':'#a9b985'}"/><path d="M0 151Q114 108 224 147Q348 109 480 145V158H0Z" fill="${isNight()?'#435a54':winter?'#d9e5e8':'#c0c08a'}"/><g fill="${winter?'#f1f3e7':'#dbe1b0'}" opacity=".45"><rect x="47" y="122" width="4" height="4"/><rect x="52" y="127" width="3" height="3"/><rect x="319" y="120" width="4" height="4"/><rect x="325" y="123" width="3" height="3"/><rect x="397" y="136" width="4" height="4"/></g>`;}
 function gardenPlotsG(){
   return LV.garden.plots.map((p,i)=>{
     const x=25+(i%3)*153,y=229+Math.floor(i/3)*94,w=125,h=76,ready=p&&p.stage>=4;
     const f=p?FRUITS[p.type]||FRUITS.tomato:null;
     const action=!p?`plotPicker(${i})`:ready?`collectPlot(${i})`:`waterPlot(${i})`;
-    const label=(i+1)+'번 밭 '+(!p?'씨앗 심기':f.n+(ready?' 수확하기':' 물주기'));
-    let g=`<g class="clk" role="button" tabindex="0" aria-label="${label}" onclick="${action}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${action}}">
+    const due=p&&!ready&&dueCare(p.care),fresh=p&&p.wateredAt&&Date.now()-p.wateredAt<8000;
+    const label=(i+1)+'번 밭 '+(!p?'씨앗 심기 · 3하트':f.n+(ready?' 수확하기 · 수확물 2개':` ${p.stage||0}/4 · `+(due?'지금 물주기':nextCareLabel(p.care))));
+    let g=`<g class="clk garden-plot ${ready?'plot-ready':''}" role="button" tabindex="0" data-world-focus="plot-${i}" aria-label="${esc(label)}" onclick="${action}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${action}}">
       <rect x="${x}" y="${y+5}" width="${w}" height="${h}" rx="8" fill="#785135"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${ready?'#e9c37e':'#bf986c'}" stroke="#987046" stroke-width="2"/><rect x="${x+6}" y="${y+6}" width="${w-12}" height="${h-12}" rx="4" fill="${p&&p.wateredAt&&Date.now()-p.wateredAt<3600000?'#765140':'#906448'}"/>`;
     for(let r=0;r<3;r++)g+=`<path d="M${x+12} ${y+17+r*18}h101" stroke="#6f4d38" stroke-width="3" opacity=".6"/>`;
     for(let a=0;a<9;a++)g+=`<circle cx="${x+13+(a*31)%99}" cy="${y+12+(a*13)%46}" r="1" fill="#c39b6a" opacity=".7"/>`;
+    g+=`<rect x="${x+7}" y="${y+7}" width="16" height="14" rx="3" fill="#e0bc89"/><text x="${x+15}" y="${y+17}" text-anchor="middle" fill="#755238" font-size="9" font-family="Jua">${i+1}</text>`;
     if(p){
-      g+=`<g class="crop-sway">${cropG(p,x+32,y+30)}${cropG(p,x+65,y+23)}${cropG(p,x+93,y+36)}</g>`;
-      g+=`<rect x="${x+8}" y="${y+61}" width="109" height="18" rx="5" fill="${ready?'#fff2c6':'#fff0db'}"/><text x="${x+62}" y="${y+73}" text-anchor="middle" font-family="Jua" font-size="10" fill="#705235">${f.n} · ${ready?'수확!':(p.stage||0)+'/4'}</text>`;
-      if(dueCare(p.care)&&!ready)g+=pinG(x+w-16,y+18,'💧');
+      g+=`<g class="crop-sway">${cropG(p,x+32,y+31)}${cropG(p,x+65,y+25)}${cropG(p,x+93,y+36)}</g>`;
+      for(let step=0;step<4;step++)g+=`<rect x="${x+37+step*14}" y="${y+53}" width="10" height="4" rx="1" fill="${step<(p.stage||0)?'#e4ca87':'#624b38'}"/>`;
+      g+=`<rect x="${x+8}" y="${y+61}" width="109" height="18" rx="5" fill="${ready?'#fff2c6':'#fff0db'}"/><text x="${x+62}" y="${y+73}" text-anchor="middle" font-family="Jua" font-size="10" fill="#705235">${f.n} · ${ready?'수확 +2':due?'물 주세요':'자라는 중'}</text>`;
+      if(due)g+=pinG(x+w-16,y+18,'💧');
+      if(fresh)g+=`<g class="water-sprinkles" fill="#b8e1e5" pointer-events="none"><path d="M${x+29} ${y+14}l-2 5q2 3 4 0Z"/><path d="M${x+77} ${y+10}l-2 5q2 3 4 0Z"/><path d="M${x+105} ${y+28}l-2 5q2 3 4 0Z"/></g>`;
     }else g+=`<circle cx="${x+62}" cy="${y+31}" r="12" fill="#b99b70"/><path d="M${x+56} ${y+31}h12m-6 -6v12" stroke="#fff3d4" stroke-width="2"/><text x="${x+62}" y="${y+60}" text-anchor="middle" font-family="Jua" font-size="11" fill="#fff1d8">씨앗 고르기</text>`;
     return g+'</g>';
   }).join('');
@@ -242,8 +316,10 @@ window.render_game_to_text=()=>JSON.stringify({
   mode:document.querySelector('.page.on')&&document.querySelector('.page.on').id,
   location:locView,
   hearts:LV.hearts||0,
+  pantry:{total:worldProduceTotal(),items:LV.pantry||{}},
+  objective:locView==='shop'?null:worldNextTask(locView).title,
   pets:(LV.pets||[]).map(p=>({id:p.id,name:petName(p),kind:p.type,breed:p.breed,place:p.place,affection:p.affection||0,visible:p.place===locView})),
-  garden:{plots:(LV.garden.plots||[]).map((p,index)=>p?{index,crop:p.type,stage:p.stage||0,ready:(p.stage||0)>=4}:null),harvests:LV.garden.harvests||0},
+  garden:{plots:(LV.garden.plots||[]).map((p,index)=>p?{index,crop:p.type,stage:p.stage||0,ready:(p.stage||0)>=4,needsWater:(p.stage||0)<4&&Boolean(dueCare(p.care)),nextWaterAt:(p.care||[])[0]||null}:null),harvests:LV.garden.harvests||0},
   furniture:Object.values(LV.furniture||{}),
   cinema:{title:CINEMA_FILMS[cinemaIndex].name,index:cinemaIndex,paused:cinemaPaused||worldStill}
 });

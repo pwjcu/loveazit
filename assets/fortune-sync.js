@@ -96,8 +96,34 @@ async function decryptFortune(payload,path,material=fortuneLink){
 }
 function fortuneRoomPath(path,material=fortuneLink){return FORTUNE_ROOM_ROOT+'/'+material.roomId+'/'+path;}
 
+function sharedContactRecord(value){
+  if(value===null)return null;
+  if(!value||typeof value!=='object'||Array.isArray(value)||(value.v!==undefined&&value.v!==1))throw new Error('연락처 형식을 확인해 주세요.');
+  const limits={phone:20,kakao:30,emergency:20},next={v:1};
+  for(const [key,limit] of Object.entries(limits)){
+    if(typeof value[key]!=='string')throw new Error('연락처 형식을 확인해 주세요.');
+    next[key]=value[key].trim().slice(0,limit);
+  }
+  return next;
+}
+function sharedContactFromVault(value,slot){
+  if(value===null)return null;
+  if(value&&value.v===1&&value.contacts&&typeof value.contacts==='object')return sharedContactRecord(value.contacts[slot]);
+  return sharedContactRecord(value);
+}
 function applySyncedValue(next,path,value){
   const parts=path.split('/');
+  if(parts[0]==='contacts'&&parts.length===2&&/^[12]$/.test(parts[1])){
+    const contact=sharedContactRecord(value);
+    if(typeof window.applySharedPrivateContact==='function')window.applySharedPrivateContact(parts[1],contact);
+  }
+  if(path==='contacts/v1'){
+    if(!value||value.v!==1||!value.contacts||typeof value.contacts!=='object')throw new Error('연락처 형식을 확인해 주세요.');
+    const contacts={};for(const slot of ['1','2'])contacts[slot]=sharedContactRecord(value.contacts[slot]);
+    if(typeof window.applySharedPrivateContact==='function'){
+      for(const slot of ['1','2'])window.applySharedPrivateContact(slot,contacts[slot]);
+    }else if(typeof window.applySharedPrivateContactVault==='function')window.applySharedPrivateContactVault({v:1,contacts});
+  }
   if(parts[0]==='profiles'&&/^[12]$/.test(parts[1])){
     if(value===null)delete next.profiles[parts[1]];else next.profiles[parts[1]]=value;
   }
@@ -116,9 +142,13 @@ async function applyFortuneRoom(raw,material=fortuneLink){
   for(const day of days)for(const w of ['1','2'])for(const key of ['zodiac','star','tarot']){
     const payload=raw.daily[day]&&raw.daily[day][w]&&raw.daily[day][w][key];if(payload)jobs.push(['daily/'+day+'/'+w+'/'+key,payload]);
   }
+  const contactEntries=raw&&raw.contacts;
+  const hasContactEntries=contactEntries&&['1','2'].some(slot=>contactEntries[slot]!=null);
+  for(const slot of ['1','2'])if(contactEntries&&contactEntries[slot]!=null)jobs.push(['contacts/'+slot,contactEntries[slot]]);
+  if(!hasContactEntries&&contactEntries&&contactEntries.v1)jobs.push(['contacts/v1',contactEntries.v1]);
   const settled=await Promise.allSettled(jobs.map(async([path,payload])=>[path,await decryptFortune(payload,path,material)]));
   if(revision!==fortuneRoomRevision||material!==fortuneLink)return;
-  let failed=0;settled.forEach(result=>{if(result.status==='fulfilled')applySyncedValue(next,result.value[0],result.value[1]);else failed++;});
+  let failed=0;settled.forEach(result=>{if(result.status==='fulfilled'){try{applySyncedValue(next,result.value[0],result.value[1]);}catch{failed++;}}else failed++;});
   saveFortuneLocal(fortuneNormalize(next));
   fortuneSyncStatus=failed?'error':'synced';
   fortuneSyncMessage=failed?'일부 정보를 읽지 못했어요 · 코드를 확인해 주세요':'암호화 공유 중 · 두 기기 실시간 연결';
@@ -135,6 +165,16 @@ async function seedFortuneRoom(raw,material=fortuneLink){
     if(value&&!exists){const path='daily/'+day+'/'+w+'/'+key;updates[path]=await encryptFortune(value,path,material);}
   }
   if(Object.keys(updates).length)await db.ref(FORTUNE_ROOM_ROOT+'/'+material.roomId).update(updates);
+  if(typeof window.getPrivateContactVault==='function'){
+    const vault=window.getPrivateContactVault();
+    if(vault&&vault.v===1&&vault.contacts&&typeof vault.contacts==='object')for(const slot of ['1','2']){
+      if(raw&&raw.contacts&&raw.contacts[slot]!=null)continue;
+      const contact=sharedContactFromVault(vault,slot);
+      if(!contact||!['phone','kakao','emergency'].some(key=>contact[key]))continue;
+      const path='contacts/'+slot,candidate=await encryptFortune(contact,path,material);
+      await db.ref(fortuneRoomPath(path,material)).transaction(current=>current==null?candidate:undefined,undefined,false);
+    }
+  }
 }
 function detachFortuneRoom(){if(fortuneRoomRef&&fortuneRoomHandler)fortuneRoomRef.off('value',fortuneRoomHandler);fortuneRoomRef=null;fortuneRoomHandler=null;}
 async function connectFortuneCode(code,{remember=true,announce=false,requireExisting=false}={}){
@@ -152,6 +192,7 @@ async function connectFortuneCode(code,{remember=true,announce=false,requireExis
     fortuneRoomRef=ref;fortuneRoomHandler=s=>applyFortuneRoom(s.val()||{},material).catch(()=>{fortuneSyncStatus='error';fortuneSyncMessage='공유 정보를 읽지 못했어요';renderFortune();});ref.on('value',fortuneRoomHandler);
     if(remember)localStorage.setItem(FORTUNE_LINK_KEY,JSON.stringify({code:material.code}));
     fortuneSyncStatus='synced';fortuneSyncMessage='암호화 공유 중 · 두 기기 실시간 연결';renderFortune();
+    if(typeof renderSettingsExtras==='function')renderSettingsExtras();
     if(announce)toast('둘만의 운세가 연결됐어요 🔐');
     return material;
   }catch(error){fortuneSyncStatus='error';fortuneSyncMessage='연결 코드를 확인해 주세요';renderFortune();throw error;}
@@ -196,6 +237,15 @@ async function persistFortuneDaily(w,key,value){
   Object.keys(next.daily).sort().slice(0,-30).forEach(k=>delete next.daily[k]);saveFortuneLocal(next);
   return winner;
 }
+async function persistPrivateContactVault(value,slot){
+  if(!fortuneLink)return false;
+  slot=String(slot);if(!/^[12]$/.test(slot))throw new Error('저장할 사람을 확인해 주세요.');
+  const contact=sharedContactFromVault(value,slot),material=fortuneLink,path='contacts/'+slot;
+  const candidate=await encryptFortune(contact,path,material);
+  await db.ref(fortuneRoomPath(path,material)).set(candidate);
+  return true;
+}
+function privateVaultIsShared(){return !!fortuneLink;}
 
 function fortuneSyncCardHtml(){
   const connected=!!fortuneLink,klass=fortuneSyncStatus==='error'?' error':connected?' connected':'';
@@ -219,6 +269,6 @@ async function copyFortuneCode(){
   const code=$('fortuneShareCode');if(!code)return;
   try{await navigator.clipboard.writeText(code.textContent);toast('연결 코드를 복사했어요');}catch{toast('코드를 길게 눌러 복사해 주세요');}
 }
-function disconnectFortuneCode(){detachFortuneRoom();fortuneLink=null;fortuneRoomRevision++;localStorage.removeItem(FORTUNE_LINK_KEY);fortuneSyncStatus='local';fortuneSyncMessage='이 기기에만 저장 중';$('azitDialog').close();renderFortune();toast('이 기기의 운세 연결을 해제했어요');}
+function disconnectFortuneCode(){detachFortuneRoom();fortuneLink=null;fortuneRoomRevision++;localStorage.removeItem(FORTUNE_LINK_KEY);fortuneSyncStatus='local';fortuneSyncMessage='이 기기에만 저장 중';$('azitDialog').close();renderFortune();if(typeof renderSettingsExtras==='function')renderSettingsExtras();toast('이 기기의 운세 연결을 해제했어요');}
 
 window.__fortuneSyncTest={normalizeFortuneCode,newFortuneCode,fortuneLinkMaterial,encryptFortune,decryptFortune,validEditorial,defaultEditorial:FORTUNE_EDITORIAL_DEFAULT};

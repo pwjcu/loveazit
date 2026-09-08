@@ -321,7 +321,9 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 </style>
-<link rel="stylesheet" href="assets/azit.css">
+<link rel="stylesheet" href="assets/azit.css?v=20260908-life">
+<link rel="stylesheet" href="assets/couple.css?v=20260908-life">
+<link rel="stylesheet" href="assets/settings-extra.css?v=20260908-life">
 </head>
 <body>
 <div id="fx"></div>
@@ -426,12 +428,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
 
 <!-- 한마디 -->
 <div class="page" id="p3">
-  <div class="card">
-    <div class="stitle">💌 서로에게 한마디</div>
-    <div class="who"><button id="w1" onclick="setWho(1)">나</button><button id="w2" onclick="setWho(2)">너</button></div>
-    <div id="nlist"></div>
-    <div class="frow"><input type="text" id="ntext" placeholder="오늘의 한마디..." maxlength="200"><button class="btn sm" onclick="addNote()">보내기</button></div>
-  </div>
+  <div id="postOffice"></div>
 </div>
 
 <!-- Q&A 질문방 -->
@@ -444,6 +441,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
       <button class="q-person" id="qw2" type="button" onclick="setWho(2)" aria-pressed="false"><span class="q-avatar">👩</span><span class="q-name">너</span><small>이름을 눌러 답변하기</small></button>
     </div>
     <div class="qa-trust-note">로그인 대신 이름을 고르는 방식이에요. 각자 자기 이름으로 답해 주세요.</div>
+    <div id="qaExtras"></div>
     <div id="qaActive"></div>
     <div class="frow" style="margin-top:10px">
       <button class="btn sm" id="qaNewBtn" onclick="startQA()">🎲 새 질문 뽑기</button>
@@ -459,7 +457,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
 <div class="page" id="p6">
   <div class="card">
     <div class="stitle">🏡 우리 리빙룸</div>
-    <div class="mut">하트를 모아서 집을 꾸미기 - 하트는 활동마다 +10, 50일마다 +100개</div>
+    <div class="mut">천천히 모으는 우리 집 · 둘이 합쳐 하루 최대 8💗<br>수확물은 비둘기 먹이와 특별 질문에 써요.</div>
     <div class="loc-tabs">
       <button id="locRoom" class="on" onclick="setLoc('room')">🏠 거실</button>
       <button id="locGarden" onclick="setLoc('garden')">🌿 텃밭</button>
@@ -474,7 +472,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
 <div class="page" id="p4">
   <div class="card">
     <div class="stitle">⚙️ 우리 설정</div>
-    <div class="frow"><input type="text" id="sn1" placeholder="남자 이름"><input type="text" id="sn2" placeholder="여자 이름"></div>
+    <div class="frow"><input type="text" id="sn1" aria-label="첫 번째 사람 이름" maxlength="20" placeholder="첫 번째 이름"><input type="text" id="sn2" aria-label="두 번째 사람 이름" maxlength="20" placeholder="두 번째 이름"></div>
     <div style="margin-top:8px"><input type="date" id="sstart"></div>
     <div class="frow" style="align-items:center;font-size:13px;color:#b99aa3">
       머리색 <input type="color" id="sh1" value="#6b4b3a" style="width:40px;height:30px;border:0;background:none">
@@ -491,6 +489,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
       <label class="btn ghost sm">백업 불러오기<input type="file" id="bkfile" accept=".json" hidden></label>
     </div>
   </div>
+  <div id="settingsExtras"></div>
 </div>
 <div class="page fortune-page" id="p7"><div id="fortuneView"></div></div>
 </div>
@@ -577,7 +576,7 @@ const setD={events:a=>events=a,annis:a=>annis=a,photos:a=>photos=a,notes:a=>note
 
 function defaultLiving(){
   return{
-    hearts:20,lastMilestone:0,dailyEarn:{},locView:'room',
+    hearts:20,lastMilestone:0,dailyEarn:{},rewardLedger:{},pantry:{},characters:{},locView:'room',
     theme:'cozy',vase:null,pets:[],indoor:[],garden:{plots:[null,null,null,null,null,null],decor:'basic',ownedDecor:[]},
     themes:['cozy'],sleepNight:'',seasonGift:{},seasonDecor:[],furniture:{},ownedFurniture:[]
   };
@@ -695,10 +694,13 @@ const SHOP={
 const THEME_COST=200;
 const FLOWER_COST=5;
 const PET_COST=50;
-const CARE_REWARD=5;
-const ACT_REWARD=10;
-const MILESTONE_REWARD=100;
-const DAILY_ACT_CAP=15;
+const CARE_REWARD=1;
+const ACT_REWARD=2;
+const MILESTONE_REWARD=15;
+const DAILY_HEART_CAP=8;
+const SEASON_REWARD=5;
+let serverTimeOffset=0;
+function appNow(){return Date.now()+serverTimeOffset;}
 
 /* ---- 시간 · 계절 ---- */
 function seasonOf(d=new Date()){const m=d.getMonth()+1;return m===12||m<3?'winter':m<6?'spring':m<9?'summer':'fall';}
@@ -847,7 +849,7 @@ function vaseG(x,y,k=1){
 }
 
 function uid(){return 'i'+Date.now()+Math.random().toString(36).slice(2,5);}
-function dayKey(d=new Date()){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function dayKey(d=new Date(appNow())){const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);return ['year','month','day'].map(k=>p.find(x=>x.type===k).value).join('-');}
 function toast(msg){
   const t=$('toast'); t.textContent=msg; t.classList.add('on');
   clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2200);
@@ -863,26 +865,24 @@ async function saveLiving(){
   await DB.setObj('living',livingPayload(LV)); renderHearts(); renderLiving(); renderCareList();
 }
 function grantHeart(state,kind,amount,dk){
-  state.dailyEarn=state.dailyEarn||{};
-  state.dailyEarn[dk]=state.dailyEarn[dk]||{};
-  const used=state.dailyEarn[dk][kind]||0;
-  if(kind==='visit'){
-    if(state.dailyEarn[dk].visitOnce)return false;
-    state.dailyEarn[dk].visitOnce=1;
+  const limits={visit:1,note:1,photo:1,qa:1,care:2,sleep:1};
+  if(!limits[kind]||!Number.isFinite(amount)||amount<=0)return false;
+  state.rewardLedger=state.rewardLedger||{};
+  if(!state.rewardLedger[dk]){
+    const old=state.dailyEarn&&state.dailyEarn[dk]||{};
+    const legacyEarned=['visit','note','photo','qa'].reduce((sum,k)=>sum+(Number(old[k])||0)*10,0);
+    state.rewardLedger[dk]={earned:Math.min(DAILY_HEART_CAP,legacyEarned),counts:{}};
   }
-  if(kind!=='care'&&kind!=='milestone'&&kind!=='harvest'&&kind!=='sleep'&&kind!=='season'){
-    const total=Object.values(state.dailyEarn[dk]).reduce((a,b)=>a+(Number(b)||0),0);
-    if(total>=DAILY_ACT_CAP)return false;
-    if(used>=3)return false;
-    state.dailyEarn[dk][kind]=used+1;
-  }
+  const ledger=state.rewardLedger[dk];ledger.counts=ledger.counts||{};
+  if((ledger.counts[kind]||0)>=limits[kind]||(ledger.earned||0)+amount>DAILY_HEART_CAP)return false;
+  ledger.counts[kind]=(ledger.counts[kind]||0)+1;ledger.earned=(ledger.earned||0)+amount;
+  Object.keys(state.rewardLedger).sort().slice(0,-14).forEach(key=>delete state.rewardLedger[key]);
   state.hearts=(state.hearts||0)+amount;
   return true;
 }
 async function earnHeart(kind,amount){
   const dk=dayKey();
-  const atomicKinds=['qa','note','photo','visit'];
-  if(db&&atomicKinds.includes(kind)){
+  if(db){
     const tx=await db.ref('living').transaction(raw=>{
       const next=mergeLiving(raw);
       if(!grantHeart(next,kind,amount,dk))return;
@@ -916,19 +916,21 @@ function nextCareLabel(schedule){
   const n=(schedule||[]).find(t=>t>Date.now());
   return n?'다음: '+new Date(n).toLocaleTimeString('ko',{hour:'2-digit',minute:'2-digit'}):'편안해요';
 }
-function checkMilestone(){
+async function checkMilestone(){
   if(!S.start)return;
-  const t=new Date(); t.setHours(0,0,0,0);
-  const sd=new Date(S.start+'T00:00:00');
+  const t=new Date(dayKey()+'T00:00:00+09:00');
+  const sd=new Date(S.start+'T00:00:00+09:00');
   const days=Math.floor((t-sd)/864e5)+1;
+  if(!Number.isFinite(days)||days<1)return;
   const milestone=Math.floor(days/50)*50;
-  if(milestone>0&&milestone>(LV.lastMilestone||0)){
-    const bonus=Math.floor((milestone-(LV.lastMilestone||0))/50)*MILESTONE_REWARD;
-    LV.lastMilestone=milestone;
-    LV.hearts=(LV.hearts||0)+bonus;
-    toast('🎉 '+milestone+'일 달성! 💗+'+bonus);
-    saveLiving();
-  }
+  const start=S.start;
+  if(LV.milestoneStart===start&&milestone<=(LV.lastMilestone||0))return;
+  await changeWorld(state=>{
+    if(state.milestoneStart!==start){state.milestoneStart=start;state.lastMilestone=milestone;return{};}
+    if(milestone<=(state.lastMilestone||0))return{ok:false};
+    state.lastMilestone=milestone;state.hearts=(state.hearts||0)+MILESTONE_REWARD;
+    return{message:'🎉 '+milestone+'일 달성! 💗+'+MILESTONE_REWARD};
+  });
 }
 
 async function refreshLocal(n){ setD[n](await DB.load(n)); renderAll(); }
@@ -936,11 +938,12 @@ async function refreshLocal(n){ setD[n](await DB.load(n)); renderAll(); }
 function toArr(v){ return v?Object.entries(v).map(([id,o])=>({id,...o})):[]; }
 async function boot(){
   if(db){
+    db.ref('.info/serverTimeOffset').on('value',s=>{serverTimeOffset=Number(s.val())||0;});
     ['events','annis','photos','notes','qa','wishes'].forEach(n=>
       db.ref(n).on('value',s=>{ setD[n](toArr(s.val())); renderAll(); }));
     db.ref('settings').on('value',s=>{ const v=s.val(); if(v){S={...S,...v};applySet();renderAll();} });
     db.ref('avatars').on('value',s=>{ AV=s.val()||{}; applyAv(); });
-    db.ref('living').on('value',s=>{ LV=mergeLiving(s.val()); renderHearts(); renderLiving(); renderCareList(); renderSeasonCard(); });
+    db.ref('living').on('value',s=>{ LV=mergeLiving(s.val()); renderHearts(); renderLiving(); renderCareList(); renderSeasonCard();renderCouple();renderSettingsExtras(); });
   }else{
     $('localbanner').style.display='block';
     AV=JSON.parse(localStorage.getItem('avatars')||'{}'); applyAv();
@@ -948,7 +951,7 @@ async function boot(){
     LV=mergeLiving(await DB.getObj('living'));
   }
   S={...S,...await DB.getSet()};
-  applySet(); renderAll(); checkMilestone();
+  applySet(); renderAll(); await checkMilestone();
   if(!db && !localStorage.getItem('living')) await saveLiving();
 }
 
@@ -956,7 +959,7 @@ function applySet(){
   $('cn1').textContent=S.n1; $('cn2').textContent=S.n2;
   $('sn1').value=S.n1; $('sn2').value=S.n2; $('sstart').value=S.start||'';
   $('sh1').value=S.h1; $('sh2').value=S.h2;
-  $('w1').textContent=S.n1; $('w2').textContent=S.n2;
+  if($('w1'))$('w1').textContent=S.n1;if($('w2'))$('w2').textContent=S.n2;
   if($('qw1')){
     $('qw1').querySelector('.q-name').textContent=S.n1;
     $('qw2').querySelector('.q-name').textContent=S.n2;
@@ -1217,22 +1220,10 @@ function setWho(w){
     el.setAttribute('aria-pressed',String(who===slot));
   });
   if(typeof renderQA==='function')renderQA();
+  if(typeof renderPostOffice==='function')renderPostOffice();
+  if(typeof renderSettingsExtras==='function')renderSettingsExtras();
 }
-async function addNote(){
-  const t=$('ntext').value.trim(); if(!t)return;
-  await DB.add('notes',{who,text:t}); $('ntext').value='';
-  await earnHeart('note',ACT_REWARD);
-}
-$('ntext').addEventListener('keydown',e=>{if(e.key==='Enter')addNote();});
-function renderNotes(){
-  const a=[...notes].sort((x,y)=>x.ts-y.ts);
-  $('nlist').innerHTML=a.map(n=>{
-    const d=new Date(n.ts);
-    return `<div class="bub ${n.who===1?'a':'b'}">${esc(n.text)}
-      <small>${n.who===1?S.n1:S.n2} · ${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}</small></div>`;
-  }).join('')||'<div class="mut">첫 한마디를 남겨보세요 💌</div>';
-  $('nlist').scrollTop=$('nlist').scrollHeight;
-}
+function renderNotes(){if(typeof renderPostOffice==='function')renderPostOffice();}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
 }[c]));
@@ -1630,6 +1621,7 @@ function roomScene(){
   /* 계절 한정 데코 */
   g+=seasonDecorG();
   /* 캐릭터 & 펫 */
+  g+=roomAtmosphereG();
   if(!sleeping){
     const h1=hashStr(dayKey()+'1'), spots=[[142,186],[224,192],[196,176],[288,230]];
     const i1=h1%spots.length, i2=(i1+1+(h1>>3)%(spots.length-1))%spots.length;
@@ -1663,15 +1655,17 @@ function roomScene(){
 }
 function sleepBarHtml(){
   if(isSleeping())return `<div class="sleep-bar"><span>💤 둘 다 꿈나라예요... 아침 6시에 만나요</span><button class="btn sm ghost" disabled>자는 중</button></div>`;
-  if(isNight())return `<div class="sleep-bar"><span>🌙 밤이 깊었어요</span><button class="btn sm" onclick="goSleep()">잠자러 가기 +10💗</button></div>`;
+  if(isNight())return `<div class="sleep-bar"><span>🌙 밤이 깊었어요 · 오늘의 보상 한도 안에서 +1💗</span><button class="btn sm" onclick="goSleep()">잠자러 가기</button></div>`;
   return `<div class="sleep-bar"><span>☀️ 해가 떠 있어요</span><span style="font-size:11px;color:#c7a3ad">밤 8시부터 잘 수 있어요</span></div>`;
 }
 async function goSleep(){
   if(!isNight()){toast('밤(20시~)에만 잘 수 있어요 🌙');return;}
-  if(LV.sleepNight===nightKey()){toast('이미 자고 있어요 💤');return;}
-  LV.sleepNight=nightKey();
-  LV.hearts=(LV.hearts||0)+10;
-  await saveLiving(); popHearts(); toast('잘 자요 💤 +10💗');
+  const nk=nightKey(),dk=dayKey();
+  await changeWorld(state=>{
+    if(state.sleepNight===nk)return worldFail('이미 자고 있어요 💤');
+    state.sleepNight=nk;const rewarded=grantHeart(state,'sleep',1,dk);
+    return{message:'잘 자요 💤'+(rewarded?' +1💗':' 오늘 보상은 모두 모았어요')};
+  });
 }
 function renderLiving(){
   renderHearts();
@@ -1679,8 +1673,8 @@ function renderLiving(){
   ['Room','Garden','Shop'].forEach(n=>{const el=$('loc'+n); if(el)el.classList.toggle('on',v===n.toLowerCase());});
   if(v==='shop'){ renderShop(); return; }
   if(v==='garden'){ renderGarden(); return; }
-  $('livingView').innerHTML=sceneToolbar('둘만의 포근한 거실')+roomScene()+cinemaControls()+worldControls()+sleepBarHtml()+petFamilyHtml()
-    +'<div class="mut living-help">펫을 눌러 쓰다듬어 주세요. 밥이 필요할 때 챙겨주면 +5💗</div>';
+  $('livingView').innerHTML=sceneToolbar('둘만의 포근한 거실')+worldDashboardHtml('room')+roomScene()+cinemaControls()+worldControls()+sleepBarHtml()+petFamilyHtml()
+    +'<div class="mut living-help">밥이 필요한 친구를 챙기면 +1💗 · 케어 보상은 둘이 하루 두 번까지</div>';
 }
 function shopCard(image,name,status,action,disabled=false,extra=''){
   const attrs=disabled?'disabled aria-disabled="true"':`onclick="${action}"`;
@@ -1849,9 +1843,9 @@ function renderGarden(){
   const empty=LV.garden.plots.filter(p=>!p).length;
   const ready=LV.garden.plots.filter(p=>p&&(p.stage||0)>=4).length;
   const growing=LV.garden.plots.length-empty-ready;
-  $('livingView').innerHTML=sceneToolbar('햇살 머무는 우리 텃밭')+`<div class="living-scene ${worldStill?'world-still':''}">${g}</div>
+  $('livingView').innerHTML=sceneToolbar('햇살 머무는 우리 텃밭')+worldDashboardHtml('garden')+`<div class="living-scene ${worldStill?'world-still':''}">${g}</div>
     <div class="garden-summary"><span class="garden-stat"><b>${growing}</b><small>자라는 중</small></span><span class="garden-stat ready"><b>${ready}</b><small>수확 가능</small></span><span class="garden-stat"><b>${empty}</b><small>빈 밭</small></span></div>
-    <div class="garden-guide"><strong>우리의 작은 농장</strong><span>씨앗 10💗 → 물주기 4번 → 수확 +15💗<br>첫 물은 바로, 다음 물은 4시간 뒤 · 물줄 때마다 +5💗<br>지금까지 ${LV.garden.harvests||0}번 수확했어요</span></div>`+worldControls()+petFamilyHtml();
+    `+gardenGuideHtml()+worldControls()+petFamilyHtml();
 }
 function renderCareList(){
   const items=[];
@@ -1879,48 +1873,34 @@ async function buyPet(type,breed){
 }
 async function buyItem(key){
   const item=SHOP[key]; if(!item)return;
-  if(item.type==='indoor'){
-    if(LV.indoor.length>=2){toast('화분은 2개까지!');return;}
-  }else if(item.type==='plot'){
-    if(LV.garden.plots.some(x=>x===null)){toast('아직 빈 텃밭 칸이 있어요!');return;}
-  }else if(item.type==='gdecor'&&LV.garden.decor===item.id){
-    toast('이미 텃밭에 적용 중이에요');return;
-  }
-  const decorOwned=item.type==='gdecor'&&(LV.garden.ownedDecor||[]).includes(item.id);
-  const cost=decorOwned?0:item.cost;
-  if((LV.hearts||0)<cost){toast('하트가 부족해요 💔');return;}
-  if(item.type==='indoor'){
-    LV.indoor.push({id:uid(),type:item.id,stage:0,care:scheduleCare(1+Math.floor(Math.random()*2)),plantedAt:Date.now()});
-  }else if(item.type==='gdecor'){
-    LV.garden.ownedDecor=LV.garden.ownedDecor||[];
-    if(!decorOwned)LV.garden.ownedDecor.push(item.id);
-    LV.garden.decor=item.id;
-  }else if(item.type==='plot'){
-    LV.garden.plots.push(null);
-  }
-  LV.hearts-=cost;
-  await saveLiving();
-  toast(decorOwned?'보유한 장식을 다시 적용했어요 🌿':'구매 완료! 🛍️');
-  if(locView==='shop')renderShop();
+  const id=uid(),now=appNow(),care=[now];
+  await changeWorld(state=>{
+    if(item.type==='indoor'&&state.indoor.length>=2)return worldFail('화분은 2개까지 키울 수 있어요');
+    if(item.type==='plot'&&state.garden.plots.some(x=>x===null))return worldFail('빈 텃밭에 먼저 씨앗을 심어주세요');
+    if(item.type==='gdecor'&&state.garden.decor===item.id)return worldFail('이미 적용 중인 장식이에요');
+    const owned=item.type==='gdecor'&&state.garden.ownedDecor.includes(item.id);
+    if(!spendWorld(state,owned?0:item.cost))return worldFail('하트가 부족해요 💔');
+    if(item.type==='indoor')state.indoor.push({id,type:item.id,stage:0,care,plantedAt:now});
+    else if(item.type==='gdecor'){if(!owned)state.garden.ownedDecor.push(item.id);state.garden.decor=item.id;}
+    else if(item.type==='plot')state.garden.plots.push(null);
+    return{message:owned?'보유한 장식을 다시 적용했어요 🌿':'구매 완료! 🛍️'};
+  });
 }
 async function buySeasonItem(){
   const si=SEASON_ITEMS[seasonOf()];
-  if((LV.seasonDecor||[]).includes(si.id)){toast('이미 보유 중이에요');return;}
-  if((LV.hearts||0)<si.cost){toast('하트가 부족해요 💔');return;}
-  LV.hearts-=si.cost;
-  LV.seasonDecor=[...(LV.seasonDecor||[]),si.id];
-  await saveLiving();
-  toast(si.n+' 설치 완료! 거실을 확인해보세요');
-  if(locView==='shop')renderShop();
+  await changeWorld(state=>{
+    if(state.seasonDecor.includes(si.id))return worldFail('이미 보유 중이에요');
+    if(!spendWorld(state,si.cost))return worldFail('하트가 부족해요 💔');
+    state.seasonDecor.push(si.id);return{message:si.n+' 설치 완료!'};
+  });
 }
 async function buyFlower(f){
-  if(LV.vase&&LV.vase.flower===f){toast('이미 꽂혀 있는 꽃이에요');return;}
-  if((LV.hearts||0)<FLOWER_COST){toast('하트가 부족해요 💔');return;}
-  LV.hearts-=FLOWER_COST;
-  LV.vase={flower:f,care:scheduleCare(1+Math.floor(Math.random()*2))};
-  await saveLiving();
-  toast((FLOWERS[f]||FLOWERS.rose).n+' 꽃으로 교체!');
-  if(locView==='shop')renderShop();
+  if(!FLOWERS[f])return;const care=scheduleCare(1);
+  await changeWorld(state=>{
+    if(state.vase&&state.vase.flower===f)return worldFail('이미 꽂혀 있는 꽃이에요');
+    if(!spendWorld(state,FLOWER_COST))return worldFail('하트가 부족해요 💔');
+    state.vase={flower:f,care};return{message:FLOWERS[f].n+' 꽃으로 교체!'};
+  });
 }
 async function buyTheme(t){
   if(!THEMES[t])return;
@@ -1933,36 +1913,37 @@ async function buyTheme(t){
     state.theme=t;return{message:THEMES[t].n+' 테마를 적용했어요'};
   });
 }
-async function doCare(ref){
-  if(!ref)return false;
-  if(!dueCare(ref.care)){toast('아직 케어 시간이 아니에요');return false;}
-  ref.care=(ref.care||[]).filter(t=>t>Date.now());
-  ref.care.push(...scheduleCare(1));
-  if(ref.stage!==undefined&&ref.stage<4){
-    ref.stage=(ref.stage||0)+1;
-    if(ref.stage>=4)toast('🎉 다 자랐어요! 수확할 수 있어요');
-  }
-  await earnHeart('care',CARE_REWARD);
-  return true;
-}
 async function carePet(id){await interactPet(id,'feed');}
 async function careVase(){
-  if(await doCare(LV.vase))await saveLiving();
+  const nextCare=scheduleCare(1),dk=dayKey();
+  await changeWorld(state=>{
+    if(!state.vase||!dueCare(state.vase.care))return worldFail('아직 물을 줄 시간이 아니에요');
+    state.vase.care=nextCare;const reward=grantHeart(state,'care',CARE_REWARD,dk);
+    return{message:'꽃이 촉촉해졌어요 🌷'+(reward?' +1💗':'')};
+  });
 }
 async function careIndoor(id){
-  const p=LV.indoor.find(x=>x.id===id);
-  if(await doCare(p))await saveLiving();
+  const now=appNow();
+  await changeWorld(state=>{
+    const p=state.indoor.find(x=>x.id===id);
+    if(!p)return worldFail('화분을 찾지 못했어요');
+    if(p.stage>=4)return worldFail('잘 익었어요! 화분을 눌러 수확해 주세요');
+    if(!dueCare(p.care))return worldFail('흙이 아직 촉촉해요');
+    p.stage=(p.stage||0)+1;p.care=p.stage>=4?[]:[now+4*3600000];
+    return{message:p.stage>=4?'다 자랐어요! 수확물을 모아보세요':'물을 주니 한 뼘 자랐어요 🌱'};
+  });
 }
 async function careGarden(i){await waterPlot(i);}
 function plantGarden(i){plotPicker(i);}
 async function harvestPlot(i){await collectPlot(i);}
 async function harvestIndoor(id){
-  const i=LV.indoor.findIndex(x=>x.id===id);
-  const p=LV.indoor[i]; if(!p||p.stage<4)return;
-  LV.indoor.splice(i,1);
-  await earnHeart('harvest',12);
-  await saveLiving();
-  toast((FRUITS[p.type]||FRUITS.tomato).e+' 수확! 💗+12');
+  const now=appNow();
+  await changeWorld(state=>{
+    const p=state.indoor.find(x=>x.id===id);if(!p||p.stage<4)return worldFail('아직 자라는 중이에요');
+    state.pantry=state.pantry||{};state.pantry[p.type]=(Number(state.pantry[p.type])||0)+1;
+    p.stage=0;p.care=[now+4*3600000];p.plantedAt=now;
+    return{message:(FRUITS[p.type]||FRUITS.tomato).e+' 수확물 +1 · 화분에서 다시 자라요'};
+  });
 }
 
 /* ---- 계절 이벤트 ---- */
@@ -1988,16 +1969,15 @@ function renderSeasonCard(){
   const got=!!(LV.seasonGift||{})[key];
   el.innerHTML=`<div class="stitle">${m.e} ${m.n} 이벤트</div>
     <div style="font-size:13px;color:#8a6f77;line-height:1.5">${m.msg}<br><small style="color:#c7a3ad">상점에 ${m.n} 한정 아이템이 있어요</small></div>
-    <div class="frow"><button class="btn sm ${got?'ghost':''}" ${got?'disabled':''} onclick="claimSeason()">${got?m.e+' 선물 받음 ✓':m.n+' 선물 받기 +30💗'}</button></div>`;
+    <div class="frow"><button class="btn sm ${got?'ghost':''}" ${got?'disabled':''} onclick="claimSeason()">${got?m.e+' 선물 받음 ✓':m.n+' 선물 받기 +'+SEASON_REWARD+'💗'}</button></div>`;
 }
 async function claimSeason(){
   const key=seasonYearKey();
-  if((LV.seasonGift||{})[key])return;
-  LV.seasonGift={...(LV.seasonGift||{}),[key]:1};
-  LV.hearts=(LV.hearts||0)+30;
-  await saveLiving(); popHearts();
-  toast(SEASON_META[seasonOf()].e+' 계절 선물 +30💗');
-  renderSeasonCard();
+  await changeWorld(state=>{
+    if(state.seasonGift[key])return worldFail('이번 계절 선물은 이미 받았어요');
+    state.seasonGift[key]=1;state.hearts=(state.hearts||0)+SEASON_REWARD;
+    return{message:SEASON_META[seasonOf()].e+' 계절 선물 +'+SEASON_REWARD+'💗'};
+  });renderSeasonCard();
 }
 setInterval(()=>{ applySeason(); renderLiving(); renderSeasonCard(); },60000);
 
@@ -2031,12 +2011,14 @@ function go(i,btn){
   window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   if(i===4||i===5)earnHeart('visit',ACT_REWARD).catch(()=>{});
 }
-function renderAll(){ renderHome(); renderSeasonCard(); renderCal(); renderWishes(); renderPhotos(); renderNotes(); renderQA(); renderHearts(); renderLiving(); renderCareList(); renderFortune(); }
+function renderAll(){ renderHome(); renderSeasonCard(); renderCal(); renderWishes(); renderPhotos(); renderNotes(); renderQA(); renderHearts(); renderLiving(); renderCareList(); renderFortune();if(typeof renderSettingsExtras==='function')renderSettingsExtras(); }
 </script>
 <script src="assets/vendor/korean-lunar-calendar.min.js"></script>
-<script src="assets/world.js"></script>
+<script src="assets/world.js?v=20260908-life"></script>
 <script src="assets/fortune.js"></script>
-<script src="assets/fortune-sync.js"></script>
-<script>setWho(who); applySeason(); boot().then(()=>{bootFortune();return bootFortuneServices();});</script>
+<script src="assets/fortune-sync.js?v=20260908-life"></script>
+<script src="assets/couple.js?v=20260908-life"></script>
+<script src="assets/settings-extra.js?v=20260908-life"></script>
+<script>setWho(who); applySeason(); boot().then(async()=>{bootFortune();bootCouple();bootSettingsExtras();await bootFortuneServices();});</script>
 </body>
 </html>
