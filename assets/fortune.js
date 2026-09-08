@@ -85,6 +85,8 @@ function birthFacts(p){
 }
 function hasSaju(p){return !!(p&&p.pillars&&['year','month','day'].every(k=>normalizePillar(p.pillars[k])));}
 function sajuElements(p){const counts=[0,0,0,0,0];if(!hasSaju(p))return counts;Object.values(p.pillars).forEach(v=>{const q=normalizePillar(v);if(!q)return;counts[Math.floor(STEMS.indexOf(q[0])/2)]++;counts[BRANCH_ELEMENTS[BRANCHES.indexOf(q[1])]]++;});return counts;}
+function normalizeBirthInput(value){const digits=String(value||'').replace(/\D/g,'').slice(0,8);return digits.length>6?digits.slice(0,4)+'-'+digits.slice(4,6)+'-'+digits.slice(6):digits.length>4?digits.slice(0,4)+'-'+digits.slice(4):digits;}
+function formatBirthInput(input){const before=(input.value.slice(0,input.selectionStart??input.value.length).match(/\d/g)||[]).length;input.value=normalizeBirthInput(input.value);if(!before){input.setSelectionRange(0,0);return;}let seen=0,pos=input.value.length;for(let i=0;i<input.value.length;i++){if(/\d/.test(input.value[i]))seen++;if(seen>=before){pos=i+1;break;}}input.setSelectionRange(pos,pos);}
 
 function profileEditor(w){
   const p=FT.profiles[w]||{},q=p.pillars||{};
@@ -93,8 +95,8 @@ function profileEditor(w){
   openAzitDialog(profileName(w)+'의 운세 프로필',`<form id="fortuneForm" onsubmit="event.preventDefault();saveFortuneProfile(${w})" novalidate>
     <p class="dialog-note">아는 정보부터 입력해 주세요. ${typeof fortuneLink!=='undefined'&&fortuneLink?'연결된 두 기기에 암호화해 공유해요.':'지금은 이 기기에만 저장해요.'} 상대 정보는 동의를 받고 입력해 주세요.</p>
     <div class="form-grid"><div><label for="fpCalendar">생일 기준</label><select id="fpCalendar" onchange="updateBirthInput()"><option value="solar" ${p.calendar!=='lunar'?'selected':''}>양력</option><option value="lunar" ${p.calendar==='lunar'?'selected':''}>음력</option></select></div>
-    <div><label for="fpBirth">생년월일</label><input id="fpBirth" type="text" inputmode="numeric" placeholder="1995-06-15" maxlength="10" value="${esc(p.birth||'')}" aria-describedby="fpBirthHelp"></div>
-    <div class="wide"><label class="chk"><input type="checkbox" id="fpLeap" ${p.leap?'checked':''} ${p.calendar==='lunar'?'':'disabled'}> 음력 윤달</label><p id="fpBirthHelp" class="dialog-note">1900년부터 입력 가능 · YYYY-MM-DD<br>음력 날짜와 윤달을 확인해 양력으로 변환해요.</p></div>
+    <div><label for="fpBirth">생년월일</label><input id="fpBirth" type="text" inputmode="numeric" placeholder="19950615" maxlength="10" value="${esc(p.birth||'')}" oninput="formatBirthInput(this)" aria-describedby="fpBirthHelp"></div>
+    <div class="wide"><label class="chk"><input type="checkbox" id="fpLeap" ${p.leap?'checked':''} ${p.calendar==='lunar'?'':'disabled'}> 음력 윤달</label><p id="fpBirthHelp" class="dialog-note">숫자 8자리 또는 YYYY-MM-DD · 1900년부터 입력 가능<br>실제 날짜와 음력 윤달을 확인해 양력으로 변환해요.</p></div>
     <div><label for="fpTime">태어난 시각</label><input id="fpTime" type="time" value="${esc(p.time||'')}" ${p.unknownTime!==false?'disabled':''}></div>
     <div><label for="fpGender">성별</label><select id="fpGender">${options(['여성','남성','직접 분류하지 않음'],p.gender,'선택 안 함')}</select></div>
     <div class="wide"><label class="chk"><input type="checkbox" id="fpUnknown" ${p.unknownTime!==false?'checked':''} onchange="document.getElementById('fpTime').disabled=this.checked;document.getElementById('fpHour').disabled=this.checked"> 태어난 시각을 몰라요</label></div>
@@ -107,9 +109,9 @@ function profileEditor(w){
 }
 function updateBirthInput(){const lunar=$('fpCalendar').value==='lunar';$('fpLeap').disabled=!lunar;if(!lunar)$('fpLeap').checked=false;}
 async function saveFortuneProfile(w){
-  const p={birth:$('fpBirth').value.trim(),calendar:$('fpCalendar').value,leap:$('fpCalendar').value==='lunar'&&$('fpLeap').checked,time:$('fpUnknown').checked?'':$('fpTime').value,unknownTime:$('fpUnknown').checked,gender:$('fpGender').value,mbti:$('fpMbti').value,blood:$('fpBlood').value,pillars:{}};
+  const p={birth:normalizeBirthInput($('fpBirth').value.trim()),calendar:$('fpCalendar').value,leap:$('fpCalendar').value==='lunar'&&$('fpLeap').checked,time:$('fpUnknown').checked?'':$('fpTime').value,unknownTime:$('fpUnknown').checked,gender:$('fpGender').value,mbti:$('fpMbti').value,blood:$('fpBlood').value,pillars:{}};
   const fail=(message,id)=>{$('fortuneFormError').textContent=message;if(id)$(id).focus();};
-  if(p.birth&&!birthFacts(p))return fail('생년월일을 확인해 주세요. YYYY-MM-DD 형식의 실제 날짜와 올바른 윤달만 입력할 수 있어요. 미래의 생일은 입력할 수 없어요.','fpBirth');
+  if(p.birth&&!birthFacts(p))return fail('생년월일을 확인해 주세요. 숫자 8자리 또는 YYYY-MM-DD 형식의 실제 날짜만 입력할 수 있어요. 미래의 생일과 잘못된 윤달은 입력할 수 없어요.','fpBirth');
   if(!p.unknownTime&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(p.time))return fail('태어난 시각을 입력하거나 ‘몰라요’를 선택해 주세요.','fpTime');
   for(const k of ['year','month','day','hour']){
     const id='fp'+(k==='hour'?'Hour':k),raw=k==='hour'&&p.unknownTime?'':$(id).value.trim();
