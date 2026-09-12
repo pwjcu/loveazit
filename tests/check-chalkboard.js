@@ -46,16 +46,16 @@ async page=>{
 
   await page.locator('#chalkSend').click();await waitForChalk();
   check(await page.evaluate(text=>notes.length===1&&notes[0].text===text&&notes[0].kind==='chalk',first),'첫 한마디를 기존 notes 저장소에 추가');
-  check(await page.locator('#chalkBoardOpen > .chalk-message > .chalk-copy').textContent()===first&&await page.locator('#chalkBoardOpen img').count()===0&&await page.evaluate(()=>!window.__chalkXss),'게시된 칠판에서도 HTML 실행 없이 원문 표시');
+  check(await page.locator('.chalk-stack .chalk-copy').textContent()===first&&await page.locator('.chalk-stack img').count()===0&&await page.evaluate(()=>!window.__chalkXss),'게시된 칠판에서도 HTML 실행 없이 원문 표시');
   const firstReward=await page.evaluate(()=>({hearts:LV.hearts,count:LV.rewardLedger[dayKey()]?.counts?.note}));
   check(firstReward.hearts===2&&firstReward.count===1,'첫 한마디에 note 활동 보상 1회 지급');
 
-  // A new note replaces the board, while the previous note stays in history.
+  // New notes accumulate, including multiple messages by the same writer.
   await page.locator('#chalkComposeOpen').click();
   const second='지금 칠판에 남을 최신 한마디 ♡';
   await page.locator('#chalkInput').fill(second);await page.locator('#chalkSend').click();await waitForChalk();
-  check(await page.locator('#chalkBoardOpen > .chalk-message > .chalk-copy').textContent()===second,'새 한마디가 칠판의 이전 한마디를 교체');
-  check(await page.locator('#chalkBoardOpen').getAttribute('class').then(v=>v.includes('chalk-replacing'))&&await page.locator('#chalkBoardOpen .chalk-old').count()===1,'교체 시 지우개와 새 글씨 전환 상태 적용');
+  check((await page.locator('.chalk-stack .chalk-copy').allTextContents()).join('|')===[first,second].join('|'),'같은 사람이 쓴 여러 한마디가 칠판에 함께 누적');
+  check(await page.locator('.chalk-added').count()===1&&await page.locator('.chalk-added .chalk-letter').count()>0,'새 글에만 분필 애니메이션을 적용하고 이전 글 유지');
   await page.locator('#chalkBoardOpen').click();
   const historyText=await page.locator('.chalk-history').innerText();
   check(await page.locator('.chalk-history article').count()===2&&historyText.includes(first)&&historyText.includes(second),'칠판을 누르면 현재 글과 이전 글을 모두 조회');
@@ -74,7 +74,7 @@ async page=>{
   check(await page.locator('.chalk-history article').count()===3&&(await page.locator('.chalk-pagination').innerText()).includes('2 / 2')&&(await page.locator('.chalk-history').innerText()).includes('과거 메모 20'),'다음 페이지에서 오래된 기존 텍스트 메모까지 보존');
   await closeChalk();
   await page.reload({waitUntil:'load'});await openChalkPage();await page.locator('#chalkBoardOpen').waitFor();
-  check(await page.locator('#chalkBoardOpen > .chalk-message > .chalk-copy').textContent()===second&&await page.evaluate(()=>notes.length)===23,'새로고침 뒤 최신 한마디와 전체 기록 유지');
+  check(await page.locator('.chalk-entry').count()===4&&(await page.locator('.chalk-stack').innerText()).includes(second)&&await page.evaluate(()=>notes.length)===23,'새로고침 뒤 새 글 전체와 각 사람의 최근 기존 글 유지');
 
   // Browser pointer input is converted to normalized strokes and persisted as SVG.
   await page.locator('#chalkComposeOpen').click();
@@ -86,11 +86,11 @@ async page=>{
   await page.mouse.move(box.x+box.width*.72,box.y+box.height*.28,{steps:6});await page.mouse.up();
   check(await page.evaluate(()=>chalkDrafts[1].strokes.length===1&&chalkDrafts[1].strokes[0].length>2),'포인터 필기를 좌표 획으로 기록');
   await page.locator('#chalkSend').click();await waitForChalk();
-  check(await page.locator('#chalkBoardOpen svg.chalk-drawing').count()===1&&await page.locator('#chalkBoardOpen polyline').count()===1,'손글씨 한마디를 최신 칠판에 SVG로 표시');
+  check(await page.locator('.chalk-stack svg.chalk-drawing').count()===1&&await page.locator('.chalk-stack polyline').count()===1,'손글씨 한마디를 최신 칠판에 SVG로 표시');
   const publishedCount=await page.evaluate(()=>notes.length);
   check(await page.evaluate(()=>{const n=chalkPosts()[0];return n.drawing?.width===640&&n.drawing?.height===360&&chalkStrokes(n).length===1;}),'손글씨 크기와 획 데이터를 notes에 저장');
-  await page.reload({waitUntil:'load'});await openChalkPage();await page.locator('#chalkBoardOpen svg.chalk-drawing').waitFor();
-  check(await page.locator('#chalkBoardOpen polyline').count()===1,'새로고침 뒤 손글씨 획 복원');
+  await page.reload({waitUntil:'load'});await openChalkPage();await page.locator('.chalk-stack svg.chalk-drawing').waitFor();
+  check(await page.locator('.chalk-stack polyline').count()===1,'새로고침 뒤 손글씨 획 복원');
 
   // Undo/erase affect only the active draft, never append-only published history.
   await page.locator('#chalkComposeOpen').click();await page.getByRole('button',{name:'손글씨로 쓰기',exact:true}).click();
@@ -123,8 +123,8 @@ async page=>{
   await page.locator('#chalkInput').fill('원격 갱신 중에도 보존할 작성값');await page.locator('#chalkInput').focus();
   await page.locator('#chalkInput').evaluate(el=>el.setSelectionRange(5,5));
   const remote='다른 기기에서 도착한 한마디';
-  await page.evaluate(text=>{notes.push({id:'remote-interleave',who:1,kind:'chalk',text,ts:Date.now()+1000});renderPostOffice();},remote);
-  check(await page.locator('#chalkInput').inputValue()==='원격 갱신 중에도 보존할 작성값'&&await page.evaluate(()=>document.activeElement?.id)==='chalkInput'&&await page.locator('#chalkBoardOpen > .chalk-message > .chalk-copy').textContent()===remote,'원격 칠판 갱신 중 작성값과 입력 포커스 유지');
+  await page.evaluate(text=>{notes.push({id:'remote-interleave',who:2,kind:'chalk',boardVersion:2,text,ts:Date.now()+1000});renderPostOffice();},remote);
+  check(await page.locator('#chalkInput').inputValue()==='원격 갱신 중에도 보존할 작성값'&&await page.evaluate(()=>document.activeElement?.id)==='chalkInput'&&(await page.locator('.chalk-stack').innerText()).includes(remote)&&await page.locator('.chalk-writer-1').count()>0&&await page.locator('.chalk-writer-2').count()>0,'상대방 글도 함께 누적하고 작성값과 입력 포커스 유지');
   await closeChalk();
 
   // Chalk notes and pigeon letters consume the same daily note reward allowance.
@@ -144,6 +144,44 @@ async page=>{
   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&$('chalkDialog').scrollWidth<=$('chalkDialog').clientWidth+1),'320px 모바일 작성창 가로 넘침 없음');
   await closeChalk();
   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'320px 모바일 칠판 가로 넘침 없음');
+
+  // Erasing archives explicit IDs, preserves history, and never resurrects legacy posts.
+  await page.evaluate(async()=>{
+    notes=[{id:'old-1',who:1,text:'이전 기록',ts:1},{id:'old-2',who:1,text:'마지막 기존 글',ts:2},
+      {id:'new-1',who:1,kind:'chalk',boardVersion:2,text:'나의 새 글',ts:3},
+      {id:'new-2',who:2,kind:'chalk',boardVersion:2,text:'너의 새 글',ts:4}];
+    localStorage.setItem('notes',JSON.stringify(notes));renderChalkboard();
+  });
+  await page.locator('[data-chalk-note="new-1"] .chalk-archive-note').click();
+  await page.waitForFunction(()=>!chalkArchiving);
+  check(await page.locator('.chalk-entry').count()===2&&await page.evaluate(()=>notes.length===4&&!!notes.find(n=>n.id==='new-1').boardArchivedAt),'개별 지우기는 선택한 글만 보관하고 전체 기록 유지');
+  check(await page.evaluate(()=>document.activeElement?.dataset.noteId==='new-2'),'글 보관 뒤 다음 글 버튼으로 키보드 초점 유지');
+  await page.locator('#chalkArchiveAll').click();await page.waitForFunction(()=>!chalkArchiving);
+  check(await page.locator('.chalk-entry').count()===0&&await page.evaluate(()=>notes.length===4),'전체 지우기는 보관만 수행하며 더 오래된 기존 글이 다시 나타나지 않음');
+  await page.reload({waitUntil:'load'});await openChalkPage();
+  check(await page.locator('.chalk-entry').count()===0&&await page.locator('#chalkArchiveAll').isDisabled(),'새로고침 뒤에도 보관한 글은 칠판에 나타나지 않음');
+  await page.locator('#chalkBoardOpen').click();
+  check(await page.locator('.chalk-history article').count()===4&&(await page.locator('.chalk-history').innerText()).includes('기록 보관'),'보관한 글과 이전 글 모두 기록에서 읽기');await closeChalk();
+
+  // Simulate a Firebase transaction retry after a partner appends during erase.
+  await page.evaluate(async()=>{
+    notes=[{id:'selected',who:1,boardVersion:2,text:'지울 글',ts:5}];renderChalkboard();
+    window.__chalkSavedDB=db;
+    db={ref:path=>({transaction:async edit=>{
+      if(path!=='notes')throw Error('unexpected path');
+      edit({selected:{who:1,boardVersion:2,text:'지울 글',ts:5}});
+      const result=edit({selected:{who:1,boardVersion:2,text:'지울 글',ts:5},
+        incoming:{who:2,boardVersion:2,text:'동시에 도착한 글',ts:6}});
+      return{committed:true,snapshot:{val:()=>result}};
+    }})};
+    try{await archiveChalkNotes();}finally{db=window.__chalkSavedDB;}
+  });
+  check(await page.evaluate(()=>chalkVisiblePosts().length===1&&chalkVisiblePosts()[0].id==='incoming'&&notes.find(n=>n.id==='selected').boardArchivedAt),'지우기 도중 도착한 상대방의 새 글은 트랜잭션 재시도에서도 보존');
+  await page.evaluate(async()=>{
+    db={ref:()=>({transaction:async()=>{throw Error('simulated archive failure');}})};
+    try{await archiveChalkNotes();}finally{db=window.__chalkSavedDB;delete window.__chalkSavedDB;}
+  });
+  check(await page.locator('.chalk-entry').count()===1&&await page.evaluate(()=>chalkVisiblePosts()[0].id==='incoming')&&!await page.locator('#chalkArchiveAll').isDisabled(),'보관 실패 시 글을 유지하고 지우기 재시도 가능');
 
   check(pageErrors.length===0,'페이지 JavaScript 오류 없음: '+pageErrors.join(' | '));
   return{count:checks.length,checks};

@@ -1,6 +1,6 @@
-/* The latest note is on the board; append-only notes keep every earlier word. */
+/* Both people's words stay on the board until explicitly moved to history. */
 const CHALK_LIMIT=280, CHALK_POINTS=6000;
-let chalkSending=false, chalkHistoryPage=0;
+let chalkSending=false, chalkArchiving=false, chalkHistoryPage=0;
 const chalkDrafts={1:{mode:'text',text:'',strokes:[]},2:{mode:'text',text:'',strokes:[]}};
 function chalkStrokes(note){
   const raw=note?.drawing?.strokes;if(!Array.isArray(raw))return [];
@@ -12,6 +12,11 @@ function chalkStrokes(note){
   }).filter(stroke=>stroke.length);
 }
 function chalkPosts(){return notes.filter(n=>n&&(typeof n.text==='string'&&n.text.trim()||chalkStrokes(n).length)).slice().sort((a,b)=>(Number(b.ts)||0)-(Number(a.ts)||0)||String(b.id).localeCompare(String(a.id)));}
+function chalkVisiblePosts(){
+  const list=chalkPosts(),legacy=new Set();
+  for(const slot of [1,2]){const last=list.find(n=>n.boardVersion!==2&&Number(n.who)===slot);if(last)legacy.add(last.id);}
+  return list.filter(n=>!n.boardArchivedAt&&(n.boardVersion===2||legacy.has(n.id))).reverse();
+}
 function chalkMotion(){return !matchMedia('(prefers-reduced-motion: reduce)').matches;}
 function chalkDrawing(note,animate=false){
   const strokes=chalkStrokes(note);
@@ -35,21 +40,43 @@ function chalkText(el,text,animate=false){
 }
 function renderChalkboard(){
   const host=$('chalkboard');if(!host)return;
-  const list=chalkPosts(),latest=list[0],key=latest?String(latest.id||latest.ts):'',old=host.querySelector('.chalk-message');
-  const changed=host.dataset.note!==undefined&&host.dataset.note!==key;
-  const animate=changed&&chalkMotion()&&$('p3')?.classList.contains('on');
-  const oldHtml=animate&&old?old.innerHTML:'';
-  const focused=document.activeElement?.id;
-  if(!changed&&host.dataset.note!==undefined){
-    const signature=JSON.stringify([key,S.n1,S.n2,who,list.length]);if(host.dataset.signature===signature){if($('chalkDialog')?.open&&$('chalkDialog').dataset.view==='history')renderChalkHistory();return;}
-  }
-  host.dataset.note=key;host.dataset.signature=JSON.stringify([key,S.n1,S.n2,who,list.length]);
-  host.innerHTML=`<section class="card chalk-corner"><div class="chalk-heading"><div><small>지금 전하고 싶은 마음</small><h2>우리의 한마디 칠판</h2></div><span class="chalk-heart" aria-hidden="true">♡</span></div>
-    <button type="button" id="chalkBoardOpen" class="chalk-board ${animate?'chalk-replacing':''}" onclick="openChalkHistory()" aria-describedby="chalkLatest" aria-label="칠판 누르기 · 이전 한마디 ${list.length}개 보기"><span class="chalk-topline">TODAY, WITH YOU <span aria-hidden="true">✧</span></span><span class="chalk-message" id="chalkLatest">${latest?chalkNoteHtml(latest,animate):'<span class="chalk-empty">오늘도, 네 생각이 났어.<small>첫 한마디를 남겨보세요</small></span>'}</span>${oldHtml?`<span class="chalk-old" aria-hidden="true">${oldHtml}</span><span class="chalk-eraser" aria-hidden="true"></span>`:''}<span class="chalk-signature">${latest?esc(Number(latest.who)===1?S.n1:S.n2)+' · '+new Date(Number(latest.ts)||0).toLocaleDateString('ko-KR'):'둘만의 작은 칠판'}</span><span class="chalk-tray" aria-hidden="true"><i></i><i></i><b></b></span></button>
-    <div class="chalk-footer"><p>칠판을 누르면 이전에 남긴 말도 볼 수 있어요.<br>새 한마디는 바로 전해지고, 이전 글은 기록에 남아요.</p><button type="button" id="chalkComposeOpen" class="btn" onclick="openChalkComposer()">분필로 한마디 남기기</button></div></section>`;
-  if(animate&&latest&&!chalkStrokes(latest).length)chalkText(host.querySelector('.chalk-copy'),String(latest.text).slice(0,CHALK_LIMIT),true);
-  if(focused==='chalkBoardOpen'||focused==='chalkComposeOpen')$(focused)?.focus({preventScroll:true});
+  if(chalkArchiving)return;
+  const list=chalkPosts(),active=chalkVisiblePosts(),oldIds=JSON.parse(host.dataset.visible||'[]'),ids=active.map(n=>n.id);
+  const signature=JSON.stringify([active,S.n1,S.n2,list.length,chalkArchiving]);
+  if(host.dataset.signature===signature){if($('chalkDialog')?.open&&$('chalkDialog').dataset.view==='history')renderChalkHistory();return;}
+  const initialized=host.dataset.signature!==undefined,animate=initialized&&chalkMotion()&&$('p3')?.classList.contains('on'),added=ids.filter(id=>!oldIds.includes(id));
+  const focused=document.activeElement?.id,scrollTop=host.querySelector('.chalk-stack')?.scrollTop||0;
+  host.dataset.visible=JSON.stringify(ids);host.dataset.signature=signature;
+  host.innerHTML=`<section class="card chalk-corner"><div class="chalk-heading"><div><small>너의 말 옆에, 나의 한마디</small><h2>우리의 한마디 칠판</h2></div><span class="chalk-heart" aria-hidden="true">♡</span></div>
+    <div class="chalk-board chalk-shared" onclick="openChalkHistory()"><div class="chalk-topline">OUR SHARED WORDS <span>${active.length}개의 마음</span></div><div class="chalk-stack" aria-label="지우기 전까지 함께 남아 있는 한마디">${active.map(n=>`<article class="chalk-entry chalk-writer-${Number(n.who)===2?2:1} ${animate&&added.includes(n.id)?'chalk-added':''}" data-chalk-note="${esc(n.id)}"><div class="chalk-entry-head"><span>${esc(Number(n.who)===1?S.n1:S.n2)} <small>${new Date(Number(n.ts)||0).toLocaleDateString('ko-KR')}</small></span><button type="button" class="chalk-archive-note" data-note-id="${esc(n.id)}" aria-label="${esc(Number(n.who)===1?S.n1:S.n2)}의 이 한마디 지우고 기록에 보관" onclick="event.stopPropagation();archiveChalkNotes([this.dataset.noteId])" ${chalkArchiving?'disabled':''}>지우고 보관</button></div><div class="chalk-message">${chalkNoteHtml(n,animate&&added.includes(n.id))}</div></article>`).join('')||'<div class="chalk-empty">오늘도, 네 생각이 났어.<small>두 사람의 마음을 나란히 남겨보세요</small></div>'}</div><span class="chalk-tray" aria-hidden="true"><i></i><i></i><b></b></span></div>
+    <div class="chalk-footer"><p>두 사람이 남긴 글은 지우기 전까지 쌓여요.<br>칠판을 누르면 보관한 기록도 다시 볼 수 있어요.</p><div class="chalk-board-actions"><button type="button" id="chalkBoardOpen" class="btn ghost" onclick="openChalkHistory()">한마디 기록 ${list.length}</button><button type="button" id="chalkArchiveAll" class="btn ghost" onclick="archiveChalkNotes()" ${!active.length||chalkArchiving?'disabled':''}>${chalkArchiving?'기록에 옮기는 중…':'칠판 지우고 보관'}</button></div><button type="button" id="chalkComposeOpen" class="btn" onclick="openChalkComposer()">분필로 한마디 남기기</button></div></section>`;
+  for(const entry of host.querySelectorAll('.chalk-added')){const note=active.find(n=>n.id===entry.dataset.chalkNote);if(note&&!chalkStrokes(note).length)chalkText(entry.querySelector('.chalk-copy'),String(note.text).slice(0,CHALK_LIMIT),true);}
+  const stack=host.querySelector('.chalk-stack');stack.scrollTop=added.length&&initialized?stack.scrollHeight:scrollTop;
+  if(['chalkBoardOpen','chalkComposeOpen','chalkArchiveAll'].includes(focused))$(focused)?.focus({preventScroll:true});
   if($('chalkDialog')?.open&&$('chalkDialog').dataset.view==='history')renderChalkHistory();
+}
+async function archiveChalkNotes(selected){
+  if(chalkArchiving)return;
+  const visible=chalkVisiblePosts(),ids=new Set(selected?visible.filter(n=>selected.includes(n.id)).map(n=>n.id):visible.map(n=>n.id));
+  const focusNote=document.activeElement?.dataset.noteId,focusIndex=visible.findIndex(n=>n.id===focusNote),wasClear=document.activeElement?.id==='chalkArchiveAll';
+  if(!ids.size)return;const at=coupleNow();chalkArchiving=true;
+  const board=$('chalkboard')?.querySelector('.chalk-board');chalkEraseEffect(board);$('chalkboard')?.querySelectorAll('.chalk-archive-note,#chalkArchiveAll').forEach(b=>b.disabled=true);
+  try{
+    if(db){
+      const tx=await db.ref('notes').transaction(raw=>{if(!raw)return;const next={...raw};for(const id of ids)if(Object.prototype.hasOwnProperty.call(next,id))next[id]={...next[id],boardArchivedAt:at};return next;},undefined,false);
+      if(!tx.committed)throw new Error('기록을 찾을 수 없어요.');notes=toArr(tx.snapshot.val());
+    }else{
+      const current=await DB.load('notes'),next=current.map(n=>ids.has(n.id)?{...n,boardArchivedAt:at}:n);
+      localStorage.setItem('notes',JSON.stringify(next));notes=next;
+    }
+    if(chalkMotion())await new Promise(resolve=>setTimeout(resolve,500));
+    toast('칠판은 비우고, 마음은 기록에 보관했어요 ♡');
+  }catch(error){console.error('칠판 보관 실패',error);toast('보관하지 못했어요. 글은 그대로 남겨두었어요');}
+  finally{
+    chalkArchiving=false;if($('chalkboard'))delete $('chalkboard').dataset.signature;renderChalkboard();
+    if(focusNote||wasClear){const buttons=[...document.querySelectorAll('.chalk-archive-note')];(buttons.find(b=>b.dataset.noteId===focusNote)||buttons[Math.min(Math.max(0,focusIndex),buttons.length-1)]||$('chalkComposeOpen'))?.focus({preventScroll:true});}
+    if(typeof renderTogether==='function')renderTogether();
+  }
 }
 function chalkDialog(view){
   let dialog=$('chalkDialog');
@@ -59,9 +86,9 @@ function chalkDialog(view){
 function openChalkHistory(){const dialog=chalkDialog('history');chalkHistoryPage=0;renderChalkHistory();if(!dialog.open)dialog.showModal();}
 function renderChalkHistory(){
   const dialog=$('chalkDialog');if(!dialog||dialog.dataset.view!=='history')return;
-  const list=chalkPosts(),pages=Math.max(1,Math.ceil(list.length/20));chalkHistoryPage=Math.max(0,Math.min(pages-1,chalkHistoryPage));
+  const list=chalkPosts(),visibleIds=new Set(chalkVisiblePosts().map(n=>n.id)),pages=Math.max(1,Math.ceil(list.length/20));chalkHistoryPage=Math.max(0,Math.min(pages-1,chalkHistoryPage));
   const focus=document.activeElement?.dataset.chalkPage;
-  dialog.innerHTML=`<div class="dialog-head"><h2 id="chalkDialogTitle">차곡차곡, 우리의 한마디</h2><button type="button" class="dialog-close" aria-label="한마디 기록 닫기" onclick="$('chalkDialog').close()">×</button></div><p class="dialog-note">칠판에서 지워져도 마음은 남아 있어요. 예전 한마디까지 모두 ${list.length}개.</p><div class="chalk-history">${list.slice(chalkHistoryPage*20,(chalkHistoryPage+1)*20).map((n,i)=>`<article><small>${i===0&&chalkHistoryPage===0?'지금 칠판에 · ':''}${esc(Number(n.who)===1?S.n1:S.n2)} · ${new Date(Number(n.ts)||0).toLocaleString('ko-KR')}</small>${chalkStrokes(n).length?`<div class="chalk-history-drawing">${chalkDrawing(n)}</div>`:`<p>${esc(n.text)}</p>`}</article>`).join('')||'<p class="post-empty">아직 남긴 한마디가 없어요.</p>'}</div>${pages>1?`<div class="chalk-pagination"><button type="button" data-chalk-page="prev" onclick="chalkHistoryPage--;renderChalkHistory();$('chalkDialog').scrollTop=0" ${chalkHistoryPage===0?'disabled':''}>이전</button><span>${chalkHistoryPage+1} / ${pages}</span><button type="button" data-chalk-page="next" onclick="chalkHistoryPage++;renderChalkHistory();$('chalkDialog').scrollTop=0" ${chalkHistoryPage===pages-1?'disabled':''}>다음</button></div>`:''}<button type="button" class="btn chalk-history-write" onclick="openChalkComposer()">새 한마디 남기기</button>`;
+  dialog.innerHTML=`<div class="dialog-head"><h2 id="chalkDialogTitle">차곡차곡, 우리의 한마디</h2><button type="button" class="dialog-close" aria-label="한마디 기록 닫기" onclick="$('chalkDialog').close()">×</button></div><p class="dialog-note">칠판에서 지워져도 마음은 남아 있어요. 예전 한마디까지 모두 ${list.length}개.</p><div class="chalk-history">${list.slice(chalkHistoryPage*20,(chalkHistoryPage+1)*20).map((n,i)=>`<article><small>${n.boardArchivedAt?'기록 보관 · ':visibleIds.has(n.id)?'칠판에 · ':''}${esc(Number(n.who)===1?S.n1:S.n2)} · ${new Date(Number(n.ts)||0).toLocaleString('ko-KR')}</small>${chalkStrokes(n).length?`<div class="chalk-history-drawing">${chalkDrawing(n)}</div>`:`<p>${esc(n.text)}</p>`}</article>`).join('')||'<p class="post-empty">아직 남긴 한마디가 없어요.</p>'}</div>${pages>1?`<div class="chalk-pagination"><button type="button" data-chalk-page="prev" onclick="chalkHistoryPage--;renderChalkHistory();$('chalkDialog').scrollTop=0" ${chalkHistoryPage===0?'disabled':''}>이전</button><span>${chalkHistoryPage+1} / ${pages}</span><button type="button" data-chalk-page="next" onclick="chalkHistoryPage++;renderChalkHistory();$('chalkDialog').scrollTop=0" ${chalkHistoryPage===pages-1?'disabled':''}>다음</button></div>`:''}<button type="button" class="btn chalk-history-write" onclick="openChalkComposer()">새 한마디 남기기</button>`;
   if(focus)dialog.querySelector(`[data-chalk-page="${focus}"]`)?.focus({preventScroll:true});
 }
 function openChalkComposer(){
@@ -120,12 +147,12 @@ async function sendChalkNote(){
   if(chalkSending)return;const dialog=$('chalkDialog'),slot=Number(dialog?.dataset.slot),draft=chalkDrafts[slot];if(!draft)return;
   const text=draft.mode==='text'?draft.text.trim().slice(0,CHALK_LIMIT):'',strokes=draft.mode==='draw'?chalkStrokes({drawing:{strokes:draft.strokes}}):[];
   if(!text&&!strokes.length){$('chalkSaveStatus').textContent='남길 말을 먼저 적어주세요.';return;}
-  const snapshot=JSON.stringify(draft),payload={who:slot,kind:'chalk',text};if(strokes.length)payload.drawing={width:640,height:360,strokes};
+  const snapshot=JSON.stringify(draft),payload={who:slot,kind:'chalk',boardVersion:2,text};if(strokes.length)payload.drawing={width:640,height:360,strokes};
   chalkSending=true;chalkBusyUI();$('chalkSend').textContent='칠판에 옮기는 중…';$('chalkSaveStatus').textContent='마음을 저장하고 있어요…';
   try{
     await DB.add('notes',payload);
     if(JSON.stringify(draft)===snapshot){chalkDrafts[slot]={mode:draft.mode,text:'',strokes:[]};if(dialog.dataset.view==='compose'&&Number(dialog.dataset.slot)===slot)dialog.close();}
-    renderChalkboard();toast('새 한마디를 칠판에 남겼어요. 이전 글도 간직했어요 ♡');
+    renderChalkboard();toast('우리의 말 옆에 새 한마디를 남겼어요 ♡');
     await earnHeart('note',ACT_REWARD).catch(()=>{});
   }catch(error){console.error('칠판 저장 실패',error);if($('chalkSaveStatus'))$('chalkSaveStatus').textContent='저장하지 못했어요. 작성한 내용은 그대로예요. 다시 눌러주세요.';toast('한마디를 저장하지 못했어요. 연결을 확인해 주세요');}
   finally{chalkSending=false;chalkBusyUI();if($('chalkSend'))$('chalkSend').textContent='칠판에 남기기';}
@@ -175,11 +202,11 @@ function letterDeliveryAt(now,random){return now+COUPLE_HOUR+Math.floor(Math.max
 function fedDeliveryAt(deliveryAt,now,random){const remaining=deliveryAt-now;if(remaining<=300000)return deliveryAt;return Math.round(now+Math.max(300000,remaining*(1-(.15+.20*Math.max(0,Math.min(1,random))))));}
 function openPigeonLetters(){go(3,document.querySelectorAll('nav button')[3]);renderPostOffice();$('postOffice')?.scrollIntoView({behavior:chalkMotion()?'smooth':'auto',block:'start'});}
 function openProduceQna(){go(4,document.querySelectorAll('nav button')[4]);renderQA();}
-function renderCouple(){renderPostOffice();renderQA();}
+function renderCouple(){renderPostOffice();renderQA();if(typeof renderTogether==='function')renderTogether();}
 function bootCouple(){
   if(coupleBooted)return;coupleBooted=true;renderCouple();
   const worldText=window.render_game_to_text;
-  if(typeof worldText==='function')window.render_game_to_text=()=>{const state=JSON.parse(worldText()),list=chalkPosts();state.chalkboard={count:list.length,latestKind:list[0]?(chalkStrokes(list[0]).length?'handwriting':'text'):null,composing:$('chalkDialog')?.open&&$('chalkDialog').dataset.view==='compose'||false};return JSON.stringify(state);};
+  if(typeof worldText==='function')window.render_game_to_text=()=>{const state=JSON.parse(worldText()),list=chalkPosts();state.chalkboard={count:list.length,visible:chalkVisiblePosts().length,latestKind:list[0]?(chalkStrokes(list[0]).length?'handwriting':'text'):null,composing:$('chalkDialog')?.open&&$('chalkDialog').dataset.view==='compose'||false};return JSON.stringify(state);};
   setInterval(()=>{if(document.hidden)return;updateLetterClocks();renderQAExtras();},30000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderCouple();});
 }

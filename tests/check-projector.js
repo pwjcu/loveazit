@@ -18,12 +18,15 @@ async page=>{
   check((await state()).mode==='memories'&&(await state()).availablePhotos===3,'기존 사진·묶음 사진 호환 및 중복/삭제/잘못된 주소 제외');
   check(await page.evaluate(()=>{let old=cinemaMemory.src;const seen=new Set([old]);for(let i=0;i<30;i++){nextCinema();if(old===cinemaMemory.src)return false;old=cinemaMemory.src;seen.add(old);}return seen.size===3;}),'모든 사진 랜덤 상영·동일 사진 연속 방지');
   check(await page.locator('[data-cinema-photo]').count()===1,'사진 전체를 미리 불러오지 않고 현재 사진 하나만 표시');
-  check(await page.locator('[data-cinema-photo]').getAttribute('preserveAspectRatio')==='xMidYMid meet','가로·세로 사진을 자르지 않고 표시');
+  check(await page.locator('[data-cinema-photo]').getAttribute('preserveAspectRatio')==='xMidYMid slice','거실 사진이 프로젝터 화면을 가득 채움');
+  check(await page.locator('[data-cinema-frame]').evaluate(el=>Number(el.getAttribute('width'))>=280),'거실 프로젝터 폭을 110에서 280 이상으로 확대');
+  check(await page.locator('[data-cinema-photo]').evaluate(el=>{const s=getComputedStyle(el);return s.animationName==='photo-fullbleed-drift'&&s.animationPlayState==='running';}),'재생 중인 사진에 화면 가장자리가 비지 않는 확대·이동 애니메이션 적용');
   const beforeAuto=await page.evaluate(()=>cinemaMemory.src);await page.evaluate(()=>advanceTime(12000));
   check(beforeAuto!==await page.evaluate(()=>cinemaMemory.src),'추억은 12초마다 다음 사진 상영');
   await page.screenshot({path:'output/playwright/projector-room.png',fullPage:true,animations:'disabled'});
   await page.locator('[data-cinema-pause]').click();
   check((await state()).paused&&await page.evaluate(()=>localStorage.getItem('azit-cinema-paused')==='1'),'시네마 멈춤 상태 저장');
+  check(await page.locator('[data-cinema-photo]').evaluate(el=>getComputedStyle(el).animationPlayState==='paused'),'일시정지가 사진 확대·이동 애니메이션도 멈춤');
   const stopped=await page.evaluate(()=>cinemaMemory.src);await page.evaluate(()=>advanceTime(24000));
   check(stopped===await page.evaluate(()=>cinemaMemory.src),'멈춤 상태에서 자동 장면 전환 없음');
   await page.getByRole('button',{name:'다음 시네마 장면',exact:true}).click();
@@ -31,6 +34,13 @@ async page=>{
   check(await page.locator('.film-memory-reveal').evaluate(el=>getComputedStyle(el).opacity==='0'),'정지한 첫 프레임을 어두운 전환막이 가리지 않음');
   await page.getByRole('button',{name:'크게 보기',exact:true}).click();
   check(await page.locator('#azitDialog').isVisible()&&await page.locator('[data-cinema-photo]').count()===2,'확대 영화관 열기');
+  await page.getByRole('button',{name:'사진 전체 보기',exact:true}).click();
+  check(await page.locator('#azitDialog [data-cinema-photo]').getAttribute('preserveAspectRatio')==='xMidYMid meet'&&await page.locator('.living-scene [data-cinema-photo]').getAttribute('preserveAspectRatio')==='xMidYMid slice','확대 창은 원본 전체 보기·거실은 화면 채우기 독립 유지');
+  check(await page.locator('#azitDialog [data-cinema-photo]').evaluate(el=>{const s=getComputedStyle(el);return s.animationName==='none'&&s.transform==='none';}),'사진 전체 보기에서는 확대·이동 없이 원본 가장자리까지 표시');
+  await page.locator('#azitDialog').getByRole('button',{name:'다음 시네마 장면',exact:true}).click();
+  check(await page.locator('#azitDialog [data-cinema-photo]').getAttribute('preserveAspectRatio')==='xMidYMid meet','다음 사진에서도 전체 보기 선택 유지');
+  await page.getByRole('button',{name:'화면 채우기',exact:true}).click();
+  check(await page.locator('#azitDialog [data-cinema-photo]').getAttribute('preserveAspectRatio')==='xMidYMid slice','확대 창의 화면 채우기 복귀');
   await page.screenshot({path:'output/playwright/projector-theater.png',fullPage:true,animations:'disabled'});
   await page.locator('#azitDialog [data-cinema-mode="films"]').click();
   check((await state()).mode==='films'&&await page.locator('[data-cinema-photo]').count()===0,'작은 풍경 전환이 거실·확대 화면에 함께 반영');
@@ -42,7 +52,8 @@ async page=>{
   await page.emulateMedia({reducedMotion:'reduce'});
   const reduced=await page.evaluate(()=>cinemaMemory.src);await page.evaluate(()=>advanceTime(48000));
   check((await state()).paused&&reduced===await page.evaluate(()=>cinemaMemory.src),'시스템 움직임 줄이기에서 자동 전환 정지');
-  check(await page.locator('#azitDialog .film-memory-drift').evaluate(el=>getComputedStyle(el).animationName==='none'),'확대 영화관도 움직임 줄이기 적용');
+  check(await page.locator('#azitDialog .cinema-memory *').evaluateAll(els=>els.every(el=>getComputedStyle(el).animationName==='none')),'확대 영화관도 움직임 줄이기 적용');
+  check(await page.locator('#azitDialog [data-cinema-photo]').evaluate(el=>getComputedStyle(el).transform==='none'),'시스템 움직임 줄이기에서는 사진 확대·이동 변형도 제거');
   check(await page.locator('#azitDialog [data-cinema-pause]').isDisabled(),'움직임 줄이기 설정일 때 작동하지 않는 재생 버튼 비활성화');
   for(const width of [320,375,844]){await page.setViewportSize({width,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'영화관 '+width+'px 가로 넘침 없음');}
   await page.emulateMedia({reducedMotion:'no-preference'});
@@ -70,7 +81,7 @@ async page=>{
       cinemaMode='memories';renderLiving();
     });
     await page.waitForFunction(()=>document.querySelector('[data-cinema-title]')?.textContent===projectorCaption);
-    check(await page.evaluate(()=>document.querySelector('.pet-family header strong').textContent===projectorCaption&&document.querySelector('[data-cinema-title]').textContent===projectorCaption&&document.querySelector('.film-memory-drift text').textContent===projectorDate),'악성 반려동물 애칭·사진 설명·날짜가 실행되지 않고 글자로 표시');
+    check(await page.evaluate(()=>document.querySelector('.pet-family header strong').textContent===projectorCaption&&document.querySelector('[data-cinema-title]').textContent===projectorCaption),'악성 반려동물 애칭·사진 설명은 글자로 표시하고 제거된 사진 프레임 날짜는 삽입하지 않음');
     check(await page.locator('[data-projector-injected]').count()===0&&await page.evaluate(()=>projectorInjected===0),'반려동물·추억 입력으로 DOM·이벤트 삽입되지 않음');
     await page.locator('.pet-target').click();
     await page.locator('.pet-target').press('Enter');

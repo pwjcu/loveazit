@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script>(()=>{const h=location.hash;if(!h.startsWith('#azit-invite='))return;try{window.__azitFortuneInvite=decodeURIComponent(h.slice(13));}catch{window.__azitFortuneInvite='invalid';}history.replaceState(history.state,'',location.pathname+location.search);})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>우리 아지트 💗</title>
@@ -321,8 +322,9 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 </style>
-<link rel="stylesheet" href="assets/azit.css?v=20260912-chalk">
-<link rel="stylesheet" href="assets/couple.css?v=20260912-chalk">
+<link rel="stylesheet" href="assets/azit.css?v=20260912-pixel">
+<link rel="stylesheet" href="assets/couple.css?v=20260912-pixel">
+<link rel="stylesheet" href="assets/together.css?v=20260912-pixel">
 <link rel="stylesheet" href="assets/settings-extra.css?v=20260908-life">
 </head>
 <body>
@@ -355,6 +357,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
     <div class="banner" id="todaybanner" style="display:none"></div>
     <div class="banner" id="localbanner" style="display:none">🔗 지금은 내 기기에만 저장돼요 — 설정에서 "같이 쓰기"를 켜면 둘이 실시간 공유!</div>
   </div>
+  <div id="togetherPanel"></div>
   <div class="card" id="seasonCard"></div>
   <div class="card">
     <div class="stitle">🎮 아지트 놀러가기</div>
@@ -483,7 +486,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
     <div class="mut" id="modeinfo"></div>
     <details>
       <summary>💑 같이 쓰기 연결 상태</summary>
-      <p class="mut">달력·추억·한마디·Q&amp;A·룸은 Firebase에서 실시간 공유 중이에요. 운세의 생년월일·만세력·타로는 운세 화면에서 둘만의 연결 코드를 만들면 암호화해 공유해요.</p>
+      <p class="mut">달력·추억·한마디·Q&amp;A·룸은 Firebase에서 실시간 공유 중이에요. 운세의 생년월일·만세력·타로는 운세 화면에서 초대 링크로 한 번 연결하면 이후 자동으로 암호화해 공유해요.</p>
     </details>
     <div class="frow" style="margin-top:12px">
       <button class="btn ghost sm" onclick="bkExport()">백업 저장</button>
@@ -1223,6 +1226,7 @@ function setWho(w){
   if(typeof renderQA==='function')renderQA();
   if(typeof renderPostOffice==='function')renderPostOffice();
   if(typeof renderSettingsExtras==='function')renderSettingsExtras();
+  if(typeof renderTogether==='function')renderTogether();
 }
 function renderNotes(){if(typeof renderPostOffice==='function')renderPostOffice();}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
@@ -1675,7 +1679,7 @@ function renderLiving(){
   ['Room','Garden','Shop'].forEach(n=>{const el=$('loc'+n); if(el)el.classList.toggle('on',v===n.toLowerCase());});
   if(v==='shop'){ renderShop(); return; }
   if(v==='garden'){ renderGarden(); return; }
-  $('livingView').innerHTML=sceneToolbar('둘만의 포근한 거실')+worldDashboardHtml('room')+roomScene()+cinemaControls()+worldControls()+sleepBarHtml()+petFamilyHtml()
+  $('livingView').innerHTML=sceneToolbar('둘만의 포근한 거실')+roomScene()+cinemaControls()+worldDashboardHtml('room')+worldControls()+sleepBarHtml()+petFamilyHtml()
     +'<div class="mut living-help">밥이 필요한 친구를 챙기면 +1💗 · 케어 보상은 둘이 하루 두 번까지</div>';
 }
 function shopCard(image,name,status,action,disabled=false,extra=''){
@@ -2132,14 +2136,16 @@ function go(i,btn){
   window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   if(i===4||i===5)earnHeart('visit',ACT_REWARD).catch(()=>{});
 }
-function renderAll(){ renderHome(); renderSeasonCard(); renderCal(); renderWishes(); renderPhotos(); renderNotes(); renderQA(); renderHearts(); renderLiving(); renderCareList(); renderFortune();if(typeof renderSettingsExtras==='function')renderSettingsExtras(); }
+function renderAll(){ renderHome(); renderSeasonCard(); renderCal(); renderWishes(); renderPhotos(); renderNotes(); renderQA(); renderHearts(); renderLiving(); renderCareList(); renderFortune();if(typeof renderSettingsExtras==='function')renderSettingsExtras();if(typeof renderTogether==='function')renderTogether(); }
 </script>
 <script src="assets/vendor/korean-lunar-calendar.min.js"></script>
 <script src="assets/world.js?v=20260912-chalk"></script>
+<script src="assets/pixel-world.js?v=20260912-pixel"></script>
 <script src="assets/fortune.js"></script>
-<script src="assets/fortune-sync.js?v=20260908-life"></script>
-<script src="assets/couple.js?v=20260912-chalk"></script>
-<script src="assets/settings-extra.js?v=20260908-life"></script>
-<script>setWho(who); applySeason(); boot().then(async()=>{bootFortune();bootCouple();bootSettingsExtras();await bootFortuneServices();});</script>
+<script src="assets/fortune-sync.js?v=20260912-pixel"></script>
+<script src="assets/couple.js?v=20260912-pixel"></script>
+<script src="assets/settings-extra.js?v=20260912-pixel"></script>
+<script src="assets/together.js?v=20260912-pixel"></script>
+<script>setWho(who); applySeason(); boot().then(async()=>{bootFortune();bootCouple();bootTogether();bootSettingsExtras();await bootFortuneServices();});</script>
 </body>
 </html>
