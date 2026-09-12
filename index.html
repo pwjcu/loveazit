@@ -321,8 +321,8 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 </style>
-<link rel="stylesheet" href="assets/azit.css?v=20260908-life">
-<link rel="stylesheet" href="assets/couple.css?v=20260908-life">
+<link rel="stylesheet" href="assets/azit.css?v=20260912-chalk">
+<link rel="stylesheet" href="assets/couple.css?v=20260912-chalk">
 <link rel="stylesheet" href="assets/settings-extra.css?v=20260908-life">
 </head>
 <body>
@@ -428,6 +428,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
 
 <!-- 한마디 -->
 <div class="page" id="p3">
+  <div id="chalkboard"></div>
   <div id="postOffice"></div>
 </div>
 
@@ -1022,19 +1023,19 @@ function renderHome(){
   const list=upcoming();
   $('uplist').innerHTML=list.map(u=>{
     const dd=Math.round((u.d-t)/864e5);
-    return `<div class="row"><span>${u.t}</span><span>
+    return `<div class="row"><span>${esc(u.t)}</span><span>
       <small style="color:#c7a3ad">${u.d.getFullYear()}.${pad(u.d.getMonth()+1)}.${pad(u.d.getDate())}</small>
       <span class="badge">${dd===0?'오늘!':'D-'+dd}</span>
-      ${u.id?`<button class="x" onclick="DB.del('annis','${u.id}')">✕</button>`:''}</span></div>`;
+      ${u.id?`<button class="x" data-record-id="${esc(u.id)}" onclick="DB.del('annis',this.dataset.recordId)">✕</button>`:''}</span></div>`;
   }).join('')||'<div class="mut">달력에서 "매년 반복" 체크로 기념일을 추가해보세요!</div>';
   const evlist=upcomingEvents();
   $('upevlist').innerHTML=evlist.map(e=>{
     const d=new Date(e.date+'T00:00:00');
     const dd=Math.round((d-t)/864e5);
-    return `<div class="row"><span>${e.emoji||'💗'} ${e.title}</span><span>
-      <small style="color:#c7a3ad">${e.date.replaceAll('-','.')}</small>
+    return `<div class="row"><span>${esc(e.emoji||'💗')} ${esc(e.title)}</span><span>
+      <small style="color:#c7a3ad">${esc(String(e.date||'').replaceAll('-','.'))}</small>
       <span class="badge">${dd===0?'오늘!':'D-'+dd}</span>
-      <button class="x" onclick="DB.del('events','${e.id}')">✕</button></span></div>`;
+      <button class="x" data-record-id="${esc(e.id)}" onclick="DB.del('events',this.dataset.recordId)">✕</button></span></div>`;
   }).join('')||'<div class="mut">달력에서 일정을 추가해보세요!</div>';
 }
 function upcomingEvents(){
@@ -1069,7 +1070,7 @@ function renderCal(){
     const evs=events.filter(e=>e.date===key);
     const isAnni=annis.some(a=>a.date.slice(5)===key.slice(5));
     const cls=['cell',key===todayStr()?'today':'',key===selDate?'sel':'',(first+d-1)%7===0?'sun':''].join(' ');
-    h+=`<div class="${cls}" onclick="selDay('${key}')">${d}<div class="dots">${isAnni?'🎀':evs.map(e=>e.emoji||'●').join('').slice(0,6)}</div></div>`;
+    h+=`<div class="${cls}" onclick="selDay('${key}')">${d}<div class="dots">${isAnni?'🎀':esc(evs.map(e=>e.emoji||'●').join('').slice(0,6))}</div></div>`;
   }
   $('calgrid').innerHTML=h; renderDay();
 }
@@ -1079,8 +1080,8 @@ function renderDay(){
   const evs=events.filter(e=>e.date===selDate);
   const ann=annis.filter(a=>a.date.slice(5)===selDate.slice(5));
   $('daylist').innerHTML=
-    ann.map(a=>`<div class="row"><span>${a.emoji||'🎀'} ${a.title} <small style="color:#c7a3ad">매년</small></span><button class="x" onclick="DB.del('annis','${a.id}')">✕</button></div>`).join('')+
-    evs.map(e=>`<div class="row"><span>${e.emoji} ${e.title}</span><button class="x" onclick="DB.del('events','${e.id}')">✕</button></div>`).join('')
+    ann.map(a=>`<div class="row"><span>${esc(a.emoji||'🎀')} ${esc(a.title)} <small style="color:#c7a3ad">매년</small></span><button class="x" data-record-id="${esc(a.id)}" onclick="DB.del('annis',this.dataset.recordId)">✕</button></div>`).join('')+
+    evs.map(e=>`<div class="row"><span>${esc(e.emoji||'●')} ${esc(e.title)}</span><button class="x" data-record-id="${esc(e.id)}" onclick="DB.del('events',this.dataset.recordId)">✕</button></div>`).join('')
     ||'<div class="mut">일정이 없어요</div>';
 }
 async function addEv(){
@@ -1233,11 +1234,12 @@ let qaStarting=false;
 let renderedQAId=null;
 const qaDrafts={};
 const qaDraftKey=(id,slot)=>id+':'+slot;
+const qaInputId=(id,slot)=>/^[A-Za-z0-9_-]+$/.test(String(id))?'qa_in_'+id+'_'+slot:'qa_in_'+slot+'_'+encodeURIComponent(String(id)).replaceAll("'",'%27');
 function saveQADraft(id,slot,value){qaDrafts[qaDraftKey(id,slot)]=String(value||'').slice(0,200);}
 function captureQADrafts(){
   if(!renderedQAId)return;
   [1,2].forEach(slot=>{
-    const el=$(`qa_in_${renderedQAId}_${slot}`);
+    const el=$(qaInputId(renderedQAId,slot));
     if(el)saveQADraft(renderedQAId,slot,el.value);
   });
 }
@@ -1306,7 +1308,7 @@ async function mutateQA(id,mutate){
 async function submitQAAns(id,slot){
   slot=Number(slot);
   if(slot!==who){toast('선택된 이름이 바뀌었어요. 다시 확인해 주세요');renderQA();return;}
-  const el=$(`qa_in_${id}_${slot}`); if(!el)return;
+  const el=$(qaInputId(id,slot)); if(!el)return;
   const text=el.value.trim().slice(0,200); if(!text){toast('답변을 먼저 적어주세요');return;}
   const q=qaList.find(x=>x.id===id); if(!q||q.revealed)return;
   const key='a'+slot;
@@ -1356,8 +1358,8 @@ function qaAnswerBox(q,slot){
     body=`<div class="q-lock"><span class="lock-orb">🔒</span><strong>${esc(name)}님의 답변이 잠겼어요</strong><small>서로 공개에 동의할 때까지 내용은 보이지 않아요.</small></div>`;
   }else if(selected){
     const draft=qaDrafts[qaDraftKey(q.id,slot)]||'';
-    body=`<textarea id="qa_in_${q.id}_${slot}" maxlength="200" aria-label="${esc(name)}의 답변" placeholder="솔직한 마음을 적어보세요..." oninput="saveQADraft('${q.id}',${slot},this.value)">${esc(draft)}</textarea>
-      <div class="q-answer-actions"><small>제출하면 바로 잠기며 수정할 수 없어요.</small><button class="btn sm" type="button" onclick="submitQAAns('${q.id}',${slot})">답변 잠그기 🔒</button></div>`;
+    body=`<textarea id="${esc(qaInputId(q.id,slot))}" data-qa-id="${esc(q.id)}" maxlength="200" aria-label="${esc(name)}의 답변" placeholder="솔직한 마음을 적어보세요..." oninput="saveQADraft(this.dataset.qaId,${slot},this.value)">${esc(draft)}</textarea>
+      <div class="q-answer-actions"><small>제출하면 바로 잠기며 수정할 수 없어요.</small><button class="btn sm" type="button" data-qa-id="${esc(q.id)}" onclick="submitQAAns(this.dataset.qaId,${slot})">답변 잠그기 🔒</button></div>`;
   }else{
     body=`<div class="q-lock"><span class="lock-orb">🗝️</span><strong>${esc(name)}님의 답변을 기다려요</strong><small>위에서 ${esc(name)} 이름을 누르면 답변할 수 있어요.</small></div>`;
   }
@@ -1388,7 +1390,7 @@ function renderQA(){
         <div class="consent-status ${qaConsent(cur,1)?'ok':''}">${qaConsent(cur,1)?'✓':'○'} ${esc(S.n1)} ${qaConsent(cur,1)?'동의':'대기'}</div>
         <div class="consent-status ${qaConsent(cur,2)?'ok':''}">${qaConsent(cur,2)?'✓':'○'} ${esc(S.n2)} ${qaConsent(cur,2)?'동의':'대기'}</div>
       </div>
-      <button class="btn sm ${selectedConsent?'ghost':''} consent-action" type="button" onclick="toggleQAConsent('${cur.id}',${who})">${selectedConsent?'↩ 내 동의 취소':'🔓 '+esc(who===1?S.n1:S.n2)+' 공개 동의하기'}</button>
+      <button class="btn sm ${selectedConsent?'ghost':''} consent-action" type="button" data-qa-id="${esc(cur.id)}" onclick="toggleQAConsent(this.dataset.qaId,${who})">${selectedConsent?'↩ 내 동의 취소':'🔓 '+esc(who===1?S.n1:S.n2)+' 공개 동의하기'}</button>
       <div class="qa-privacy">한 사람만 동의한 동안에는 두 답변 모두 계속 잠겨 있어요.</div>
     </div>`;
     $('qaActive').innerHTML=`<div class="qcard">
@@ -1983,21 +1985,140 @@ setInterval(()=>{ applySeason(); renderLiving(); renderSeasonCard(); },60000);
 
 
 /* ---- 백업 ---- */
-function bkExport(){
+function bkExport(prefix='우리아지트_백업_'){
   const blob=new Blob([JSON.stringify({S,AV,events,annis,photos,notes,wishes,qa:qaList,living:LV,fortune:FT})],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='우리아지트_백업_'+todayStr()+'.json'; a.click();
+  a.download=prefix+todayStr()+'.json'; a.click();setTimeout(()=>URL.revokeObjectURL(a.href),0);
+}
+const BACKUP_RECORD_BRANCHES=['events','annis','photos','notes','qa','wishes'];
+const BACKUP_MAIN_KEYS=['settings','avatars','living',...BACKUP_RECORD_BRANCHES];
+function prepareBackup(text){
+  const forbidden=new Set(['__proto__','prototype','constructor']);
+  let data;
+  try{data=JSON.parse(text,(key,value)=>{if(forbidden.has(key))throw new Error('안전하지 않은 속성이 포함되어 있어요.');return value;});}
+  catch(error){throw new Error(error.message==='안전하지 않은 속성이 포함되어 있어요.'?error.message:'올바른 우리 아지트 백업 JSON 파일이 아니에요.');}
+  const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+  if(!plain(data))throw new Error('백업의 최상위 형식이 올바르지 않아요.');
+  const allowed=new Set(['S','AV','living','fortune',...BACKUP_RECORD_BRANCHES]);
+  const unknown=Object.keys(data).find(key=>!allowed.has(key));
+  if(unknown)throw new Error('알 수 없는 백업 항목이 있어요: '+unknown);
+  if(!Object.keys(data).length)throw new Error('복원할 우리 아지트 데이터가 없어요.');
+  const checkKeys=(value,path='백업')=>{
+    if(!value||typeof value!=='object')return;
+    for(const [key,child] of Object.entries(value)){
+      if(/[.#$\[\]/]/.test(key))throw new Error(path+'에 Firebase에서 사용할 수 없는 키가 있어요: '+key);
+      checkKeys(child,path+'.'+key);
+    }
+  };
+  checkKeys(data);
+  for(const key of ['S','AV','living','fortune'])if(data[key]!==undefined&&!plain(data[key]))throw new Error(key+' 백업 형식이 올바르지 않아요.');
+  if(data.S&&['start','n1','n2','h1','h2'].some(key=>data.S[key]!==undefined&&typeof data.S[key]!=='string'))throw new Error('설정 백업의 값 형식이 올바르지 않아요.');
+  if(data.living){
+    const careItem=(item,label)=>{
+      if(!plain(item))throw new Error(label+' 항목 형식이 올바르지 않아요.');
+      if(item.care!==undefined&&(!Array.isArray(item.care)||item.care.some(value=>!Number.isFinite(value))))throw new Error(label+' 돌봄 시각 형식이 올바르지 않아요.');
+      for(const key of ['stage','affection','plantedAt','wateredAt'])if(item[key]!==undefined&&!Number.isFinite(item[key]))throw new Error(label+' '+key+' 값 형식이 올바르지 않아요.');
+    };
+    for(const key of ['hearts','lastMilestone'])if(data.living[key]!==undefined&&!Number.isFinite(data.living[key]))throw new Error('생활공간 '+key+' 값 형식이 올바르지 않아요.');
+    if(data.living.pets!==undefined&&!Array.isArray(data.living.pets)&&!plain(data.living.pets))throw new Error('반려동물 백업 형식이 올바르지 않아요.');
+    if(data.living.indoor!==undefined&&!Array.isArray(data.living.indoor))throw new Error('실내 화분 백업 형식이 올바르지 않아요.');
+    if(data.living.garden!==undefined&&!plain(data.living.garden))throw new Error('텃밭 백업 형식이 올바르지 않아요.');
+    for(const key of ['themes','seasonDecor','ownedFurniture'])if(data.living[key]!==undefined&&!Array.isArray(data.living[key]))throw new Error('생활공간 '+key+' 백업 형식이 올바르지 않아요.');
+    const pets=Array.isArray(data.living.pets)?data.living.pets:Object.values(data.living.pets||{});pets.filter(Boolean).forEach(item=>careItem(item,'반려동물'));
+    (data.living.indoor||[]).filter(Boolean).forEach(item=>careItem(item,'실내 화분'));
+    if(data.living.vase)careItem(data.living.vase,'꽃병');
+    const plots=Array.isArray(data.living.garden?.plots)?data.living.garden.plots:Object.values(data.living.garden?.plots||{});plots.filter(item=>item&&!item.e).forEach(item=>careItem(item,'텃밭'));
+    if(data.living.pantry!==undefined&&(!plain(data.living.pantry)||Object.values(data.living.pantry).some(value=>!Number.isFinite(value)||value<0)))throw new Error('수확 바구니 백업 형식이 올바르지 않아요.');
+    for(const branch of ['mailbox','qaRounds'])if(data.living[branch]!==undefined&&(!plain(data.living[branch])||Object.values(data.living[branch]).some(value=>!plain(value))))throw new Error('생활공간 '+branch+' 백업 형식이 올바르지 않아요.');
+    for(const letter of Object.values(data.living.mailbox||{})){
+      for(const key of ['sentAt','deliveryAt','initialDeliveryAt','openedAt','feeds'])if(letter[key]!==undefined&&!Number.isFinite(letter[key]))throw new Error('편지 '+key+' 값 형식이 올바르지 않아요.');
+      if(letter.body!==undefined&&typeof letter.body!=='string')throw new Error('편지 내용 형식이 올바르지 않아요.');
+    }
+    for(const round of Object.values(data.living.qaRounds||{}))for(const key of ['ts','updatedAt','revealedAt','skippedAt'])if(round[key]!==undefined&&!Number.isFinite(round[key]))throw new Error('Q&A '+key+' 값 형식이 올바르지 않아요.');
+  }
+  if(data.fortune){
+    if(data.fortune.profiles!==undefined&&!plain(data.fortune.profiles))throw new Error('운세 프로필 백업 형식이 올바르지 않아요.');
+    if(data.fortune.daily!==undefined&&!plain(data.fortune.daily))throw new Error('오늘 운세 백업 형식이 올바르지 않아요.');
+  }
+  const records={};
+  for(const branch of BACKUP_RECORD_BRANCHES){
+    const rows=data[branch]??[];
+    if(!Array.isArray(rows)||rows.some(row=>!plain(row)))throw new Error(branch+' 목록 형식이 올바르지 않아요.');
+    records[branch]=rows.map((row,index)=>{
+      const originalId=row.id;
+      if(originalId!==undefined&&(typeof originalId!=='string'||!originalId||/[.#$\[\]/]/.test(originalId)))throw new Error(branch+' 항목 ID가 올바르지 않아요.');
+      if((branch==='events'||branch==='annis')&&(typeof row.date!=='string'||typeof row.title!=='string'))throw new Error(branch+' 일정의 날짜나 제목 형식이 올바르지 않아요.');
+      if(row.ts!==undefined&&!Number.isFinite(row.ts))throw new Error(branch+' 작성 시각 형식이 올바르지 않아요.');
+      const payload={...row};delete payload.id;
+      const id=originalId||('import-'+branch+'-'+hashStr(JSON.stringify(payload)).toString(36)+'-'+index);
+      return{id,payload};
+    });
+  }
+  return{
+    settings:data.S===undefined?null:{start:'',n1:'나',n2:'너',h1:'#6b4b3a',h2:'#4a3226',...data.S},avatars:data.AV===undefined?null:{...data.AV},
+    living:data.living===undefined?null:livingPayload(mergeLiving(data.living)),fortune:data.fortune===undefined?null:data.fortune,
+    records
+  };
+}
+function mergeBackupRecords(current,rows){
+  const next=Array.isArray(current)?Object.fromEntries(current.filter(Boolean).map((row,index)=>[String(row.id||index),row])):{...(current||{})};
+  for(const {id,payload} of rows)if(!Object.prototype.hasOwnProperty.call(next,id))next[id]=payload;
+  return next;
+}
+async function restoreBackupMain(plan,base){
+  const same=(a,b)=>JSON.stringify(a??null)===JSON.stringify(b??null);
+  if(db){
+    let changed=false;
+    const tx=await db.ref().transaction(current=>{
+      current=current||{};
+      for(const branch of ['settings','avatars','living'])if(!same(current[branch],base.root[branch])){changed=true;return;}
+      const next={...current};
+      if(plan.settings)next.settings=plan.settings;
+      if(plan.avatars)next.avatars=plan.avatars;
+      if(plan.living)next.living=plan.living;
+      for(const branch of BACKUP_RECORD_BRANCHES)next[branch]=mergeBackupRecords(current[branch],plan.records[branch]);
+      return next;
+    },undefined,false);
+    if(!tx.committed)throw new Error(changed?'확인하는 사이 상대방이 설정이나 생활공간을 바꿨어요. 새 백업을 만든 뒤 다시 시도해 주세요.':'백업을 적용하지 못했어요.');
+    const saved=tx.snapshot.val()||{};
+    if(plan.settings)S={...S,...(saved.settings||{})};
+    if(plan.avatars)AV=saved.avatars||{};
+    if(plan.living)LV=mergeLiving(saved.living);
+    for(const branch of BACKUP_RECORD_BRANCHES)setD[branch](toArr(saved[branch]));
+  }else{
+    const before=Object.fromEntries(BACKUP_MAIN_KEYS.map(key=>[key,localStorage.getItem(key)]));
+    for(const branch of ['settings','avatars','living'])if(before[branch]!==base.values[branch])throw new Error('확인하는 사이 다른 창에서 설정이나 생활공간이 바뀌었어요. 다시 시도해 주세요.');
+    const next={};
+    next.settings=plan.settings||JSON.parse(before.settings||'{}');
+    next.avatars=plan.avatars||JSON.parse(before.avatars||'{}');
+    next.living=plan.living||JSON.parse(before.living||'null');
+    for(const branch of BACKUP_RECORD_BRANCHES)next[branch]=Object.entries(mergeBackupRecords(JSON.parse(before[branch]||'[]'),plan.records[branch])).map(([id,payload])=>({id,...payload}));
+    try{for(const key of BACKUP_MAIN_KEYS)key==='living'&&next[key]===null?localStorage.removeItem(key):localStorage.setItem(key,JSON.stringify(next[key]));}
+    catch(error){
+      let rollbackFailed=false;
+      for(const key of BACKUP_MAIN_KEYS)try{before[key]===null?localStorage.removeItem(key):localStorage.setItem(key,before[key]);}catch{rollbackFailed=true;}
+      throw new Error(rollbackFailed?'저장 공간 오류 뒤 되돌리기도 끝내지 못했어요. 방금 자동으로 받은 복원 전 백업을 보관해 주세요.':'저장 공간이 부족해 변경 내용을 모두 되돌렸어요.');
+    }
+    if(plan.settings)S={...S,...next.settings};if(plan.avatars)AV=next.avatars;if(plan.living)LV=mergeLiving(next.living);
+    for(const branch of BACKUP_RECORD_BRANCHES)setD[branch](next[branch]);
+  }
+  applySet();applyAv();renderAll();
 }
 $('bkfile').onchange=async e=>{
-  const d=JSON.parse(await e.target.files[0].text());
-  if(!confirm('백업을 불러올까요? (기존 데이터에 추가됩니다)'))return;
-  if(d.S){S={...S,...d.S}; await DB.setSet(S); applySet();}
-  if(d.AV) await saveAv(d.AV);
-  for(const n of ['events','annis','photos','notes','qa','wishes'])
-    for(const o of d[n]||[]){delete o.id; await DB.add(n,o);}
-  if(d.living){LV=mergeLiving(d.living); await saveLiving();}
-  if(d.fortune)await restoreFortune(d.fortune);
-  alert('불러왔어요!'); e.target.value='';
+  const file=e.target.files[0];if(!file)return;
+  try{
+    const plan=prepareBackup(await file.text());
+    const base=db?{root:(await db.ref().once('value')).val()||{}}:{values:Object.fromEntries(BACKUP_MAIN_KEYS.map(key=>[key,localStorage.getItem(key)]))};
+    if(!confirm('백업을 복원할까요?\n\n설정·프로필 사진·생활공간은 백업 내용으로 교체됩니다. 일정·사진·한마디·Q&A는 기존 항목을 유지하고, 같은 ID가 없는 항목만 추가됩니다.\n\n계속하면 먼저 현재 상태를 복원 전 백업 파일로 내려받습니다.'))return;
+    bkExport('우리아지트_복원전_');
+    await restoreBackupMain(plan,base);
+    if(plan.fortune){
+      try{await restoreFortune(plan.fortune);}
+      catch(error){alert('일반 데이터는 복원했지만 운세 정보는 복원하지 못했어요. 같은 백업 파일로 다시 시도해도 항목이 중복되지 않습니다.\n\n'+(error.message||''));return;}
+    }
+    alert('백업을 안전하게 복원했어요. 기존 기록은 유지하고, 백업에만 있던 기록을 추가했어요.');
+  }catch(error){alert(error.message||'백업을 불러오지 못했어요. 파일과 저장 공간을 확인해 주세요.');}
+  finally{e.target.value='';}
 };
 
 /* ---- 공통 ---- */
@@ -2014,10 +2135,10 @@ function go(i,btn){
 function renderAll(){ renderHome(); renderSeasonCard(); renderCal(); renderWishes(); renderPhotos(); renderNotes(); renderQA(); renderHearts(); renderLiving(); renderCareList(); renderFortune();if(typeof renderSettingsExtras==='function')renderSettingsExtras(); }
 </script>
 <script src="assets/vendor/korean-lunar-calendar.min.js"></script>
-<script src="assets/world.js?v=20260908-life"></script>
+<script src="assets/world.js?v=20260912-chalk"></script>
 <script src="assets/fortune.js"></script>
 <script src="assets/fortune-sync.js?v=20260908-life"></script>
-<script src="assets/couple.js?v=20260908-life"></script>
+<script src="assets/couple.js?v=20260912-chalk"></script>
 <script src="assets/settings-extra.js?v=20260908-life"></script>
 <script>setWho(who); applySeason(); boot().then(async()=>{bootFortune();bootCouple();bootSettingsExtras();await bootFortuneServices();});</script>
 </body>

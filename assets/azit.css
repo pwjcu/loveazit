@@ -66,3 +66,18 @@ button:focus-visible,[role=button]:focus-visible,summary:focus-visible{outline:3
 @media(hover:none){#p6 .shop-item:hover{transform:none;box-shadow:0 3px 0 #e8d9c4}.scene .clk:hover{filter:none}}
 @media(prefers-reduced-motion:reduce){.room-motes,.water-sprinkles{animation:none!important}#p6 *{scroll-behavior:auto!important}#p6 .scene *,#p6 .pet-family *,#p6 .pantry-crop *{animation:none!important}#p6 button{transition:none!important}}
 #p6 .scene-toolbar{flex-wrap:wrap}#p6 .scene-title{word-break:keep-all;flex:1 0 170px}#p6 .scene-chips{flex-wrap:wrap;justify-content:flex-start}
+
+/* Photo memories stay in a full, uncropped paper frame, with gentle film motion. */
+.cinema-controls .cinema-heading{flex-basis:100%;min-width:0}.cinema-kicker{display:block;font-size:9px;letter-spacing:1.7px;color:#927f9b;margin-bottom:4px}.cinema-heading strong{display:block;font:16px/1.5 Jua;overflow-wrap:anywhere}.cinema-heading small{display:block;font-size:11px;line-height:1.65;color:#816f8c}
+.cinema-controls .cinema-modes{display:flex;gap:4px;flex:1 0 100%;min-width:0;padding:4px;background:#e4dce9;border-radius:11px}.cinema-modes button{flex:1;border:0;background:transparent;min-height:44px}.cinema-modes button[aria-pressed=true]{background:#fffaf2;color:#69566d;box-shadow:0 2px 4px #4c395c16}
+.cinema-controls .cinema-buttons{display:flex;flex:1 0 100%;min-width:0;gap:6px;flex-wrap:wrap}.cinema-buttons button{flex:1;font:12px Jua;padding:7px 8px;white-space:nowrap}.cinema-buttons button[aria-pressed=true]{border-color:#ad97bc;background:#e6ddeb;color:#614e70}
+.cinema-buttons button:disabled{opacity:.65}
+.cinema-theater{overflow:hidden;border:5px solid #615465;border-radius:13px;background:#382d41;box-shadow:0 4px 0 #deced6}.cinema-theater>svg{display:block;width:100%;height:auto}.cinema-memory image{filter:saturate(.82) sepia(.12) contrast(1.04);image-rendering:auto}
+.film-memory-drift{transform-origin:90px 50px;animation:memory-drift 12s ease-in-out infinite alternate}.cinema-memory-1 .film-memory-drift{animation-name:memory-float}.cinema-memory-2 .film-memory-drift{animation-name:memory-sway}.film-memory-spark{animation:memory-spark 5s ease-in-out infinite alternate}.film-memory-reveal{opacity:0;animation:memory-reveal .7s ease-out both;pointer-events:none}
+@keyframes memory-drift{from{transform:translate(-2px,1px) rotate(-2deg) scale(.98)}to{transform:translate(2px,-1px) rotate(1deg) scale(1.04)}}
+@keyframes memory-float{from{transform:translate(1px,2px) rotate(2deg) scale(.97)}to{transform:translate(-1px,-2px) rotate(-1deg) scale(1.03)}}
+@keyframes memory-sway{from{transform:rotate(-1deg) scale(1.04)}to{transform:rotate(2deg) scale(.98)}}
+@keyframes memory-spark{from{opacity:.5;transform:translateY(2px)}to{opacity:1;transform:translateY(-2px)}}
+@keyframes memory-reveal{from{opacity:1}to{opacity:0}}
+.cinema-paused .film-memory-reveal,.world-still .film-memory-reveal{animation:none!important;opacity:0}
+@media(prefers-reduced-motion:reduce){.cinema-memory *{animation:none!important;transition:none!important}.cinema-theater *{animation:none!important}.film-memory-reveal{opacity:0}}

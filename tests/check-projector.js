@@ -1,0 +1,98 @@
+async page=>{
+  const checks=[],errors=[],check=(ok,name)=>{if(!ok)throw Error(name);checks.push(name);};
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('http://127.0.0.1:4173/?local-preview=1');
+  check(await page.evaluate(()=>db===null),'시네마 테스트는 로컬 데이터만 사용');
+  await page.evaluate(()=>localStorage.clear());await page.reload();await page.evaluate(()=>document.fonts.ready);
+  await page.locator('nav button').filter({hasText:'룸'}).click();
+  const state=()=>page.evaluate(()=>cinemaState());
+  check((await state()).mode==='films','사진이 없으면 기존 네 가지 풍경 상영');
+  await page.evaluate(()=>{
+    const fixture=(color,label)=>{const canvas=document.createElement('canvas');canvas.width=300;canvas.height=220;const ctx=canvas.getContext('2d');ctx.fillStyle=color;ctx.fillRect(0,0,300,220);ctx.fillStyle='#fff4df';ctx.beginPath();ctx.arc(230,45,25,0,Math.PI*2);ctx.fill();ctx.fillStyle='#647d70';ctx.beginPath();ctx.moveTo(0,190);ctx.lineTo(150,85);ctx.lineTo(300,190);ctx.fill();ctx.fillStyle='#fff';ctx.font='24px sans-serif';ctx.fillText(label,30,200);return canvas.toDataURL('image/png');};
+    window.cinemaFixtures=[fixture('#efb1b2','Our first spring'),fixture('#93bed0','A day at the beach'),fixture('#c2abd6','Together at sunset')];
+    photos=[{id:'legacy',img:cinemaFixtures[0],cap:'우리의 첫 봄',date:'2026-04-15'},{id:'group',images:[cinemaFixtures[1],cinemaFixtures[2]],cap:'둘이 함께 떠난 여행'},{id:'duplicate',images:{a:cinemaFixtures[0]}},{id:'deleted',img:cinemaFixtures[0],deletedAt:1},{id:'unsafe',img:'javascript:alert(1)'}];
+    setCinemaMode('memories');renderAll();
+  });
+  await page.waitForFunction(()=>document.querySelector('[data-cinema-photo]'));
+  check((await state()).mode==='memories'&&(await state()).availablePhotos===3,'기존 사진·묶음 사진 호환 및 중복/삭제/잘못된 주소 제외');
+  check(await page.evaluate(()=>{let old=cinemaMemory.src;const seen=new Set([old]);for(let i=0;i<30;i++){nextCinema();if(old===cinemaMemory.src)return false;old=cinemaMemory.src;seen.add(old);}return seen.size===3;}),'모든 사진 랜덤 상영·동일 사진 연속 방지');
+  check(await page.locator('[data-cinema-photo]').count()===1,'사진 전체를 미리 불러오지 않고 현재 사진 하나만 표시');
+  check(await page.locator('[data-cinema-photo]').getAttribute('preserveAspectRatio')==='xMidYMid meet','가로·세로 사진을 자르지 않고 표시');
+  const beforeAuto=await page.evaluate(()=>cinemaMemory.src);await page.evaluate(()=>advanceTime(12000));
+  check(beforeAuto!==await page.evaluate(()=>cinemaMemory.src),'추억은 12초마다 다음 사진 상영');
+  await page.screenshot({path:'output/playwright/projector-room.png',fullPage:true,animations:'disabled'});
+  await page.locator('[data-cinema-pause]').click();
+  check((await state()).paused&&await page.evaluate(()=>localStorage.getItem('azit-cinema-paused')==='1'),'시네마 멈춤 상태 저장');
+  const stopped=await page.evaluate(()=>cinemaMemory.src);await page.evaluate(()=>advanceTime(24000));
+  check(stopped===await page.evaluate(()=>cinemaMemory.src),'멈춤 상태에서 자동 장면 전환 없음');
+  await page.getByRole('button',{name:'다음 시네마 장면',exact:true}).click();
+  check(stopped!==await page.evaluate(()=>cinemaMemory.src),'멈춘 상태에서도 다음 장면 직접 선택');
+  check(await page.locator('.film-memory-reveal').evaluate(el=>getComputedStyle(el).opacity==='0'),'정지한 첫 프레임을 어두운 전환막이 가리지 않음');
+  await page.getByRole('button',{name:'크게 보기',exact:true}).click();
+  check(await page.locator('#azitDialog').isVisible()&&await page.locator('[data-cinema-photo]').count()===2,'확대 영화관 열기');
+  await page.screenshot({path:'output/playwright/projector-theater.png',fullPage:true,animations:'disabled'});
+  await page.locator('#azitDialog [data-cinema-mode="films"]').click();
+  check((await state()).mode==='films'&&await page.locator('[data-cinema-photo]').count()===0,'작은 풍경 전환이 거실·확대 화면에 함께 반영');
+  await page.locator('#azitDialog [data-cinema-mode="memories"]').click();
+  const removed=await page.evaluate(()=>{const src=cinemaMemory.src;photos=photos.map(p=>({...p,img:p.img===src?undefined:p.img,images:photoImages(p).filter(x=>x!==src)}));renderAll();return src;});
+  await page.waitForFunction(src=>![...document.querySelectorAll('[data-cinema-photo]')].some(el=>el.getAttribute('href')===src),removed);
+  check((await state()).availablePhotos===2,'삭제된 사진은 열린 확대 화면에서도 즉시 제외');
+  await page.locator('#azitDialog [data-cinema-pause]').click();
+  await page.emulateMedia({reducedMotion:'reduce'});
+  const reduced=await page.evaluate(()=>cinemaMemory.src);await page.evaluate(()=>advanceTime(48000));
+  check((await state()).paused&&reduced===await page.evaluate(()=>cinemaMemory.src),'시스템 움직임 줄이기에서 자동 전환 정지');
+  check(await page.locator('#azitDialog .film-memory-drift').evaluate(el=>getComputedStyle(el).animationName==='none'),'확대 영화관도 움직임 줄이기 적용');
+  check(await page.locator('#azitDialog [data-cinema-pause]').isDisabled(),'움직임 줄이기 설정일 때 작동하지 않는 재생 버튼 비활성화');
+  for(const width of [320,375,844]){await page.setViewportSize({width,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'영화관 '+width+'px 가로 넘침 없음');}
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.evaluate(()=>{photos=Array.from({length:4},(_,i)=>({id:'broken'+i,img:'data:image/png;base64,broken'+i}));renderAll();});
+  await page.waitForFunction(()=>cinemaFailureStreak===3);
+  check((await state()).mode==='films'&&await page.locator('[data-cinema-photo]').count()===0,'오류 사진 세 장 후 풍경으로 복구·연속 다운로드 제한');
+  await page.locator('#azitDialog').getByRole('button',{name:'다음 시네마 장면',exact:true}).click();
+  await page.waitForFunction(()=>cinemaFailed.size===4);
+  check((await state()).mode==='films'&&(await state()).availablePhotos===0,'사진이 모두 깨졌을 때 무한 재시도 없이 풍경 유지');
+  await page.evaluate(()=>{photos=[];renderAll();});
+  check((await state()).mode==='films'&&await page.locator('#azitDialog [data-cinema-description]').innerText().then(t=>t.includes('사진을 올리면')),'모든 사진 삭제 시 안내 및 기본 풍경 유지');
+  try{
+    await page.evaluate(()=>{
+      if($('azitDialog').open)$('azitDialog').close();$('azitDialog').innerHTML='';
+      window.projectorSecuritySaved={photos,LV,isSleeping,interactPet,movePet,savePetName,worldStill,cinemaMode,cinemaPaused};
+      window.projectorInjected=0;window.projectorPetCalls=[];
+      const markup='<img data-projector-injected src="data:image/png;base64,broken" onerror="window.projectorInjected=1">';
+      window.projectorPetId="pet');window.projectorInjected=1;//\">"+markup;
+      window.projectorCaption=markup;
+      window.projectorDate='</text><image data-projector-injected href="data:image/png;base64,broken" onerror="window.projectorInjected=1"/><text>';
+      const pet={id:projectorPetId,type:'dog',breed:'husky',nickname:markup,care:[0],place:'room'};
+      LV={...defaultLiving(),pets:[pet]};worldStill=true;isSleeping=()=>false;
+      interactPet=(id,kind)=>{projectorPetCalls.push({action:kind,id});};movePet=id=>{projectorPetCalls.push({action:'move',id});};savePetName=id=>{projectorPetCalls.push({action:'name',id});};
+      photos=[{id:'unsafe-caption',img:cinemaFixtures[0],cap:projectorCaption,date:projectorDate}];
+      cinemaMode='memories';renderLiving();
+    });
+    await page.waitForFunction(()=>document.querySelector('[data-cinema-title]')?.textContent===projectorCaption);
+    check(await page.evaluate(()=>document.querySelector('.pet-family header strong').textContent===projectorCaption&&document.querySelector('[data-cinema-title]').textContent===projectorCaption&&document.querySelector('.film-memory-drift text').textContent===projectorDate),'악성 반려동물 애칭·사진 설명·날짜가 실행되지 않고 글자로 표시');
+    check(await page.locator('[data-projector-injected]').count()===0&&await page.evaluate(()=>projectorInjected===0),'반려동물·추억 입력으로 DOM·이벤트 삽입되지 않음');
+    await page.locator('.pet-target').click();
+    await page.locator('.pet-target').press('Enter');
+    await page.locator('.pet-actions button').nth(0).click();
+    await page.locator('.pet-actions button').nth(1).click();
+    await page.locator('.pet-actions button').nth(2).click();
+    await page.locator('[data-world-focus="objective"]').click();
+    await page.locator('.pet-manage button').nth(0).click();
+    check(await page.evaluate(()=>projectorPetCalls.length===7&&projectorPetCalls.every(call=>call.id===projectorPetId)&&projectorPetCalls.map(call=>call.action).join(',')==='stroke,stroke,stroke,feed,play,feed,move'&&projectorInjected===0),'따옴표·태그를 포함한 ID가 씬 클릭·키보드·돌봄·할 일·이동에 그대로 전달');
+    await page.locator('.pet-manage button').nth(1).click();
+    check(await page.locator('#petNickname').inputValue()===await page.evaluate(()=>projectorCaption)&&await page.locator('#azitDialog [data-projector-injected]').count()===0,'반려동물 이름 폼의 악성 기존 애칭도 안전한 입력값으로 표시');
+    await page.locator('#petNickname').fill('안전한 새 이름');
+    await page.locator('#azitDialog').getByRole('button',{name:'이 이름으로 부르기',exact:true}).click();
+    check(await page.evaluate(()=>projectorPetCalls.at(-1)?.action==='name'&&projectorPetCalls.at(-1)?.id===projectorPetId&&projectorInjected===0),'이름 저장 폼이 특수문자 ID를 실행하지 않고 그대로 전달');
+  }finally{
+    await page.evaluate(()=>{
+      const saved=window.projectorSecuritySaved;if(!saved)return;
+      if($('azitDialog').open)$('azitDialog').close();$('azitDialog').innerHTML='';
+      photos=saved.photos;LV=saved.LV;isSleeping=saved.isSleeping;interactPet=saved.interactPet;movePet=saved.movePet;savePetName=saved.savePetName;worldStill=saved.worldStill;cinemaMode=saved.cinemaMode;cinemaPaused=saved.cinemaPaused;
+      delete window.projectorSecuritySaved;renderLiving();
+    });
+  }
+  check(errors.length===0,'시네마 브라우저 실행 오류 없음');
+  return{checks:checks.length,passed:checks,errors};
+}

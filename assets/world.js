@@ -34,7 +34,7 @@ async function changeWorld(edit){
 function spendWorld(state,cost){if(state.hearts<cost)return false;state.hearts-=cost;return true;}
 function worldFail(message){return{ok:false,message};}
 let worldStill=localStorage.getItem('azit-still')==='1';
-function toggleWorldMotion(){worldStill=!worldStill;localStorage.setItem('azit-still',worldStill?'1':'0');renderLiving();document.querySelector('[data-world-focus="motion"]')?.focus({preventScroll:true});}
+function toggleWorldMotion(){worldStill=!worldStill;localStorage.setItem('azit-still',worldStill?'1':'0');renderLiving();refreshCinema(false);document.querySelector('[data-world-focus="motion"]')?.focus({preventScroll:true});}
 function worldControls(){return `<div class="world-actions"><small>작은 친구와 소품을 눌러보세요</small><button type="button" data-world-focus="motion" aria-pressed="${worldStill}" onclick="toggleWorldMotion()">${worldStill?'▶ 움직임 켜기':'Ⅱ 움직임 쉬기'}</button></div>`;}
 
 /* Appearance keeps the original pixel maps and changes only their palette/accessory. */
@@ -59,13 +59,13 @@ function worldProduceTotal(state=LV){return Object.keys(FRUITS).reduce((n,id)=>n
 function worldNextTask(place){
   const plots=LV.garden.plots,ready=plots.findIndex(p=>p&&p.stage>=4),thirsty=plots.findIndex(p=>p&&p.stage<4&&dueCare(p.care));
   const hungry=LV.pets.find(p=>dueCare(p.care));
-  if(place==='room'&&hungry&&!isSleeping())return{icon:'paw',title:petName(hungry)+'의 식사 시간',note:'밥 한 그릇과 다정한 인사를 건네요',button:'밥 챙겨주기',action:`interactPet('${hungry.id}','feed')`};
+  if(place==='room'&&hungry&&!isSleeping())return{icon:'paw',title:petName(hungry)+'의 식사 시간',note:'밥 한 그릇과 다정한 인사를 건네요',button:'밥 챙겨주기',petId:hungry.id,action:"interactPet(this.dataset.petId,'feed')"};
   if(ready>=0)return{icon:'basket',title:'통통하게 익었어요',note:(ready+1)+'번 밭에서 수확물 2개를 담아가요',button:'수확하러 가기',action:place==='garden'?`collectPlot(${ready})`:"setLoc('garden')"};
   if(thirsty>=0)return{icon:'water',title:'새싹이 물을 기다려요',note:(thirsty+1)+'번 밭에 물을 주면 한 단계 자라요',button:'물 주러 가기',action:place==='garden'?`waterPlot(${thirsty})`:"setLoc('garden')"};
   const empty=plots.findIndex(p=>!p);
   if(empty>=0&&LV.hearts>=3)return{icon:'sprout',title:'다음 수확을 시작해요',note:'씨앗 3하트 · 수확물로 편지와 질문을 즐겨요',button:'씨앗 고르기',action:place==='garden'?`plotPicker(${empty})`:"setLoc('garden')"};
   if(worldProduceTotal())return{icon:'basket',title:'바구니에 담긴 작은 선물',note:'수확물로 비둘기를 응원하거나 특별 질문을 열어요',button:'바구니 열기',action:'openWorldPantry()'};
-  if(place==='room'&&LV.pets.length&&!isSleeping())return{icon:'paw',title:'오늘도 네 곁에',note:'공놀이와 쓰다듬기로 조금씩 더 친해져요',button:'같이 놀기',action:`interactPet('${LV.pets[0].id}','play')`};
+  if(place==='room'&&LV.pets.length&&!isSleeping())return{icon:'paw',title:'오늘도 네 곁에',note:'공놀이와 쓰다듬기로 조금씩 더 친해져요',button:'같이 놀기',petId:LV.pets[0].id,action:"interactPet(this.dataset.petId,'play')"};
   return{icon:'moon',title:isSleeping()?'포근한 꿈을 꾸는 중':'느긋하게 쉬어가는 시간',note:plots.some(Boolean)?'흙이 촉촉해요. 다음 물주기 때 만나요':'편지 한 장으로 오늘의 마음을 전해요',button:'편지 보러 가기',action:'openPigeonLetters()'};
 }
 function worldIcon(kind){
@@ -80,7 +80,7 @@ function worldIcon(kind){
 }
 function worldDashboardHtml(place){
   const task=worldNextTask(place),count=worldProduceTotal();
-  return `<section class="world-dashboard" aria-label="아지트의 작은 할 일"><div class="world-dashboard-top"><span class="world-kicker">오늘의 작은 행복</span><button type="button" class="pantry-chip" data-world-focus="pantry" onclick="openWorldPantry()">${worldIcon('basket')}<span>수확 바구니 <b>${count}</b></span></button></div><div class="world-objective"><span class="world-objective-icon">${worldIcon(task.icon)}</span><div><strong>${esc(task.title)}</strong><p>${esc(task.note)}</p></div><button type="button" data-world-focus="objective" onclick="${task.action}">${task.button}<span aria-hidden="true"> ↗</span></button></div></section>`;
+  return `<section class="world-dashboard" aria-label="아지트의 작은 할 일"><div class="world-dashboard-top"><span class="world-kicker">오늘의 작은 행복</span><button type="button" class="pantry-chip" data-world-focus="pantry" onclick="openWorldPantry()">${worldIcon('basket')}<span>수확 바구니 <b>${count}</b></span></button></div><div class="world-objective"><span class="world-objective-icon">${worldIcon(task.icon)}</span><div><strong>${esc(task.title)}</strong><p>${esc(task.note)}</p></div><button type="button" data-world-focus="objective" data-pet-id="${esc(task.petId||'')}" onclick="${esc(task.action)}">${task.button}<span aria-hidden="true"> ↗</span></button></div></section>`;
 }
 function openWorldPantry(){
   const total=worldProduceTotal();
@@ -137,7 +137,7 @@ function petSceneG(place){
     const y=place==='room'?260:164;
     const name=petName(p),sleeping=isSleeping();
     out+=`<g transform="translate(${x},${y})" data-pet-id="${esc(p.id)}"><g class="${sleeping?'pet-snooze':'pet-roam pet-'+i}">
-      <g class="clk pet-target" role="button" tabindex="0" data-world-focus="pet-${esc(p.id)}" aria-label="${esc(name)} 쓰다듬기 · ${esc(petStatus(p))}" onclick="interactPet('${p.id}','stroke')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();interactPet('${p.id}','stroke')}">
+      <g class="clk pet-target" role="button" tabindex="0" data-world-focus="pet-${esc(p.id)}" aria-label="${esc(name)} 쓰다듬기 · ${esc(petStatus(p))}" onclick="interactPet(this.closest('[data-pet-id]').dataset.petId,'stroke')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();interactPet(this.closest('[data-pet-id]').dataset.petId,'stroke')}">
       <rect class="scene-hitbox" x="-13" y="-20" width="80" height="80" rx="12" fill="transparent"/><ellipse cx="24" cy="34" rx="25" ry="6" fill="#3d2937" opacity=".17"/>
       ${petG(p,0,0,p.breed==='husky'?2.25:3,sleeping?'':'pet-idle')}
       ${p.lastAction&&Date.now()-p.lastAction.at<60000&&p.lastAction.kind==='play'?'<g class="pet-ball"><circle cx="58" cy="31" r="6" fill="#e49caa" stroke="#fff0d0" stroke-width="2"/><path d="M54 27Q61 30 56 36" stroke="#fff0d0" stroke-width="1.5" fill="none"/></g>':''}
@@ -153,10 +153,10 @@ function petFamilyHtml(){
   return '<section class="pet-family" aria-label="우리 집 친구들"><div class="pet-family-title"><strong>우리 집 친구들</strong><span>'+LV.pets.length+' / 3</span></div>'+LV.pets.map(p=>{
     const affection=Math.min(100,p.affection||0),place=p.place||'room';
     const hungry=dueCare(p.care),sleeping=isSleeping();
-    return `<article class="${hungry&&!sleeping?'pet-needs-care':''}"><header><span class="pet-portrait">${petSvg(p.type,p.breed,64)}</span><div><strong>${esc(petName(p))}</strong><p>${esc(petStatus(p))}</p></div><span class="pet-state">${place==='room'?'거실':'마당'}</span></header>
+    return `<article data-pet-id="${esc(p.id)}" class="${hungry&&!sleeping?'pet-needs-care':''}"><header><span class="pet-portrait">${petSvg(p.type,p.breed,64)}</span><div><strong>${esc(petName(p))}</strong><p>${esc(petStatus(p))}</p></div><span class="pet-state">${place==='room'?'거실':'마당'}</span></header>
       <div class="pet-affection" role="meter" aria-label="${esc(petName(p))} 친밀도" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${affection}"><i style="width:${affection}%"></i></div>
       <p class="pet-bond-caption"><span>친밀도 <b>${affection}</b></span>${affection>=60?'눈빛만 봐도 통하는 가족':affection>=20?'함께 있는 시간이 좋아요':'천천히 서로 알아가는 중'}</p>
-      <div class="pet-actions"><button type="button" data-world-focus="stroke-${esc(p.id)}" onclick="interactPet('${p.id}','stroke')" ${sleeping?'disabled':''}>쓰다듬기</button><button type="button" data-world-focus="feed-${esc(p.id)}" class="${hungry?'pet-feed-ready':''}" onclick="interactPet('${p.id}','feed')" ${sleeping?'disabled':''}>${hungry?'밥 챙겨주기':'간식주기'}</button><button type="button" data-world-focus="play-${esc(p.id)}" onclick="interactPet('${p.id}','play')" ${sleeping?'disabled':''}>공놀이</button></div><div class="pet-manage"><button type="button" data-world-focus="move-${esc(p.id)}" onclick="movePet('${p.id}')">${place==='room'?'마당에 보내기 ↗':'집에 데려오기 ↗'}</button><button type="button" data-world-focus="name-${esc(p.id)}" onclick="namePet('${p.id}')">이름 짓기</button></div></article>`;
+      <div class="pet-actions"><button type="button" data-world-focus="stroke-${esc(p.id)}" onclick="interactPet(this.closest('[data-pet-id]').dataset.petId,'stroke')" ${sleeping?'disabled':''}>쓰다듬기</button><button type="button" data-world-focus="feed-${esc(p.id)}" class="${hungry?'pet-feed-ready':''}" onclick="interactPet(this.closest('[data-pet-id]').dataset.petId,'feed')" ${sleeping?'disabled':''}>${hungry?'밥 챙겨주기':'간식주기'}</button><button type="button" data-world-focus="play-${esc(p.id)}" onclick="interactPet(this.closest('[data-pet-id]').dataset.petId,'play')" ${sleeping?'disabled':''}>공놀이</button></div><div class="pet-manage"><button type="button" data-world-focus="move-${esc(p.id)}" onclick="movePet(this.closest('[data-pet-id]').dataset.petId)">${place==='room'?'마당에 보내기 ↗':'집에 데려오기 ↗'}</button><button type="button" data-world-focus="name-${esc(p.id)}" onclick="namePet(this.closest('[data-pet-id]').dataset.petId)">이름 짓기</button></div></article>`;
   }).join('')+'</section>';
 }
 async function interactPet(id,kind){
@@ -180,13 +180,54 @@ async function movePet(id){
   if(ok)setLoc(destination);
 }
 function namePet(id){const p=LV.pets.find(p=>p.id===id);if(!p)return;
-  openAzitDialog('우리 친구의 이름',`<form onsubmit="event.preventDefault();savePetName('${id}')"><label for="petNickname">애칭 · 최대 8글자</label><input id="petNickname" maxlength="8" value="${esc(p.nickname||'')}" placeholder="${esc(petName(p))}"><button class="btn form-submit">이 이름으로 부르기</button></form>`);
+  openAzitDialog('우리 친구의 이름',`<form data-pet-id="${esc(id)}" onsubmit="event.preventDefault();savePetName(this.dataset.petId)"><label for="petNickname">애칭 · 최대 8글자</label><input id="petNickname" maxlength="8" value="${esc(p.nickname||'')}" placeholder="${esc(petName(p))}"><button class="btn form-submit">이 이름으로 부르기</button></form>`);
 }
 async function savePetName(id){const name=$('petNickname').value.trim().slice(0,8);const ok=await changeWorld(state=>{const p=state.pets.find(p=>p.id===id);if(!p)return worldFail('친구를 찾을 수 없어요');p.nickname=name;return{message:'앞으로 '+petName(p)+'라고 부를게요'};});if(ok)$('azitDialog').close();}
 
 const CINEMA_FILMS=[{name:'별빛을 싣고 달리는 밤',kind:'train',tag:'NIGHT EXPRESS'},{name:'바다에 두고 온 여름',kind:'ocean',tag:'SUMMER LETTER'},{name:'너와 나의 작은 우주',kind:'space',tag:'OUR LITTLE UNIVERSE'},{name:'노을빛 산책',kind:'sunset',tag:'GOLDEN HOUR'}];
 let cinemaIndex=Math.floor(Date.now()/24000)%CINEMA_FILMS.length;
 let cinemaPaused=localStorage.getItem('azit-cinema-paused')==='1';
+let cinemaMode=localStorage.getItem('azit-cinema-mode')==='films'?'films':'memories';
+let cinemaPhotoSource=null,cinemaPhotos=[],cinemaMemory=null,cinemaFailed=new Set(),cinemaFailureStreak=0,cinemaChangedAt=Date.now();
+let cinemaStyle=0;
+function syncCinemaPhotos(){
+  if(cinemaPhotoSource===photos)return;
+  cinemaPhotoSource=photos;
+  const seen=new Set();cinemaPhotos=[];
+  photos.forEach((post,postIndex)=>{if(!post||post.deleted||post.deletedAt)return;photoImages(post).forEach((src,index)=>{
+    if(seen.has(src))return;seen.add(src);
+    cinemaPhotos.push({key:String(post.id??postIndex)+':'+index,postId:post.id,src,title:String(post.cap||'함께라서 빛나는 순간'),date:String(post.date||'')});
+  });});
+  cinemaFailed=new Set([...cinemaFailed].filter(src=>seen.has(src)));cinemaFailureStreak=0;
+  cinemaMemory=cinemaPhotos.find(p=>p.key===cinemaMemory?.key&&p.src===cinemaMemory?.src&&!cinemaFailed.has(p.src))||null;
+  queueMicrotask(()=>refreshCinema());
+}
+function cinemaCandidates(){syncCinemaPhotos();return cinemaPhotos.filter(p=>!cinemaFailed.has(p.src));}
+function pickCinemaMemory(){
+  const available=cinemaCandidates(),others=available.filter(p=>p.src!==cinemaMemory?.src),pool=others.length?others:available;
+  cinemaMemory=pool.length?pool[Math.floor(Math.random()*pool.length)]:null;cinemaStyle=(cinemaStyle+1+Math.floor(Math.random()*2))%3;
+}
+function cinemaIsStill(){return cinemaPaused||worldStill||document.hidden||matchMedia('(prefers-reduced-motion: reduce)').matches;}
+function cinemaState(){
+  syncCinemaPhotos();
+  if(cinemaMode==='memories'&&!cinemaMemory&&cinemaFailureStreak<3)pickCinemaMemory();
+  const memory=cinemaMode==='memories'&&cinemaFailureStreak<3?cinemaMemory:null;
+  return{mode:memory?'memories':'films',requestedMode:cinemaMode,title:memory?memory.title:CINEMA_FILMS[cinemaIndex].name,photoId:memory?.postId||null,availablePhotos:cinemaPhotos.length-cinemaFailed.size,index:cinemaIndex,paused:cinemaIsStill()};
+}
+function cinemaMemoryArt(){
+  const p=cinemaMemory,palettes=[['#b4c9c2','#f0d8b9'],['#d3b4c4','#f3decd'],['#aebfd5','#dcd7ed']],colors=palettes[cinemaStyle];
+  // One photo per frame, no eager gallery decoding. The full photo stays inside its paper frame.
+  return `<svg viewBox="0 0 180 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="cinema-memory cinema-memory-${cinemaStyle}"><rect width="180" height="100" fill="${colors[0]}"/><circle cx="154" cy="23" r="32" fill="${colors[1]}" opacity=".7"/><path d="M0 83Q44 63 88 85T180 79V100H0" fill="${colors[1]}"/>
+    <g class="film-memory-drift"><rect x="27" y="13" width="129" height="77" rx="2" fill="#3e3345" opacity=".16"/><rect x="24" y="10" width="129" height="77" rx="2" fill="#fff5df"/><rect x="28" y="14" width="121" height="63" fill="#e7dece"/><image data-cinema-photo href="${esc(p.src)}" x="28" y="14" width="121" height="63" preserveAspectRatio="xMidYMid meet" onerror="cinemaPhotoFailed(this)"/><text x="88.5" y="83" text-anchor="middle" fill="#8a706b" font-size="4" letter-spacing="1">${esc(p.date||'OUR LITTLE MOMENTS')}</text></g>
+    <g class="film-memory-spark" fill="#fff4d9"><path d="M14 26v10m-5-5h10M163 64v10m-5-5h10" stroke="#fff4d9" stroke-width="1.5"/><path d="M160 26c-7-7-12 4 0 10 12-6 7-17 0-10" fill="#d38499"/><circle cx="13" cy="66" r="2"/></g><rect width="180" height="6" fill="#342c3d"/><rect y="94" width="180" height="6" fill="#342c3d"/><g fill="#e9d8c2">${Array.from({length:15},(_,i)=>`<rect x="${i*12+3}" y="1.5" width="6" height="3" rx=".5"/><rect x="${i*12+3}" y="95.5" width="6" height="3" rx=".5"/>`).join('')}</g><rect class="film-memory-reveal" width="180" height="100" fill="#403448"/></svg>`;
+}
+function cinemaFrameArt(){return cinemaState().mode==='memories'?cinemaMemoryArt():cinemaArt(cinemaIndex);}
+function cinemaPhotoFailed(image){
+  const src=image.getAttribute('href');if(!src||src!==cinemaMemory?.src||cinemaFailed.has(src))return;
+  cinemaFailed.add(src);cinemaFailureStreak++;cinemaMemory=null;
+  // At most three failed loads in a burst; continue with a scenery film until the next scene.
+  refreshCinema();
+}
 function cinemaArt(index){
   const f=CINEMA_FILMS[index%CINEMA_FILMS.length];let art='';
   if(f.kind==='train'){
@@ -202,13 +243,39 @@ function cinemaArt(index){
   if(f.kind==='space'||f.kind==='train')art+=Array.from({length:15},(_,i)=>`<circle class="film-star" cx="${(i*37+12)%178}" cy="${(i*13+8)%51}" r="${i%3===0?1.2:.7}" fill="#fff3d4" style="animation-delay:-${i%3}s"/>`).join('');
   return `<svg viewBox="0 0 180 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${art}<rect width="180" height="9" fill="#1e1c29"/><rect y="91" width="180" height="9" fill="#1e1c29"/><text x="90" y="97" text-anchor="middle" fill="#ebd7be" font-size="4" letter-spacing="1.5">${f.tag}</text></svg>`;
 }
-function cinemaG(){return `<rect x="312" y="30" width="126" height="83" rx="4" fill="#443e4a"/><rect x="316" y="34" width="118" height="75" rx="2" fill="#ead8bd"/>
-  <svg x="320" y="38" width="110" height="66" viewBox="0 0 180 100" class="${cinemaPaused?'cinema-paused':''}" data-cinema-frame>${cinemaArt(cinemaIndex)}</svg><rect x="355" y="15" width="24" height="12" rx="4" fill="#f3e6db"/><circle cx="367" cy="24" r="4" fill="#a3d7ee"/><polygon points="367,28 320,40 430,40" fill="#cce6ff" opacity=".19"/><rect x="364" y="8" width="6" height="8" fill="#746578"/>`;}
-function cinemaControls(){return `<div class="cinema-controls"><div><strong data-cinema-title>${CINEMA_FILMS[cinemaIndex].name}</strong><small style="display:block">아지트 시네마 · 짧은 애니메이션 4편</small></div><button onclick="nextCinema()" aria-label="다음 영화 풍경">다음 장면</button><button onclick="pauseCinema()" aria-label="시네마 ${cinemaPaused?'재생':'일시정지'}">${cinemaPaused?'▶':'Ⅱ'}</button></div>`;}
-function nextCinema(){cinemaIndex=(cinemaIndex+1)%CINEMA_FILMS.length;refreshCinema();}
-function pauseCinema(){cinemaPaused=!cinemaPaused;localStorage.setItem('azit-cinema-paused',cinemaPaused?'1':'0');renderLiving();}
-function refreshCinema(){document.querySelectorAll('[data-cinema-frame]').forEach(el=>el.innerHTML=cinemaArt(cinemaIndex));document.querySelectorAll('[data-cinema-title]').forEach(el=>el.textContent=CINEMA_FILMS[cinemaIndex].name);}
-setInterval(()=>{if(!document.hidden&&!worldStill&&!cinemaPaused&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&$('p6').classList.contains('on')&&locView==='room')nextCinema();},24000);
+function cinemaG(){return `<g class="clk" role="button" tabindex="0" data-world-focus="cinema-open" aria-label="아지트 시네마 크게 보기" onclick="openCinema()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCinema()}"><rect x="312" y="30" width="126" height="83" rx="4" fill="#443e4a"/><rect x="316" y="34" width="118" height="75" rx="2" fill="#ead8bd"/>
+  <svg x="320" y="38" width="110" height="66" viewBox="0 0 180 100" class="${cinemaIsStill()?'cinema-paused':''}" data-cinema-frame>${cinemaFrameArt()}</svg></g><rect x="355" y="15" width="24" height="12" rx="4" fill="#f3e6db"/><circle cx="367" cy="24" r="4" fill="#a3d7ee"/><polygon points="367,28 320,40 430,40" fill="#cce6ff" opacity=".19"/><rect x="364" y="8" width="6" height="8" fill="#746578"/>`;}
+function cinemaDescription(){
+  const state=cinemaState();
+  if(cinemaMode==='memories'&&state.mode==='films')return cinemaPhotos.length?'읽을 수 있는 사진을 기다리며 풍경을 상영해요':'추억에 사진을 올리면 우리 사진이 상영돼요';
+  const pauseNote=worldStill?' · 룸 움직임 쉬는 중':matchMedia('(prefers-reduced-motion: reduce)').matches?' · 움직임 줄이기 켜짐':cinemaIsStill()?' · 멈춤':'';
+  return (state.mode==='memories'?'추억 필름 · 사진 '+state.availablePhotos+'장 랜덤 상영':'작은 애니메이션 · 네 가지 풍경')+pauseNote;
+}
+function cinemaControls(expanded=false){
+  const state=cinemaState(),limited=worldStill||matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return `<div class="cinema-controls" data-cinema-controls><div class="cinema-heading"><span class="cinema-kicker">OUR LITTLE CINEMA</span><strong data-cinema-title>${esc(state.title)}</strong><small data-cinema-description>${esc(cinemaDescription())}</small></div><div class="cinema-modes" role="group" aria-label="상영할 장면"><button type="button" data-cinema-mode="memories" aria-pressed="${cinemaMode==='memories'}" onclick="setCinemaMode('memories')">우리 추억</button><button type="button" data-cinema-mode="films" aria-pressed="${cinemaMode==='films'}" onclick="setCinemaMode('films')">작은 풍경</button></div><div class="cinema-buttons"><button type="button" onclick="nextCinema()" aria-label="다음 시네마 장면">다음 장면 ↗</button><button type="button" data-cinema-pause ${limited?'disabled':''} aria-pressed="${cinemaPaused}" aria-label="시네마 자동 재생 ${cinemaPaused?'켜기':'끄기'}" onclick="pauseCinema()">${limited?'자동 재생 쉬는 중':cinemaPaused?'▶ 이어 보기':'Ⅱ 잠시 멈춤'}</button>${expanded?'':'<button type="button" onclick="openCinema()">크게 보기</button>'}</div></div>`;
+}
+function setCinemaMode(mode){if(!['memories','films'].includes(mode))return;cinemaMode=mode;localStorage.setItem('azit-cinema-mode',mode);cinemaFailureStreak=0;cinemaChangedAt=Date.now();refreshCinema();}
+function nextCinema(){cinemaFailureStreak=0;if(cinemaMode==='memories')pickCinemaMemory();cinemaIndex=(cinemaIndex+1)%CINEMA_FILMS.length;cinemaChangedAt=Date.now();refreshCinema();}
+function pauseCinema(){cinemaPaused=!cinemaPaused;localStorage.setItem('azit-cinema-paused',cinemaPaused?'1':'0');cinemaChangedAt=Date.now();refreshCinema(false);}
+function refreshCinema(replaceFrame=true){
+  const state=cinemaState();
+  document.querySelectorAll('[data-cinema-frame]').forEach(el=>{el.classList.toggle('cinema-paused',cinemaIsStill());if(replaceFrame)el.innerHTML=cinemaFrameArt();});
+  document.querySelectorAll('[data-cinema-title]').forEach(el=>el.textContent=state.title);
+  document.querySelectorAll('[data-cinema-description]').forEach(el=>el.textContent=cinemaDescription());
+  document.querySelectorAll('[data-cinema-mode]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.cinemaMode===cinemaMode)));
+  document.querySelectorAll('[data-cinema-pause]').forEach(el=>{const limited=worldStill||matchMedia('(prefers-reduced-motion: reduce)').matches;el.disabled=limited;el.setAttribute('aria-pressed',String(cinemaPaused));el.setAttribute('aria-label',limited?'움직임 쉬기 설정으로 시네마 자동 재생 멈춤':'시네마 자동 재생 '+(cinemaPaused?'켜기':'끄기'));el.textContent=limited?'자동 재생 쉬는 중':cinemaPaused?'▶ 이어 보기':'Ⅱ 잠시 멈춤';});
+}
+function openCinema(){
+  openAzitDialog('우리의 작은 영화관',`<div class="cinema-theater"><svg viewBox="0 0 180 100" role="img" aria-label="현재 상영 장면" class="${cinemaIsStill()?'cinema-paused':''}" data-cinema-frame>${cinemaFrameArt()}</svg></div>${cinemaControls(true)}<p class="dialog-note">추억에 올린 사진이 따뜻한 색감과 작은 움직임을 입고 상영돼요. 원본 사진은 그대로 보관해요.</p>`);
+}
+document.addEventListener('visibilitychange',()=>{cinemaChangedAt=Date.now();refreshCinema(false);});
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>{cinemaChangedAt=Date.now();refreshCinema(false);});
+setInterval(()=>{
+  const visible=$('p6')?.classList.contains('on')&&locView==='room'||Boolean($('azitDialog')?.open&&$('azitDialog').querySelector('[data-cinema-frame]'));
+  if(!visible||cinemaIsStill()){cinemaChangedAt=Date.now();return;}
+  if(Date.now()-cinemaChangedAt>=(cinemaState().mode==='memories'?12000:24000))nextCinema();
+},1000);
 
 const FURNITURE={
   petbed:{n:'구름 펫 침대',cost:40,desc:'폭신한 쿠션과 작은 발자국',slot:'pet',kind:'bed'},
@@ -321,6 +388,6 @@ window.render_game_to_text=()=>JSON.stringify({
   pets:(LV.pets||[]).map(p=>({id:p.id,name:petName(p),kind:p.type,breed:p.breed,place:p.place,affection:p.affection||0,visible:p.place===locView})),
   garden:{plots:(LV.garden.plots||[]).map((p,index)=>p?{index,crop:p.type,stage:p.stage||0,ready:(p.stage||0)>=4,needsWater:(p.stage||0)<4&&Boolean(dueCare(p.care)),nextWaterAt:(p.care||[])[0]||null}:null),harvests:LV.garden.harvests||0},
   furniture:Object.values(LV.furniture||{}),
-  cinema:{title:CINEMA_FILMS[cinemaIndex].name,index:cinemaIndex,paused:cinemaPaused||worldStill}
+  cinema:cinemaState()
 });
-window.advanceTime=ms=>{if(Number(ms)>=24000&&!cinemaPaused&&!worldStill)cinemaIndex=(cinemaIndex+Math.floor(Number(ms)/24000))%CINEMA_FILMS.length;renderLiving();return window.render_game_to_text();};
+window.advanceTime=ms=>{const duration=cinemaState().mode==='memories'?12000:24000;if(Number(ms)>=duration&&!cinemaIsStill())for(let i=0;i<Math.min(100,Math.floor(Number(ms)/duration));i++)nextCinema();renderLiving();return window.render_game_to_text();};

@@ -1,3 +1,136 @@
+/* The latest note is on the board; append-only notes keep every earlier word. */
+const CHALK_LIMIT=280, CHALK_POINTS=6000;
+let chalkSending=false, chalkHistoryPage=0;
+const chalkDrafts={1:{mode:'text',text:'',strokes:[]},2:{mode:'text',text:'',strokes:[]}};
+function chalkStrokes(note){
+  const raw=note?.drawing?.strokes;if(!Array.isArray(raw))return [];
+  let remaining=CHALK_POINTS;
+  return raw.slice(0,200).map(stroke=>{
+    if(!Array.isArray(stroke)||remaining<=0)return [];
+    const points=stroke.slice(0,remaining).filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)&&p[0]>=0&&p[0]<=640&&p[1]>=0&&p[1]<=360);
+    remaining-=points.length;return points;
+  }).filter(stroke=>stroke.length);
+}
+function chalkPosts(){return notes.filter(n=>n&&(typeof n.text==='string'&&n.text.trim()||chalkStrokes(n).length)).slice().sort((a,b)=>(Number(b.ts)||0)-(Number(a.ts)||0)||String(b.id).localeCompare(String(a.id)));}
+function chalkMotion(){return !matchMedia('(prefers-reduced-motion: reduce)').matches;}
+function chalkDrawing(note,animate=false){
+  const strokes=chalkStrokes(note);
+  return `<svg class="chalk-drawing ${animate?'chalk-trace':''}" viewBox="0 0 640 360" role="img" aria-label="분필로 남긴 손글씨">${strokes.map((s,i)=>s.length===1?`<circle cx="${s[0][0]}" cy="${s[0][1]}" r="2.2" fill="currentColor"/>`:`<polyline points="${s.map(p=>p.join(',')).join(' ')}" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" pathLength="1" style="--trace-delay:${Math.min(i*25,900)}ms"/>`).join('')}</svg>`;
+}
+function chalkNoteHtml(note,animate=false){return chalkStrokes(note).length?chalkDrawing(note,animate):`<span class="chalk-copy">${esc(String(note?.text||'').slice(0,CHALK_LIMIT))}</span>`;}
+function chalkText(el,text,animate=false){
+  if(!el)return;
+  const previous=el.dataset.text||'';el.dataset.text=text;
+  let common=0;while(common<previous.length&&previous[common]===text[common])common++;
+  el.replaceChildren();
+  if(!animate||!chalkMotion()){el.textContent=text;return;}
+  const chars=Array.from(text);let position=0;
+  chars.forEach((char,i)=>{
+    const node=document.createElement(char==='\n'?'br':'span');
+    if(char!=='\n')node.textContent=char;
+    if(position>=common){node.className='chalk-letter';node.style.setProperty('--chalk-delay',Math.min((i-Math.min(common,i))*24,1200)+'ms');}
+    position+=char.length;el.append(node);
+  });
+  if(text){const tip=document.createElement('i');tip.className='chalk-tip';tip.setAttribute('aria-hidden','true');el.append(tip);}
+}
+function renderChalkboard(){
+  const host=$('chalkboard');if(!host)return;
+  const list=chalkPosts(),latest=list[0],key=latest?String(latest.id||latest.ts):'',old=host.querySelector('.chalk-message');
+  const changed=host.dataset.note!==undefined&&host.dataset.note!==key;
+  const animate=changed&&chalkMotion()&&$('p3')?.classList.contains('on');
+  const oldHtml=animate&&old?old.innerHTML:'';
+  const focused=document.activeElement?.id;
+  if(!changed&&host.dataset.note!==undefined){
+    const signature=JSON.stringify([key,S.n1,S.n2,who,list.length]);if(host.dataset.signature===signature){if($('chalkDialog')?.open&&$('chalkDialog').dataset.view==='history')renderChalkHistory();return;}
+  }
+  host.dataset.note=key;host.dataset.signature=JSON.stringify([key,S.n1,S.n2,who,list.length]);
+  host.innerHTML=`<section class="card chalk-corner"><div class="chalk-heading"><div><small>지금 전하고 싶은 마음</small><h2>우리의 한마디 칠판</h2></div><span class="chalk-heart" aria-hidden="true">♡</span></div>
+    <button type="button" id="chalkBoardOpen" class="chalk-board ${animate?'chalk-replacing':''}" onclick="openChalkHistory()" aria-describedby="chalkLatest" aria-label="칠판 누르기 · 이전 한마디 ${list.length}개 보기"><span class="chalk-topline">TODAY, WITH YOU <span aria-hidden="true">✧</span></span><span class="chalk-message" id="chalkLatest">${latest?chalkNoteHtml(latest,animate):'<span class="chalk-empty">오늘도, 네 생각이 났어.<small>첫 한마디를 남겨보세요</small></span>'}</span>${oldHtml?`<span class="chalk-old" aria-hidden="true">${oldHtml}</span><span class="chalk-eraser" aria-hidden="true"></span>`:''}<span class="chalk-signature">${latest?esc(Number(latest.who)===1?S.n1:S.n2)+' · '+new Date(Number(latest.ts)||0).toLocaleDateString('ko-KR'):'둘만의 작은 칠판'}</span><span class="chalk-tray" aria-hidden="true"><i></i><i></i><b></b></span></button>
+    <div class="chalk-footer"><p>칠판을 누르면 이전에 남긴 말도 볼 수 있어요.<br>새 한마디는 바로 전해지고, 이전 글은 기록에 남아요.</p><button type="button" id="chalkComposeOpen" class="btn" onclick="openChalkComposer()">분필로 한마디 남기기</button></div></section>`;
+  if(animate&&latest&&!chalkStrokes(latest).length)chalkText(host.querySelector('.chalk-copy'),String(latest.text).slice(0,CHALK_LIMIT),true);
+  if(focused==='chalkBoardOpen'||focused==='chalkComposeOpen')$(focused)?.focus({preventScroll:true});
+  if($('chalkDialog')?.open&&$('chalkDialog').dataset.view==='history')renderChalkHistory();
+}
+function chalkDialog(view){
+  let dialog=$('chalkDialog');
+  if(!dialog){dialog=document.createElement('dialog');dialog.id='chalkDialog';dialog.className='azit-dialog chalk-dialog';dialog.setAttribute('aria-labelledby','chalkDialogTitle');document.body.append(dialog);}
+  dialog.dataset.view=view;return dialog;
+}
+function openChalkHistory(){const dialog=chalkDialog('history');chalkHistoryPage=0;renderChalkHistory();if(!dialog.open)dialog.showModal();}
+function renderChalkHistory(){
+  const dialog=$('chalkDialog');if(!dialog||dialog.dataset.view!=='history')return;
+  const list=chalkPosts(),pages=Math.max(1,Math.ceil(list.length/20));chalkHistoryPage=Math.max(0,Math.min(pages-1,chalkHistoryPage));
+  const focus=document.activeElement?.dataset.chalkPage;
+  dialog.innerHTML=`<div class="dialog-head"><h2 id="chalkDialogTitle">차곡차곡, 우리의 한마디</h2><button type="button" class="dialog-close" aria-label="한마디 기록 닫기" onclick="$('chalkDialog').close()">×</button></div><p class="dialog-note">칠판에서 지워져도 마음은 남아 있어요. 예전 한마디까지 모두 ${list.length}개.</p><div class="chalk-history">${list.slice(chalkHistoryPage*20,(chalkHistoryPage+1)*20).map((n,i)=>`<article><small>${i===0&&chalkHistoryPage===0?'지금 칠판에 · ':''}${esc(Number(n.who)===1?S.n1:S.n2)} · ${new Date(Number(n.ts)||0).toLocaleString('ko-KR')}</small>${chalkStrokes(n).length?`<div class="chalk-history-drawing">${chalkDrawing(n)}</div>`:`<p>${esc(n.text)}</p>`}</article>`).join('')||'<p class="post-empty">아직 남긴 한마디가 없어요.</p>'}</div>${pages>1?`<div class="chalk-pagination"><button type="button" data-chalk-page="prev" onclick="chalkHistoryPage--;renderChalkHistory();$('chalkDialog').scrollTop=0" ${chalkHistoryPage===0?'disabled':''}>이전</button><span>${chalkHistoryPage+1} / ${pages}</span><button type="button" data-chalk-page="next" onclick="chalkHistoryPage++;renderChalkHistory();$('chalkDialog').scrollTop=0" ${chalkHistoryPage===pages-1?'disabled':''}>다음</button></div>`:''}<button type="button" class="btn chalk-history-write" onclick="openChalkComposer()">새 한마디 남기기</button>`;
+  if(focus)dialog.querySelector(`[data-chalk-page="${focus}"]`)?.focus({preventScroll:true});
+}
+function openChalkComposer(){
+  const dialog=chalkDialog('compose');dialog.dataset.slot=String(who);
+  const draft=chalkDrafts[who];
+  dialog.innerHTML=`<div class="dialog-head"><h2 id="chalkDialogTitle">분필로 전하는 한마디</h2><button type="button" class="dialog-close" aria-label="한마디 작성 닫기" onclick="$('chalkDialog').close()">×</button></div><div class="who chalk-who" role="group" aria-label="한마디를 남길 사람">${[1,2].map(s=>`<button type="button" aria-pressed="${who===s}" class="${who===s?'on':''}" onclick="switchChalkWriter(${s})">${esc(s===1?S.n1:S.n2)}</button>`).join('')}</div>
+    <form onsubmit="event.preventDefault();sendChalkNote()"><div class="chalk-tabs" role="group" aria-label="작성 방식"><button type="button" data-chalk-mode="text" onclick="setChalkMode('text')">키보드로 쓰기</button><button type="button" data-chalk-mode="draw" onclick="setChalkMode('draw')">손글씨로 쓰기</button></div>
+    <div id="chalkTextPanel"><label for="chalkInput" class="chalk-label">남길 말</label><textarea id="chalkInput" maxlength="${CHALK_LIMIT}" placeholder="오늘도 고생했어. 집에서 만나 ♡" oninput="updateChalkDraft(event)" oncompositionend="updateChalkDraft(event)">${esc(draft.text)}</textarea><div class="chalk-input-count"><span>키보드로 쓰면 아래 칠판에 따라 적혀요</span><span id="chalkCount"></span></div><div class="chalk-preview chalk-surface" aria-hidden="true"><div id="chalkPreviewText" class="chalk-copy"></div></div></div>
+    <div id="chalkDrawPanel"><p class="dialog-note">칠판에 손가락이나 펜으로 써보세요. 키보드 입력도 선택할 수 있어요.</p><div class="chalk-pad-wrap chalk-surface"><canvas id="chalkPad" width="640" height="360" aria-label="손가락이나 펜으로 한마디를 쓰는 칠판"></canvas><i id="chalkPadTip" class="pad-chalk" aria-hidden="true" hidden></i><span class="chalk-eraser" aria-hidden="true"></span></div><div class="chalk-pad-actions"><button type="button" onclick="undoChalkStroke()">한 획 되돌리기</button><span id="chalkInkStatus" role="status"></span></div></div>
+    <div class="chalk-compose-actions"><button type="button" class="btn ghost" onclick="eraseChalkDraft()">지우개로 지우기</button><button id="chalkSend" type="submit" class="btn" ${chalkSending?'disabled':''}>${chalkSending?'칠판에 옮기는 중…':'칠판에 남기기'}</button></div><p id="chalkSaveStatus" class="chalk-save-status" role="status">지금 작성하는 칠판만 지워요. 이전에 남긴 말은 기록에 보관돼요.</p></form>`;
+  bindChalkPad();setChalkMode(draft.mode,true);chalkBusyUI();if(!dialog.open)dialog.showModal();
+}
+function chalkBusyUI(){const dialog=$('chalkDialog');if(dialog?.dataset.view!=='compose')return;dialog.querySelectorAll('button:not(.dialog-close)').forEach(b=>b.disabled=chalkSending);$('chalkPad')?.setAttribute('aria-disabled',String(chalkSending));}
+function switchChalkWriter(slot){if(chalkSending)return;setWho(slot);openChalkComposer();}
+function currentChalkDraft(){return chalkDrafts[$('chalkDialog')?.dataset.slot||who];}
+function setChalkMode(mode,initializing=false){
+  if(chalkSending&&!initializing||!['text','draw'].includes(mode))return;
+  const draft=currentChalkDraft();draft.mode=mode;
+  $('chalkTextPanel').hidden=mode!=='text';$('chalkDrawPanel').hidden=mode!=='draw';
+  document.querySelectorAll('[data-chalk-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.chalkMode===mode)));
+  if(mode==='text'){chalkText($('chalkPreviewText'),draft.text);$('chalkCount').textContent=draft.text.length+' / '+CHALK_LIMIT;}else paintChalkPad();
+}
+function updateChalkDraft(event){
+  const draft=currentChalkDraft(),text=$('chalkInput').value.slice(0,CHALK_LIMIT),deleting=text.length<draft.text.length;draft.text=text;
+  chalkText($('chalkPreviewText'),text,!event?.isComposing);$('chalkCount').textContent=text.length+' / '+CHALK_LIMIT;
+  if(deleting)chalkEraseEffect(document.querySelector('.chalk-preview'));
+}
+function chalkEraseEffect(surface){if(!surface||!chalkMotion())return;surface.classList.remove('chalk-wiping');void surface.offsetWidth;surface.classList.add('chalk-wiping');}
+function eraseChalkDraft(){
+  if(chalkSending)return;const draft=currentChalkDraft();
+  if($('chalkPadTip'))$('chalkPadTip').hidden=true;
+  if(draft.mode==='text'){draft.text='';$('chalkInput').value='';chalkText($('chalkPreviewText'),'');$('chalkCount').textContent='0 / '+CHALK_LIMIT;chalkEraseEffect(document.querySelector('.chalk-preview'));}
+  else{draft.strokes=[];paintChalkPad();chalkEraseEffect(document.querySelector('.chalk-pad-wrap'));}
+}
+function undoChalkStroke(){if(chalkSending)return;currentChalkDraft().strokes.pop();if($('chalkPadTip'))$('chalkPadTip').hidden=true;paintChalkPad();chalkEraseEffect(document.querySelector('.chalk-pad-wrap'));}
+function paintChalkPad(){
+  const canvas=$('chalkPad');if(!canvas)return;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,640,360);ctx.strokeStyle='#f6f0d9';ctx.fillStyle='#f6f0d9';ctx.lineWidth=4.4;ctx.lineCap='round';ctx.lineJoin='round';
+  const strokes=currentChalkDraft().strokes;
+  for(const stroke of strokes){if(!stroke.length)continue;ctx.beginPath();ctx.moveTo(...stroke[0]);for(const p of stroke.slice(1))ctx.lineTo(...p);if(stroke.length===1){ctx.arc(...stroke[0],2.2,0,Math.PI*2);ctx.fill();}else ctx.stroke();}
+  $('chalkInkStatus').textContent=strokes.reduce((n,s)=>n+s.length,0)>=CHALK_POINTS?'칠판이 가득 찼어요. 한마디를 남겨주세요.':strokes.length?'분필로 '+strokes.length+'획 남겼어요':'';
+}
+function bindChalkPad(){
+  const canvas=$('chalkPad');let pointer=null;
+  const position=e=>{const r=canvas.getBoundingClientRect();return [Math.round(Math.max(0,Math.min(640,(e.clientX-r.left)*640/r.width))*10)/10,Math.round(Math.max(0,Math.min(360,(e.clientY-r.top)*360/r.height))*10)/10];};
+  const move=e=>{
+    if(e.pointerId!==pointer||chalkSending)return;e.preventDefault();const draft=currentChalkDraft(),stroke=draft.strokes[draft.strokes.length-1],p=position(e),last=stroke?.at(-1);if(!stroke)return;
+    if(draft.strokes.reduce((n,s)=>n+s.length,0)<CHALK_POINTS&&(!last||Math.hypot(p[0]-last[0],p[1]-last[1])>1.4))stroke.push(p);
+    const tip=$('chalkPadTip');tip.hidden=false;tip.style.left=p[0]/6.4+'%';tip.style.top=p[1]/3.6+'%';paintChalkPad();
+  };
+  canvas.addEventListener('pointerdown',e=>{if(pointer!==null||chalkSending||e.button!==0)return;const d=currentChalkDraft();if(d.strokes.length>=200||d.strokes.reduce((n,s)=>n+s.length,0)>=CHALK_POINTS){toast('칠판이 가득 찼어요. 남기거나 지워주세요');return;}pointer=e.pointerId;canvas.setPointerCapture(pointer);d.strokes.push([position(e)]);move(e);});
+  canvas.addEventListener('pointermove',move);
+  const end=e=>{if(e.pointerId!==pointer)return;pointer=null;$('chalkPadTip').hidden=true;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);};
+  canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);canvas.addEventListener('lostpointercapture',end);
+}
+async function sendChalkNote(){
+  if(chalkSending)return;const dialog=$('chalkDialog'),slot=Number(dialog?.dataset.slot),draft=chalkDrafts[slot];if(!draft)return;
+  const text=draft.mode==='text'?draft.text.trim().slice(0,CHALK_LIMIT):'',strokes=draft.mode==='draw'?chalkStrokes({drawing:{strokes:draft.strokes}}):[];
+  if(!text&&!strokes.length){$('chalkSaveStatus').textContent='남길 말을 먼저 적어주세요.';return;}
+  const snapshot=JSON.stringify(draft),payload={who:slot,kind:'chalk',text};if(strokes.length)payload.drawing={width:640,height:360,strokes};
+  chalkSending=true;chalkBusyUI();$('chalkSend').textContent='칠판에 옮기는 중…';$('chalkSaveStatus').textContent='마음을 저장하고 있어요…';
+  try{
+    await DB.add('notes',payload);
+    if(JSON.stringify(draft)===snapshot){chalkDrafts[slot]={mode:draft.mode,text:'',strokes:[]};if(dialog.dataset.view==='compose'&&Number(dialog.dataset.slot)===slot)dialog.close();}
+    renderChalkboard();toast('새 한마디를 칠판에 남겼어요. 이전 글도 간직했어요 ♡');
+    await earnHeart('note',ACT_REWARD).catch(()=>{});
+  }catch(error){console.error('칠판 저장 실패',error);if($('chalkSaveStatus'))$('chalkSaveStatus').textContent='저장하지 못했어요. 작성한 내용은 그대로예요. 다시 눌러주세요.';toast('한마디를 저장하지 못했어요. 연결을 확인해 주세요');}
+  finally{chalkSending=false;chalkBusyUI();if($('chalkSend'))$('chalkSend').textContent='칠판에 남기기';}
+}
+
 /* Letters and new Q&A rounds share the living transaction with their costs. */
 const COUPLE_HOUR=3600000, QA_INTERVAL=72*COUPLE_HOUR;
 const COUPLE_QUESTIONS={
@@ -40,17 +173,20 @@ function specialReady(state=LV){return [1,2].every(slot=>state.specialConsent?.[
 function coupleDuration(ms){const m=Math.max(1,Math.ceil(ms/60000));return m>=1440?Math.floor(m/1440)+'일 '+Math.floor(m%1440/60)+'시간':m>=60?Math.floor(m/60)+'시간 '+m%60+'분':m+'분';}
 function letterDeliveryAt(now,random){return now+COUPLE_HOUR+Math.floor(Math.max(0,Math.min(1,random))*(7*24*COUPLE_HOUR-COUPLE_HOUR));}
 function fedDeliveryAt(deliveryAt,now,random){const remaining=deliveryAt-now;if(remaining<=300000)return deliveryAt;return Math.round(now+Math.max(300000,remaining*(1-(.15+.20*Math.max(0,Math.min(1,random))))));}
-function openPigeonLetters(){go(3,document.querySelectorAll('nav button')[3]);renderPostOffice();}
+function openPigeonLetters(){go(3,document.querySelectorAll('nav button')[3]);renderPostOffice();$('postOffice')?.scrollIntoView({behavior:chalkMotion()?'smooth':'auto',block:'start'});}
 function openProduceQna(){go(4,document.querySelectorAll('nav button')[4]);renderQA();}
 function renderCouple(){renderPostOffice();renderQA();}
 function bootCouple(){
   if(coupleBooted)return;coupleBooted=true;renderCouple();
+  const worldText=window.render_game_to_text;
+  if(typeof worldText==='function')window.render_game_to_text=()=>{const state=JSON.parse(worldText()),list=chalkPosts();state.chalkboard={count:list.length,latestKind:list[0]?(chalkStrokes(list[0]).length?'handwriting':'text'):null,composing:$('chalkDialog')?.open&&$('chalkDialog').dataset.view==='compose'||false};return JSON.stringify(state);};
   setInterval(()=>{if(document.hidden)return;updateLetterClocks();renderQAExtras();},30000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderCouple();});
 }
 function pigeonSvg(){return `<svg class="pigeon" viewBox="0 0 90 66" aria-hidden="true"><ellipse cx="42" cy="39" rx="24" ry="16" fill="#dedbeb"/><path d="M24 34 7 43l19 5" fill="#c5bfda"/><ellipse class="pigeon-wing" cx="39" cy="32" rx="20" ry="9" transform="rotate(-25 39 32)" fill="#f9f7ff"/><circle cx="61" cy="23" r="13" fill="#efecf6"/><path d="m72 23 11 5-12 4" fill="#eab071"/><circle cx="65" cy="20" r="2.4" fill="#574358"/><circle cx="67" cy="29" r="3" fill="#efb9c7"/><path d="m38 52-3 8m13-8 2 8" stroke="#c58c90" stroke-width="3" stroke-linecap="round"/><path d="m35 55 16 0 0 10-16 0z" fill="#fff5db" stroke="#ca9ba4"/><path d="m35 55 8 6 8-6" fill="none" stroke="#ca9ba4"/></svg>`;}
 function captureLetterDraft(){const el=$('letterBody');if(el)letterDrafts[el.dataset.slot]=el.value;}
 function renderPostOffice(){
+  renderChalkboard();
   const host=$('postOffice');if(!host)return;
   const field=$('letterBody'),focused=field&&document.activeElement===field,selection=focused?[field.selectionStart,field.selectionEnd]:null;
   captureLetterDraft();
@@ -61,16 +197,16 @@ function renderPostOffice(){
     <form class="letter-compose" onsubmit="event.preventDefault();sendPigeonLetter()"><label for="letterBody">${esc(who===1?S.n2:S.n1)}에게 보낼 봉인 편지</label><textarea id="letterBody" data-slot="${who}" maxlength="1000" placeholder="천천히 도착해도 변하지 않을 마음을 적어주세요." oninput="letterDrafts[this.dataset.slot]=this.value">${esc(letterDrafts[who])}</textarea><div class="letter-compose-foot"><small>보내면 수정할 수 없어요 · 비행 중 ${pending}/3통</small><button type="submit" class="btn sm" ${letterSending||pending>=3?'disabled':''}>${letterSending?'비둘기가 준비 중…':'💌 봉인해서 보내기'}</button></div></form>
     <div class="post-inventory">🌾 우리 수확물 <b>${produceCount()}개</b><span>한 개를 먹이면 남은 비행이 15~35% 짧아져요</span></div><p class="couple-fine">편지당 먹이 3번 · 최소 5분은 더 날아요. 도착할 때까지 봉투가 잠겨 있어요.</p></div>
     <div class="card"><div class="stitle">📮 오가는 편지 <span class="mail-count">${list.length}</span></div><div class="letter-list">${list.map(l=>letterCard(l,now)).join('')||'<div class="post-empty"><span>✉</span><p>우체통이 아직 조용해요.<br>첫 편지를 비둘기에게 맡겨보세요.</p></div>'}</div></div>
-    ${notes.length?`<details class="card legacy-notes"><summary>📜 예전 한마디 ${notes.length}개</summary><p class="couple-fine">기존에 나눈 말을 그대로 보관했어요.</p>${[...notes].sort((a,b)=>b.ts-a.ts).map(n=>`<article><small>${esc(n.who===1?S.n1:S.n2)} · ${new Date(n.ts).toLocaleDateString('ko-KR')}</small><p>${esc(n.text)}</p></article>`).join('')}</details>`:''}
     <p class="couple-fine privacy-disclosure">봉인과 이름 선택은 화면에서 내용을 가리는 기능이에요. 로그인이나 암호화로 보호되는 개인 보관함은 아니에요.</p>`;
   if(focused&&$('letterBody')){$('letterBody').focus({preventScroll:true});$('letterBody').setSelectionRange(...selection);}
 }
 function letterCard(l,now){
+  l={...l,id:String(l.id),deliveryAt:Number(l.deliveryAt)||0,feeds:Math.max(0,Math.floor(Number(l.feeds)||0))};
   const arrived=now>=l.deliveryAt,recipient=who===l.to,opened=arrived&&recipient&&l.openedAt;
   const fruits=Object.entries(FRUITS).filter(([id])=>Number(LV.pantry?.[id])>=1),canFeed=!arrived&&l.deliveryAt-now>300000&&(l.feeds||0)<3;
-  return `<article class="letter-card ${arrived?'arrived':'in-flight'} ${opened?'is-open':''}" data-letter="${l.id}"><div class="letter-symbol" aria-hidden="true">${arrived?(opened?'💌':'✉'):pigeonSvg()}</div><div class="letter-info"><div class="letter-address">${esc(l.from===1?S.n1:S.n2)} <span>→</span> ${esc(l.to===1?S.n1:S.n2)}</div><small class="letter-clock" data-delivery="${l.deliveryAt}">${arrived?(l.openedAt?'마음을 열어보았어요':'도착했어요! 봉투를 열어주세요'):coupleDuration(l.deliveryAt-now)+' 뒤 도착 예정'}</small><small>${new Date(l.sentAt).toLocaleDateString('ko-KR')} 보냄 · 먹이 ${l.feeds||0}/3번</small>
-    ${opened?`<p class="letter-paper">${esc(l.body)}</p>`:arrived&&recipient?`<button type="button" class="btn sm envelope-open" onclick="openPigeonLetter('${l.id}')">💌 봉투 열기</button>`:arrived?'<p class="couple-fine">상대방의 우체통에 도착했어요.</p>':'<div class="letter-sealed">♡ 봉인된 마음을 배달하고 있어요</div>'}
-    ${canFeed?`<div class="pigeon-feed"><label class="sr-only" for="feed_${l.id}">비둘기 먹이 선택</label><select id="feed_${l.id}" ${fruits.length?'':'disabled'}>${fruits.length?fruits.map(([id,f])=>`<option value="${id}">${f.e} ${f.n} (${LV.pantry[id]}개)</option>`).join(''):'<option>수확물이 없어요</option>'}</select><button type="button" class="btn ghost sm" ${fruits.length?'':'disabled'} onclick="feedPigeon('${l.id}')">먹이 1개 주기</button></div>`:''}</div></article>`;
+  return `<article class="letter-card ${arrived?'arrived':'in-flight'} ${opened?'is-open':''}" data-letter="${esc(l.id)}"><div class="letter-symbol" aria-hidden="true">${arrived?(opened?'💌':'✉'):pigeonSvg()}</div><div class="letter-info"><div class="letter-address">${esc(l.from===1?S.n1:S.n2)} <span>→</span> ${esc(l.to===1?S.n1:S.n2)}</div><small class="letter-clock" data-delivery="${l.deliveryAt}">${arrived?(l.openedAt?'마음을 열어보았어요':'도착했어요! 봉투를 열어주세요'):coupleDuration(l.deliveryAt-now)+' 뒤 도착 예정'}</small><small>${new Date(l.sentAt).toLocaleDateString('ko-KR')} 보냄 · 먹이 ${l.feeds||0}/3번</small>
+    ${opened?`<p class="letter-paper">${esc(l.body)}</p>`:arrived&&recipient?`<button type="button" class="btn sm envelope-open" data-letter-id="${esc(l.id)}" onclick="openPigeonLetter(this.dataset.letterId)">💌 봉투 열기</button>`:arrived?'<p class="couple-fine">상대방의 우체통에 도착했어요.</p>':'<div class="letter-sealed">♡ 봉인된 마음을 배달하고 있어요</div>'}
+    ${canFeed?`<div class="pigeon-feed"><label class="sr-only" for="feed_${esc(l.id)}">비둘기 먹이 선택</label><select id="feed_${esc(l.id)}" ${fruits.length?'':'disabled'}>${fruits.length?fruits.map(([id,f])=>`<option value="${id}">${f.e} ${f.n} (${Math.max(0,Math.floor(Number(LV.pantry[id])||0))}개)</option>`).join(''):'<option>수확물이 없어요</option>'}</select><button type="button" class="btn ghost sm" ${fruits.length?'':'disabled'} data-letter-id="${esc(l.id)}" onclick="feedPigeon(this.dataset.letterId)">먹이 1개 주기</button></div>`:''}</div></article>`;
 }
 function updateLetterClocks(){
   let arrival=false;document.querySelectorAll('.letter-clock[data-delivery]').forEach(el=>{const left=Number(el.dataset.delivery)-coupleNow();if(left<=0&&el.closest('.in-flight'))arrival=true;else if(left>0)el.textContent=coupleDuration(left)+' 뒤 도착 예정';});
@@ -136,7 +272,7 @@ mutateQA=async function(id,mutate){
 };
 submitQAAns=async function(id,slot){
   slot=Number(slot);if(slot!==who){toast('선택된 이름을 다시 확인해 주세요');return;}
-  const el=$(`qa_in_${id}_${slot}`),text=el?.value.trim().slice(0,200);if(!text){toast('답변을 먼저 적어주세요');return;}
+  const el=$(qaInputId(id,slot)),text=el?.value.trim().slice(0,200);if(!text){toast('답변을 먼저 적어주세요');return;}
   const current=qaAllRecords().find(q=>q.id===id);if(!current||current.revealed||current.skipped||current['a'+slot])return;
   if(current.special&&!specialReady()){toast('특별 질문 동의를 확인해 주세요');return;}
   if(!confirm('답변을 잠글까요? 둘이 공개에 동의할 때까지 다시 보거나 수정할 수 없어요.'))return;
@@ -173,7 +309,7 @@ renderQA=function(){
   [1,2].forEach(slot=>{const b=$('qw'+slot);if(!b)return;b.classList.toggle('on',who===slot);b.setAttribute('aria-pressed',String(who===slot));b.setAttribute('aria-label',(slot===1?S.n1:S.n2)+' 선택');const n=b.querySelector('.q-name'),s=b.querySelector('small');if(n)n.textContent=slot===1?S.n1:S.n2;if(s)s.textContent=qaStatus(cur,slot);});
   if(cur){
     const both=!!(cur.a1&&cur.a2),allowed=!cur.special||specialReady();
-    $('qaActive').innerHTML=`<div class="qcard"><div class="hint">${cur.special?'🌙':'💌'} ${esc(cur.category||'우리의 이야기')}</div>${allowed?`<div class="q">${esc(cur.question)}</div><div class="qans">${qaAnswerBox(cur,1)}${qaAnswerBox(cur,2)}</div>${both?`<div class="consent-board"><div class="consent-title">🤝 답변을 함께 공개할까요?</div><div class="consent-grid">${[1,2].map(s=>`<div class="consent-status ${qaConsent(cur,s)?'ok':''}">${qaConsent(cur,s)?'✓':'○'} ${esc(s===1?S.n1:S.n2)} ${qaConsent(cur,s)?'동의':'대기'}</div>`).join('')}</div><button type="button" class="btn sm consent-action" onclick="toggleQAConsent('${cur.id}',${who})">${qaConsent(cur,who)?'내 동의 취소':'내 답변 공개에 동의하기'}</button><p class="qa-privacy">둘 다 동의하면 바로 열려요. 다음 질문은 72시간 간격을 지켜요.</p></div>`:'<p class="qa-privacy">제출한 답변은 둘 다 공개에 동의할 때까지 잠겨요.</p>'}`:'<p class="q">특별 질문을 잠시 덮어두었어요.</p><p class="couple-fine">두 사람의 성인 확인과 동의가 있으면 다시 볼 수 있어요.</p>'}<button class="qa-skip" type="button" onclick="skipCoupleQA('${cur.id}')">이 질문 무료로 건너뛰기</button></div>`;
+    $('qaActive').innerHTML=`<div class="qcard"><div class="hint">${cur.special?'🌙':'💌'} ${esc(cur.category||'우리의 이야기')}</div>${allowed?`<div class="q">${esc(cur.question)}</div><div class="qans">${qaAnswerBox(cur,1)}${qaAnswerBox(cur,2)}</div>${both?`<div class="consent-board"><div class="consent-title">🤝 답변을 함께 공개할까요?</div><div class="consent-grid">${[1,2].map(s=>`<div class="consent-status ${qaConsent(cur,s)?'ok':''}">${qaConsent(cur,s)?'✓':'○'} ${esc(s===1?S.n1:S.n2)} ${qaConsent(cur,s)?'동의':'대기'}</div>`).join('')}</div><button type="button" class="btn sm consent-action" data-question-id="${esc(cur.id)}" onclick="toggleQAConsent(this.dataset.questionId,${who})">${qaConsent(cur,who)?'내 동의 취소':'내 답변 공개에 동의하기'}</button><p class="qa-privacy">둘 다 동의하면 바로 열려요. 다음 질문은 72시간 간격을 지켜요.</p></div>`:'<p class="qa-privacy">제출한 답변은 둘 다 공개에 동의할 때까지 잠겨요.</p>'}`:'<p class="q">특별 질문을 잠시 덮어두었어요.</p><p class="couple-fine">두 사람의 성인 확인과 동의가 있으면 다시 볼 수 있어요.</p>'}<button class="qa-skip" type="button" data-question-id="${esc(cur.id)}" onclick="skipCoupleQA(this.dataset.questionId)">이 질문 무료로 건너뛰기</button></div>`;
   }else $('qaActive').innerHTML='<div class="qa-rest"><span>☕</span><p>서로의 답을 천천히 음미해요.<br>새로운 대화는 72시간마다 찾아와요.</p></div>';
   const history=qaAllRecords().filter(q=>q.revealed||q.skipped).slice(0,20);
   $('qaHist').innerHTML=history.map(q=>`<div class="qhistitem">${q.skipped?'<b>🍃 편안하게 건너뛴 질문</b><small>답변을 공개하지 않았어요.</small>':q.special&&!specialReady()?'<b>🌙 특별 질문 기록</b><small>두 사람의 특별 질문 동의 후 볼 수 있어요.</small>':`<b>${esc(q.question)}</b><span class="hist-answer"><small>${esc(S.n1)}</small><span>${esc(q.a1)}</span></span><span class="hist-answer"><small>${esc(S.n2)}</small><span>${esc(q.a2)}</span></span>`}</div>`).join('')||'<div class="mut">함께 열어본 답변을 여기 모아둘게요.</div>';
