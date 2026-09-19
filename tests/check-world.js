@@ -15,9 +15,9 @@ async (page) => {
   check(before.x>=scene.x&&before.y>=scene.y&&before.x+before.width<=scene.x+scene.width,'애니메이션 펫이 장면 안에 위치');
   const pet=page.locator('.pet-family [data-pet-id]').first();
   await pet.getByRole('button',{name:'밥 챙겨주기',exact:true}).click();
-  check(await page.evaluate(()=>LV.hearts===1151),'필요한 밥주기 1하트 보상');
+  check(await page.evaluate(()=>LV.hearts===1152),'필요한 밥주기 2하트 보상');
   await pet.getByRole('button',{name:'간식주기',exact:true}).click();
-  check(await page.evaluate(()=>LV.hearts===1151),'연속 밥주기 보상 중복 방지');
+  check(await page.evaluate(()=>LV.hearts===1152),'연속 밥주기 보상 중복 방지');
   await pet.getByRole('button',{name:'공놀이',exact:true}).click();
   check((await page.locator('.pet-family').innerText()).includes('신나게 공을 쫓는 중'),'공놀이 상태 반응');
   await pet.getByRole('button',{name:'이름 짓기',exact:true}).click();
@@ -32,7 +32,7 @@ async (page) => {
   await page.locator('[data-world-focus="plot-0"]').click();
   const beforeSeed=await page.evaluate(()=>LV.hearts);
   await page.locator('.seed-choice button').filter({hasText:'딸기'}).click();
-  check(await page.evaluate(h=>LV.garden.plots[0].type==='strawberry'&&LV.hearts===h-3,beforeSeed),'고른 씨앗을 3하트로 심음');
+  check(await page.evaluate(h=>LV.garden.plots[0].type==='strawberry'&&LV.hearts===h-2,beforeSeed),'고른 씨앗을 2하트로 심음');
   await page.locator('[data-world-focus="plot-0"]').click();
   check(await page.evaluate(()=>LV.garden.plots[0].stage===1),'첫 물주기 즉시 성장');
   const balance=await page.evaluate(()=>LV.hearts);

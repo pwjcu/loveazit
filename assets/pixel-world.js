@@ -35,8 +35,10 @@ petG=function(p,x,y,k,cls='',clk=''){
     art=`<path d="M3 0H5V2H7V3H11V1H14V9H12V12H21V9H23V5H24V12H22V14H19V16H16V14H7V16H4V13H2V5H3Z" fill="${a}"/><path d="M4 1H5V4H4M12 2H13V4H12" fill="#d99798"/><path d="M3 7H12V10H10V12H5V10H3M6 13H17V14H6" fill="${b}"/><path d="M4 5H6V6H4M10 5H12V6H10" fill="${dark}"/><path d="M7 7H9V8H7" fill="#b47c84"/><path d="M5 15H7V16H5M17 15H19V16H17" fill="${b}"/>`;
     if(p.breed==='cheese'||p.breed==='calico')art+='<path d="M7 3H9V5H7M14 10H16V12H14M18 11H20V13H18" fill="'+(p.breed==='calico'?'#6e584d':'#c58049')+'"/>';
     if(p.breed==='siam')art+=`<path d="M3 4H6V7H3M10 4H13V7H10" fill="${b}"/><path d="M4 5H5V6H4M11 5H12V6H11" fill="#62919e"/>`;
+    if(p.breed==='norwegian')art+=`<path d="M2 0H4V3H2M12 0H14V3H12M2 8H5V11H11V8H14V12H12V14H5V13H3V11H2M17 10H20V7H21V3H24V12H22V14H19" fill="${b}"/><path d="M15 10H18V11H15M18 12H21V13H18M6 3H8V5H6" fill="#657970"/>`;
+    if(p.breed==='bengal')art+='<path d="M6 3H8V5H6M10 11H13V14H10M15 10H18V13H15M19 12H21V14H19M22 6H24V8H22M22 10H24V12H22" fill="#765138"/><path d="M11 12H12V13H11M16 11H17V12H16" fill="#e6b979"/><path d="M4 5H6V6H4M10 5H12V6H10" fill="#506e50"/>';
   }else{
-    const floppy=['golden','maltese','poodle','dachshund','beagle'].includes(p.breed),short=p.breed==='corgi'||p.breed==='dachshund',long=p.breed==='dachshund',bodyStart=long?8:10;
+    const floppy=['golden','maltese','poodle','dachshund','beagle','cocker'].includes(p.breed),short=p.breed==='corgi'||p.breed==='dachshund',long=p.breed==='dachshund',bodyStart=long?8:10;
     art=`<path d="M3 3H12V5H14V9H20V7H23V12H21V${short?14:13}H20V16H17V${short?14:13}H9V16H6V13H4V10H2V5H3Z" fill="${a}"/><path d="M${bodyStart} 10H19V13H${bodyStart}Z" fill="${b}"/>`;
     art+=floppy?`<path d="M1 3H4V10H2V9H1M11 3H14V10H12V9H11" fill="${p.breed==='beagle'?'#685042':a}"/>`:`<path d="M2 0H4V2H6V4H2M10 3V1H12V0H14V5H11Z" fill="${a}"/><path d="M3 1H4V3H3M12 1H13V4H12" fill="#d89b91"/>`;
     art+=`<path d="M4 6H12V9H10V11H6V9H4" fill="${b}"/><path d="M4 4H6V5H4M10 4H12V5H10M7 6H9V7H7" fill="${dark}"/><path d="M7 8H9V9H7" fill="#cb9196"/><path d="M6 15H9V16H6M17 15H20V16H17" fill="${b}"/><path d="M15 8H19V9H15" fill="#ffffff" opacity=".3"/>`;
@@ -44,6 +46,8 @@ petG=function(p,x,y,k,cls='',clk=''){
     if(p.breed==='maltese')art+=`<path d="M2 8H4V12H6V10H10V12H12V8H14V11H11V13H4V11H2" fill="${b}"/>`;
     if(p.breed==='chihuahua')art+=`<path d="M0 0H4V4H0M11 0H15V4H11" fill="${a}"/><path d="M1 1H3V3H1M12 1H14V3H12" fill="#e5b7a2"/>`;
     if(p.breed==='beagle')art+='<path d="M14 8H20V11H14" fill="#705345"/>';
+    if(p.breed==='cocker')art+='<path d="M0 4H3V8H4V12H3V14H1V12H0M12 3H15V6H16V12H15V14H12V12H11V8H12" fill="#875536"/><path d="M1 6H2V11H1M13 5H14V12H13" fill="#c68c57"/><path d="M8 12H11V14H10V16H8M18 12H21V14H20V16H18" fill="'+b+'"/>';
+    if(p.breed==='pomeranian')art+=`<path d="M1 5H3V8H5V10H11V8H14V6H16V11H14V13H12V14H5V13H3V11H1M18 9V5H20V2H23V4H24V9H22V11H20V9Z" fill="${b}"/><path d="M20 5H23V8H21V10H19V8H20" fill="#d49a58"/><path d="M5 10H7V12H5M11 10H13V12H11" fill="#f7ddb1"/>`;
   }
   const scale=k*(p.breed==='husky'?1:.75);
   return `<g ${clk} transform="translate(${x},${y}) scale(${scale})"><g class="${cls}" shape-rendering="crispEdges">${art}</g></g>`;
@@ -72,6 +76,17 @@ cropG=function(p,cx,cy){
   const stage=Math.min(4,Math.max(0,Number(p.stage)||0)),type=FRUITS[p.type]?p.type:'tomato',color=FRUITS[type].c;
   if(!stage)return tileGroup(cx,cy,1,'<path d="M-9 7H-5V10H-9M1 10H5V13H1M8 5H11V8H8" fill="#e9c086"/><path d="M-8 7H-6V8H-8M2 10H4V11H2" fill="#fff0be"/>');
   let art='<path d="M-12 12H13V16H-12Z" fill="#3d392b33"/>';
+  if(['carrot','pumpkin','corn','blueberry'].includes(type)){
+    const mature=stage===4,scale=stage===1?.42:stage===2?.7:stage===3?.85:1;
+    let plant='';
+    if(type==='carrot')plant='<path d="M-2 4H2V-14H-2M-4 2H-7V-8H-10V-18H-6V-12H-3M3 1H6V-10H9V-21H5V-13H2M-1-8H2V-26H-1" fill="#648d49"/><path d="M-9-17H-7V-10H-9M5-20H7V-13H5M-1-25H1V-16H-1" fill="#a8c971"/>'+(stage>=3?`<path d="M-7 0H7V6H5V11H3V16H0V20H-2V15H-4V9H-6Z" fill="${color}"/><path d="M-5 2H-2V9H-4M-2 10H0V14H-2" fill="#ffd08b"/><path d="M2 5H6V7H2M0 11H3V13H0" fill="#c87436"/>`:'');
+    if(type==='pumpkin')plant='<path d="M-18 9H18V12H-18M-12 10V0H-9V10M6 9V-5H9V9" fill="#587c3e"/><path d="M-20-1H-14V-5H-8V2H-12V7H-19M8-10H14V-6H20V1H12V-2H7" fill="#829e50"/><path d="M-18-1H-13V2H-18M10-7H14V-4H10" fill="#b5c572"/>'+(stage>=3?`<path d="M-11 3H-6V0H6V3H12V7H15V16H11V20H-10V17H-14V7H-11Z" fill="${color}"/><path d="M-2 1V-6H2V-9H6V-6H3V1Z" fill="#687842"/><path d="M-8 5H-5V16H-8M4 4H7V17H4" fill="#efb560"/><path d="M-1 3H1V19H-1M11 8H13V15H11" fill="#b97635"/>`:'');
+    if(type==='corn')plant='<path d="M-2 16H2V-30H-2M-2-9H-7V-13H-13V-18H-17V-13H-13V-7H-8V-3H-2M2 3H7V-3H13V-9H18V-13H13V-8H7V-3H2M-2 8H-8V3H-15V0H-19V5H-13V10H-7V13H-2" fill="#6f914b"/><path d="M-1-29H1V-34H-1M-5-28H-2V-32H-5M2-27H5V-31H2" fill="#d5bd79"/>'+(stage>=3?`<path d="M3-17H8V-14H10V1H7V5H3V1H1V-13H3Z" fill="${color}"/><path d="M4-13H6V-10H4M7-9H9V-6H7M3-6H5V-3H3M6-2H8V1H6" fill="#fff0a3"/><path d="M0-5H3V0H6V5H9V0H12V-7H15V-1H12V6H7V9H3V5H0Z" fill="#9bb466"/>`:'');
+    if(type==='blueberry')plant='<path d="M-2 14H2V-13H-2M-13 0H13V3H-13" fill="#6d6943"/><path d="M-17-10H-12V-16H-4V-21H5V-17H12V-12H18V1H13V7H5V10H-7V6H-15V1H-19V-6H-17Z" fill="#658951"/><path d="M-12-12H-5V-15H2V-18H5V-12H11V-7H3V-4H-6V-7H-12M-14 0H-7V4H-14M8 1H14V4H8" fill="#96ad68"/>'+(stage>=3?[[-11,-3],[1,-10],[10,-2],[-2,4]].slice(0,mature?4:2).map(([x,y])=>tileGroup(x,y,1,`<path d="M-4-2H3V0H5V5H2V7H-3V5H-5V0H-4Z" fill="${color}"/><path d="M-3 0H0V2H-3" fill="#b1bddd"/><path d="M0 3H2V5H0" fill="#495d88"/>`)).join(''):'');
+    art+=tileGroup(0,stage===1?7:0,scale,plant);
+    if(mature)art+='<path class="spark" d="M18-22H20V-18H24V-16H20V-12H18V-16H14V-18H18Z" fill="#fff0a2"/>';
+    return tileGroup(cx,cy,1,art);
+  }
   if(stage===1)art+='<path d="M-1 11V0H2V11Z" fill="#4f7648"/><path d="M-2 3H-8V0H-11V-4H-5V-1H-2M2 1H8V-2H11V-6H5V-3H2" fill="#92b767"/><path d="M-8-3H-5V0H-8M6-5H9V-2H6" fill="#c0d58a"/>';
   else{
     if(type==='grape')art+='<path d="M-15 13V-23H-12V13M13 13V-23H16V13M-17-22H18V-19H-17M-17-8H18V-5H-17" fill="#b59465"/><path d="M-14-22H15V-21H-14" fill="#e4be7c"/>';
@@ -97,7 +112,10 @@ furnitureArt=function(kind){
     arcade:`<path d="M21 4H61V34H66V39H69V55H13V38H18V34H21Z" fill="#7c6688"/>${tileRect(25,8,32,22,dark)}${tileRect(28,11,26,16,'#334b58')}<g class="film-star"><path d="M31 18H34V15H38V18H41V23H31M44 17H49V22H44" fill="#bfd07d"/></g><path d="M20 34H60V40H17V37H20Z" fill="#c5a5ae"/>${tileRect(29,33,3,7,dark)}${tileRect(47,35,5,3,'#eeb383')}${tileRect(27,46,27,5,dark)}`,
     picnic:`<path d="M12 29H65V34H69V41H74V53H6V41H9V34H12Z" fill="${cream}"/><path d="M15 29H22V53H15M34 29H41V53H34M54 29H61V53H54M7 40H73V46H7" fill="#c8867d"/>${tileRect(25,27,26,16,'#ae8054')}<path d="M29 27V20H33V16H43V20H47V27H43V21H33V27Z" fill="${wood}"/><path d="M29 30H47V33H29M29 36H47V38H29" fill="#e9c18b"/>${tileRect(55,43,10,6,'#fff2cb')}`,
     greenhouse:`<path d="M9 24H13V18H21V13H29V8H36V4H44V8H51V13H59V18H67V24H71V54H9Z" fill="#54827b"/><path d="M13 26H67V50H13M18 21H62V24H18M26 15H54V20H26M34 9H46V14H34Z" fill="#aac9b5"/><path d="M37 7H42V52H37M23 17H26V52H23M54 17H57V52H54M10 25H70V28H10" fill="#739b87"/><path d="M15 30H21V34H15M28 30H34V32H28M45 17H50V19H45" fill="#e8eace"/><path d="M15 45H32V52H15M46 45H63V52H46" fill="#b7855e"/><path d="M20 45V36H16V32H22V36H26V31H30V38H25V45M51 45V34H48V30H53V36H58V32H63V37H56V45" fill="#62884c"/>`,
-    firefly:tileGroup(23,7,.83,tileLamp(0,0))+tileGroup(57,14,.83,tileLamp(0,0))
+    firefly:tileGroup(23,7,.83,tileLamp(0,0))+tileGroup(57,14,.83,tileLamp(0,0)),
+    xmasLights:`<path d="M12 7H17V49H12M63 7H68V49H63M8 49H22V53H8M58 49H72V53H58" fill="${wood}"/><path d="M15 9H25V13H36V16H47V13H58V9H65V12H59V16H48V19H35V16H24V12H15Z" fill="#527559"/><path d="M24 14H28V23H24M37 18H41V27H37M50 15H54V24H50" fill="#fff0b7"/><path d="M21 21H30V29H21M34 25H43V33H34M47 22H56V30H47" fill="#fff1b0" opacity=".3"/><path d="M23 21H28V27H23" fill="#d97e76"/><path d="M36 25H41V31H36" fill="#eac378"/><path d="M49 22H54V28H49" fill="#9bbd93"/><path d="M10 34H19V37H10M61 34H70V37H61" fill="#d1987e"/>`,
+    snowGlobe:`<path d="M23 9H31V5H49V9H57V16H62V35H57V42H23V37H18V17H23Z" fill="#86abae"/><path d="M25 11H32V8H48V12H55V18H59V34H53V39H27V35H21V18H25Z" fill="#c4dfd8"/><path d="M25 34H55V40H25" fill="#f8edcd"/><path d="M38 35H43V41H38" fill="${wood}"/><path d="M39 14H42V19H47V24H51V29H54V35H27V29H31V24H35V19H39Z" fill="#6d9271"/><path d="M39 12H42V17H39M36 14H45V16H36" fill="#f3d283"/><path d="M34 26H37V29H34M44 30H47V33H44" fill="#cb8280"/><path d="M27 17H30V20H27M51 22H54V25H51M24 29H27V32H24M44 11H47V14H44" fill="#fff9e5"/><path d="M24 40H56V45H60V53H20V45H24Z" fill="#9c6467"/><path d="M24 46H56V49H24M36 50H44V53H36" fill="#e8bd83"/>`,
+    giftBench:`<path d="M9 25H71V31H9M12 31H17V51H12M63 31H68V51H63M9 40H71V44H9" fill="${wood}"/><path d="M8 29H72V35H8" fill="${light}"/><path d="M14 15H31V29H14" fill="#b86f70"/><path d="M21 15H25V29H21M14 19H31V22H14" fill="#f2d292"/><path d="M19 10H23V15H19M24 10H28V15H24" fill="#e3b985"/><path d="M39 9H63V29H39" fill="#72947a"/><path d="M48 9H53V29H48M39 16H63V20H39" fill="#f2d7a2"/><path d="M44 4H49V9H44M53 3H58V9H53" fill="#ddb779"/><path d="M6 35H16V40H6M64 35H74V40H64" fill="#eee4cb"/><path d="M17 44H62V47H17" fill="#a37b55"/>`
   };
   return `<svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" shape-rendering="crispEdges">${tileRect(9,53,62,4,'#69534922')}${art[kind]||''}</svg>`;
 };
@@ -186,7 +204,7 @@ roomScene=function(){
 gardenPlotsG=function(){
   return LV.garden.plots.map((p,i)=>{
     const x=19+(i%3)*150,y=265+Math.floor(i/3)*110,w=140,h=91,ready=p&&p.stage>=4,due=p&&!ready&&dueCare(p.care),f=p?(FRUITS[p.type]||FRUITS.tomato):null;
-    const action=!p?`plotPicker(${i})`:ready?`collectPlot(${i})`:`waterPlot(${i})`,label=(i+1)+'번 밭 '+(!p?'씨앗 심기 · 3하트':f.n+(ready?' 수확하기 · 수확물 2개':` ${p.stage||0}/4 · `+(due?'지금 물주기':nextCareLabel(p.care))));
+    const action=!p?`plotPicker(${i})`:ready?`collectPlot(${i})`:`waterPlot(${i})`,label=(i+1)+'번 밭 '+(!p?`씨앗 심기 · ${CROP_SEED_COST}하트`:f.n+(ready?' 수확하기 · 수확물 2개':` ${p.stage||0}/4 · `+(due?'지금 물주기':nextCareLabel(p.care))));
     let art=tileRect(x,y+5,w,h,'#795c3a')+tileRect(x,y,w,h,ready?'#e6c17c':'#c49a61')+tileRect(x+4,y+4,w-8,h-8,'#9a7148')+tileRect(x+7,y+7,w-14,h-25,p&&p.wateredAt&&Date.now()-p.wateredAt<3600000?'#695644':'#886442');
     for(let r=0;r<4;r++)art+=tileRect(x+10,y+15+r*14,w-20,3,'#4e4838','opacity=".36"');
     for(let n=0;n<17;n++)art+=tileRect(x+12+(n*37)%112,y+12+(n*17)%46,2,2,n%2?'#c49b65':'#574735');
@@ -236,7 +254,7 @@ renderGarden=function(){
   if(night)g+=tileRect(0,0,480,H,'#293c50','opacity=".15" pointer-events="none"');
   g+='</svg>';
   const empty=LV.garden.plots.filter(p=>!p).length,ready=LV.garden.plots.filter(p=>p&&p.stage>=4).length,growing=LV.garden.plots.length-empty-ready;
-  $('livingView').innerHTML=sceneToolbar('햇살 머무는 우리 텃밭')+`<div class="living-scene pixel-garden ${worldStill?'world-still':''}">${g}<div class="pixel-scene-caption"><span>THE LITTLE GARDEN</span><small>${SEASON_META[season].n} · 함께 키우는 작은 선물</small></div></div><div class="garden-summary"><span class="garden-stat"><b>${growing}</b><small>자라는 중</small></span><span class="garden-stat ready"><b>${ready}</b><small>수확 가능</small></span><span class="garden-stat"><b>${empty}</b><small>빈 밭</small></span></div>`+worldDashboardHtml('garden')+gardenGuideHtml()+worldControls()+petFamilyHtml();
+  $('livingView').innerHTML=sceneToolbar('햇살 머무는 우리 텃밭')+`<div class="living-scene pixel-garden ${worldStill?'world-still':''}">${g}<div class="pixel-scene-caption"><span>THE LITTLE GARDEN</span><small>${SEASON_META[season].n} · 함께 키우는 작은 선물</small></div></div><div class="garden-summary"><span class="garden-stat"><b>${growing}</b><small>자라는 중</small></span><span class="garden-stat ready"><b>${ready}</b><small>수확 가능</small></span><span class="garden-stat"><b>${empty}</b><small>빈 밭</small></span></div>`+(typeof gardenTreeHtml==='function'?gardenTreeHtml():'')+worldDashboardHtml('garden')+gardenGuideHtml()+worldControls()+petFamilyHtml();
 };
 
 function pixelShopFront(){

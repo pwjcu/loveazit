@@ -92,7 +92,7 @@ label.chk{font-size:13px;color:#b99aa3;display:flex;align-items:center;gap:4px;m
 #modal[open]{display:flex}#modal::backdrop{background:#1a111bcc}
 #modal img{display:block;width:100%;height:60dvh;object-fit:contain;border-radius:12px;touch-action:pan-y}.photo-stage{width:100%}.photo-modal-head,.photo-slider{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px}.photo-modal-head{margin-bottom:10px}.photo-modal-head button,.photo-slider button{min-width:44px;min-height:44px}.photo-slider{margin-top:10px}.photo-slider[hidden]{display:none}
 #modal .cap{color:#fff;margin:10px 0;font-size:14px;text-align:center}
-.calendar-tabs{display:flex;gap:6px;margin-top:12px}.calendar-tabs button{flex:1;min-height:44px}.calendar-tabs button[aria-pressed=true]{background:#ac4666;color:white}.wish-intro{font-size:13px;line-height:1.6;color:#80656e;margin-bottom:12px}.wish-form label{display:block;font-size:12px;margin:10px 0 4px}.wish-form textarea{min-height:76px;resize:vertical}.wish-form input[type=url]{width:100%;min-height:44px;padding:8px 10px;border:2px solid #ffe0e8;border-radius:12px;font:inherit;background:#fff}.wish-item{padding:14px 0;border-bottom:1px dashed #ebc9d4}.wish-item:last-child{border-bottom:0}.wish-item h3{font-size:16px;font-weight:400;overflow-wrap:anywhere}.wish-item p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;margin-top:6px}.wish-item small{font-size:11px;color:#80656e}.wish-item a{display:inline-block;max-width:100%;overflow-wrap:anywhere;color:#943957;padding:10px 0;font-size:13px}.wish-actions{display:flex;gap:6px;margin-top:6px}.wish-actions button{min-height:44px}.wish-empty{padding:18px 8px;text-align:center;color:#80656e;font-size:13px;line-height:1.7}
+.calendar-tabs{display:flex;gap:6px;margin-top:12px}.calendar-tabs button{flex:1;min-height:44px}.calendar-tabs button[aria-pressed=true]{background:#ac4666;color:white}.wish-intro{font-size:13px;line-height:1.6;color:#80656e;margin-bottom:12px}.wish-form label{display:block;font-size:12px;margin:10px 0 4px}.wish-form textarea{min-height:76px;resize:vertical}.wish-form select,.wish-form input[type=url]{width:100%;min-height:44px;padding:8px 10px;border:2px solid #ffe0e8;border-radius:12px;font:inherit;background:#fff}.wish-item{padding:14px 0;border-bottom:1px dashed #ebc9d4}.wish-item:last-child{border-bottom:0}.wish-item h3{font-size:16px;font-weight:400;overflow-wrap:anywhere}.wish-item p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;margin-top:6px}.wish-item small{font-size:11px;color:#80656e}.wish-item a{display:inline-block;max-width:100%;overflow-wrap:anywhere;color:#943957;padding:10px 0;font-size:13px}.wish-actions{display:flex;gap:6px;margin-top:6px}.wish-actions button{min-height:44px}.wish-empty{padding:18px 8px;text-align:center;color:#80656e;font-size:13px;line-height:1.7}
 /* notes */
 #nlist{max-height:52vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0}
 .bub{max-width:78%;padding:8px 12px;border-radius:16px;font-size:14px;position:relative}
@@ -322,9 +322,10 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 </style>
-<link rel="stylesheet" href="assets/azit.css?v=20260912-pixel">
+<link rel="stylesheet" href="assets/azit.css?v=20260919-garden">
 <link rel="stylesheet" href="assets/couple.css?v=20260912-pixel">
 <link rel="stylesheet" href="assets/together.css?v=20260912-pixel">
+<link rel="stylesheet" href="assets/garden-life.css?v=20260919-garden">
 <link rel="stylesheet" href="assets/settings-extra.css?v=20260908-life">
 </head>
 <body>
@@ -401,6 +402,8 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
       <h2 class="stitle">📍 언젠가 함께</h2>
       <p class="wish-intro">날짜는 나중에 정해도 좋아요.<br>가보고 싶은 곳, 해보고 싶은 일, 마음에 든 릴스를 둘이 모아둬요.</p>
       <form class="wish-form" id="wishForm" onsubmit="event.preventDefault();saveWish()">
+        <label for="wishAuthor">아이디어를 남기는 사람</label><select id="wishAuthor" style="width:100%;min-height:44px" aria-describedby="wishAuthorHint"><option value="1"></option><option value="2"></option><option value="0" hidden>우리</option></select>
+        <p id="wishAuthorHint" class="wish-intro">이름을 선택한 뒤 남겨주세요. 수정할 때는 기존 작성자가 유지되며 직접 바꿀 수 있어요.</p>
         <label for="wishTitle">장소나 하고 싶은 일</label><input id="wishTitle" type="text" maxlength="80" placeholder="예: 바다가 보이는 카페에서 브런치" required>
         <label for="wishLink">릴스·지도·예약 링크 (선택)</label><input id="wishLink" type="url" maxlength="2000" placeholder="https://…" inputmode="url">
         <label for="wishNote">둘이 남기는 메모 (선택)</label><textarea id="wishNote" maxlength="1000" placeholder="어떤 점이 마음에 들었는지, 가면 하고 싶은 일"></textarea>
@@ -461,7 +464,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
 <div class="page" id="p6">
   <div class="card">
     <div class="stitle">🏡 우리 리빙룸</div>
-    <div class="mut">천천히 모으는 우리 집 · 둘이 합쳐 하루 최대 8💗<br>수확물은 비둘기 먹이와 특별 질문에 써요.</div>
+    <div class="mut">함께 모으는 우리 집 · 일반 보상 하루 최대 16💗<br>수확물로 하트 교환·소품 제작·나무 키우기도 즐겨요.</div>
     <div class="loc-tabs">
       <button id="locRoom" class="on" onclick="setLoc('room')">🏠 거실</button>
       <button id="locGarden" onclick="setLoc('garden')">🌿 텃밭</button>
@@ -646,7 +649,11 @@ const FRUITS={
   strawberry:{n:'딸기',e:'🍓',c:'#e8385a'},
   cherry:{n:'체리',e:'🍒',c:'#c62f45'},
   grape:{n:'포도',e:'🍇',c:'#8a5ab9'},
-  peach:{n:'복숭아',e:'🍑',c:'#f5a878'}
+  peach:{n:'복숭아',e:'🍑',c:'#f5a878'},
+  carrot:{n:'당근',e:'🥕',c:'#ed984b'},
+  pumpkin:{n:'호박',e:'🎃',c:'#d98b3c'},
+  corn:{n:'옥수수',e:'🌽',c:'#efd16f'},
+  blueberry:{n:'블루베리',e:'🫐',c:'#687aa7'}
 };
 const THEMES={
   cozy:{n:'코지 핑크',e:'🌸',wall:'#f7dbe3',blanket:'#d9667c',floor:'#aa7950',floorLine:'#8f643f',trim:'#d3aa76',rug:'#d99486',rug2:'#f2c6ba'},
@@ -664,14 +671,18 @@ const DOG_BREEDS={
   dachshund:{n:'닥스훈트',A:'#8a5432',B:'#b9825a'},
   beagle:{n:'비글',A:'#a97448',B:'#f4e8d6'},
   jindo:{n:'진돗개',A:'#ead9b5',B:'#fbf6ea'},
-  chihuahua:{n:'치와와',A:'#c99a6a',B:'#f0dcc0'}
+  chihuahua:{n:'치와와',A:'#c99a6a',B:'#f0dcc0'},
+  cocker:{n:'코카스파니엘',A:'#b77545',B:'#f0d3a5'},
+  pomeranian:{n:'포메라니안',A:'#e4b477',B:'#fff0cf'}
 };
 const CAT_BREEDS={
   cheese:{n:'치즈냥',A:'#eda155',B:'#fff4e2'},
   tuxedo:{n:'턱시도',A:'#3b3b46',B:'#ffffff'},
   calico:{n:'삼색이',A:'#e8a055',B:'#fffdf8'},
   blue:{n:'러시안블루',A:'#8d9bab',B:'#c3cdd8'},
-  siam:{n:'샴',A:'#e8dcc4',B:'#6c5142'}
+  siam:{n:'샴',A:'#e8dcc4',B:'#6c5142'},
+  norwegian:{n:'노르웨이숲',A:'#89958e',B:'#edf0db'},
+  bengal:{n:'뱅갈',A:'#c79658',B:'#f0d7a4'}
 };
 const SEASON_META={
   spring:{n:'봄',e:'🌸',cls:'season-spring',fx:'sp',msg:'벚꽃이 활짝 피었어요! 아지트에도 봄바람이 불어요.'},
@@ -698,10 +709,11 @@ const SHOP={
 const THEME_COST=200;
 const FLOWER_COST=5;
 const PET_COST=50;
-const CARE_REWARD=1;
-const ACT_REWARD=2;
+const CARE_REWARD=2;
+const ACT_REWARD=3;
 const MILESTONE_REWARD=15;
-const DAILY_HEART_CAP=8;
+const DAILY_HEART_CAP=16;
+const CROP_SEED_COST=2;
 const SEASON_REWARD=5;
 let serverTimeOffset=0;
 function appNow(){return Date.now()+serverTimeOffset;}
@@ -869,7 +881,7 @@ async function saveLiving(){
   await DB.setObj('living',livingPayload(LV)); renderHearts(); renderLiving(); renderCareList();
 }
 function grantHeart(state,kind,amount,dk){
-  const limits={visit:1,note:1,photo:1,qa:1,care:2,sleep:1};
+  const limits={visit:1,note:1,photo:1,qa:1,care:3,sleep:1};
   if(!limits[kind]||!Number.isFinite(amount)||amount<=0)return false;
   state.rewardLedger=state.rewardLedger||{};
   if(!state.rewardLedger[dk]){
@@ -1096,26 +1108,34 @@ async function addEv(){
 }
 
 /* ---- 언젠가 함께 ---- */
-let editingWishId=null,wishBusy=false;
+let editingWishId=null,wishBusy=false,wishDraft=false;
+$('wishForm').addEventListener('input',()=>wishDraft=true);
+$('wishAuthor').addEventListener('change',()=>wishDraft=true);
+function renderWishAuthor(){
+  $('wishAuthor').options[0].textContent=S.n1;$('wishAuthor').options[1].textContent=S.n2;
+  if(!wishDraft&&!editingWishId&&!wishBusy)$('wishAuthor').value=String(who===2?2:1);
+}
 function showCalendarTab(tab){
+  renderWishAuthor();
   const wishesOpen=tab==='wishes';$('calendarPanel').hidden=wishesOpen;$('wishesPanel').hidden=!wishesOpen;
   $('calendarTab').setAttribute('aria-pressed',String(!wishesOpen));$('wishesTab').setAttribute('aria-pressed',String(wishesOpen));
 }
 function safeWishLink(value){try{const url=new URL(value);return ['https:','http:'].includes(url.protocol)?url.href:'';}catch{return '';}}
 function renderWishes(){
+  renderWishAuthor();
   $('wishCount').textContent=wishes.length;
   $('wishList').innerHTML=[...wishes].sort((a,b)=>(Number(b.ts)||0)-(Number(a.ts)||0)).map(w=>{
     const link=safeWishLink(w.link),author=w.who===1?S.n1:w.who===2?S.n2:'우리';
     return `<article class="wish-item" data-wish-id="${esc(w.id)}"><h3>${esc(w.title||'함께 가고 싶은 곳')}</h3><small>${esc(author)}가 모아둔 아이디어${w.date?' · '+esc(w.date):''}</small>${w.note?`<p>${esc(w.note)}</p>`:''}${link?`<a href="${esc(link)}" target="_blank" rel="noopener noreferrer">↗ ${esc(new URL(link).hostname)} 링크 열기</a>`:''}<div class="wish-actions"><button class="btn ghost sm" data-wish-action="edit">수정</button><button class="btn ghost sm" data-wish-action="delete">삭제</button></div></article>`;
   }).join('')||'<div class="wish-empty">우리의 다음 즐거움을 모아볼까요?<br>날짜 없이 이름이나 링크부터 남겨보세요.</div>';
 }
-function resetWishForm(){editingWishId=null;$('wishForm').reset();$('wishSave').textContent='함께 모아두기';$('wishCancel').hidden=true;$('wishError').textContent='';}
+function resetWishForm(){editingWishId=null;wishDraft=false;$('wishForm').reset();$('wishAuthor').value=String(who===2?2:1);$('wishSave').textContent='함께 모아두기';$('wishCancel').hidden=true;$('wishError').textContent='';}
 async function saveWish(){
   if(wishBusy)return;const title=$('wishTitle').value.trim(),rawLink=$('wishLink').value.trim(),note=$('wishNote').value.trim(),link=rawLink?safeWishLink(rawLink):'';
   $('wishError').textContent='';if(!title){$('wishError').textContent='장소나 하고 싶은 일의 이름을 적어주세요.';return;}
   if(rawLink&&!link){$('wishError').textContent='https:// 또는 http://로 시작하는 링크를 넣어주세요.';return;}
-  const id=editingWishId;wishBusy=true;Array.from($('wishForm').elements).forEach(el=>el.disabled=true);
-  try{if(id)await DB.patch('wishes',id,{title,link,note});else await DB.add('wishes',{title,link,note,who,date:todayStr()});resetWishForm();toast(id?'메모를 수정했어요':'둘이 가고 싶은 곳에 모아뒀어요 📍');}
+  const id=editingWishId,author=Number($('wishAuthor').value);wishBusy=true;Array.from($('wishForm').elements).forEach(el=>el.disabled=true);
+  try{if(id)await DB.patch('wishes',id,{title,link,note,who:author});else await DB.add('wishes',{title,link,note,who:author,date:todayStr()});resetWishForm();toast(id?'메모를 수정했어요':'둘이 가고 싶은 곳에 모아뒀어요 📍');}
   catch{$('wishError').textContent='저장하지 못했어요. 연결을 확인하고 다시 눌러주세요.';}
   finally{wishBusy=false;Array.from($('wishForm').elements).forEach(el=>el.disabled=false);}
 }
@@ -1123,7 +1143,7 @@ $('wishList').addEventListener('click',async e=>{
   const button=e.target.closest('[data-wish-action]');if(!button||wishBusy)return;
   const id=button.closest('[data-wish-id]').dataset.wishId,w=wishes.find(x=>x.id===id);if(!w)return;
   if(button.dataset.wishAction==='edit'){
-    editingWishId=id;$('wishTitle').value=w.title||'';$('wishLink').value=w.link||'';$('wishNote').value=w.note||'';
+    editingWishId=id;wishDraft=true;$('wishAuthor').value=String(w.who===1||w.who===2?w.who:0);$('wishTitle').value=w.title||'';$('wishLink').value=w.link||'';$('wishNote').value=w.note||'';
     $('wishSave').textContent='수정 저장';$('wishCancel').hidden=false;$('wishError').textContent='';$('wishTitle').focus();return;
   }
   if(!confirm('이 메모를 지울까요?'))return;
@@ -1227,6 +1247,8 @@ function setWho(w){
   if(typeof renderPostOffice==='function')renderPostOffice();
   if(typeof renderSettingsExtras==='function')renderSettingsExtras();
   if(typeof renderTogether==='function')renderTogether();
+  if(typeof renderWishAuthor==='function')renderWishAuthor();
+  if(typeof renderGardenTree==='function')renderGardenTree();
 }
 function renderNotes(){if(typeof renderPostOffice==='function')renderPostOffice();}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
@@ -1764,6 +1786,7 @@ function renderShop(){
     cards+=shopCard(preview,info.e+' '+info.n,status,`buyTheme('${t}')`,current);
   }
   h+=furnitureShopHtml();
+  h+=holidayShopHtml();
   h+=shopSection('shop-interior','🏠','인테리어 테마','200하트로 벽·바닥·러그·침구와 테마별 장식까지',cards,'');
   $('livingView').innerHTML=h;
 }
@@ -2139,11 +2162,12 @@ function go(i,btn){
 function renderAll(){ renderHome(); renderSeasonCard(); renderCal(); renderWishes(); renderPhotos(); renderNotes(); renderQA(); renderHearts(); renderLiving(); renderCareList(); renderFortune();if(typeof renderSettingsExtras==='function')renderSettingsExtras();if(typeof renderTogether==='function')renderTogether(); }
 </script>
 <script src="assets/vendor/korean-lunar-calendar.min.js"></script>
-<script src="assets/world.js?v=20260912-chalk"></script>
-<script src="assets/pixel-world.js?v=20260912-pixel"></script>
+<script src="assets/world.js?v=20260919-garden"></script>
+<script src="assets/pixel-world.js?v=20260919-garden"></script>
 <script src="assets/fortune.js"></script>
 <script src="assets/fortune-sync.js?v=20260912-pixel"></script>
 <script src="assets/couple.js?v=20260912-pixel"></script>
+<script src="assets/garden-life.js?v=20260919-garden"></script>
 <script src="assets/settings-extra.js?v=20260912-pixel"></script>
 <script src="assets/together.js?v=20260912-pixel"></script>
 <script>setWho(who); applySeason(); boot().then(async()=>{bootFortune();bootCouple();bootTogether();bootSettingsExtras();await bootFortuneServices();});</script>

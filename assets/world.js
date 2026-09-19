@@ -63,8 +63,9 @@ function worldNextTask(place){
   if(ready>=0)return{icon:'basket',title:'통통하게 익었어요',note:(ready+1)+'번 밭에서 수확물 2개를 담아가요',button:'수확하러 가기',action:place==='garden'?`collectPlot(${ready})`:"setLoc('garden')"};
   if(thirsty>=0)return{icon:'water',title:'새싹이 물을 기다려요',note:(thirsty+1)+'번 밭에 물을 주면 한 단계 자라요',button:'물 주러 가기',action:place==='garden'?`waterPlot(${thirsty})`:"setLoc('garden')"};
   const empty=plots.findIndex(p=>!p);
-  if(empty>=0&&LV.hearts>=3)return{icon:'sprout',title:'다음 수확을 시작해요',note:'씨앗 3하트 · 수확물로 편지와 질문을 즐겨요',button:'씨앗 고르기',action:place==='garden'?`plotPicker(${empty})`:"setLoc('garden')"};
-  if(worldProduceTotal())return{icon:'basket',title:'바구니에 담긴 작은 선물',note:'수확물로 비둘기를 응원하거나 특별 질문을 열어요',button:'바구니 열기',action:'openWorldPantry()'};
+  if(worldProduceTotal()>=4)return{icon:'basket',title:'수확물을 새로운 즐거움으로',note:'하트 교환 · 소품 제작 · 나무 퇴비로 써보세요',button:'바구니 열기',action:'openWorldPantry()'};
+  if(empty>=0&&LV.hearts>=CROP_SEED_COST)return{icon:'sprout',title:'다음 수확을 시작해요',note:'씨앗 '+CROP_SEED_COST+'하트 · 수확물로 우리 공간을 꾸며요',button:'씨앗 고르기',action:place==='garden'?`plotPicker(${empty})`:"setLoc('garden')"};
+  if(worldProduceTotal())return{icon:'basket',title:'바구니에 담긴 작은 선물',note:'하트·소품·나무부터 비둘기 간식과 특별 질문까지',button:'바구니 열기',action:'openWorldPantry()'};
   if(place==='room'&&LV.pets.length&&!isSleeping())return{icon:'paw',title:'오늘도 네 곁에',note:'공놀이와 쓰다듬기로 조금씩 더 친해져요',button:'같이 놀기',petId:LV.pets[0].id,action:"interactPet(this.dataset.petId,'play')"};
   return{icon:'moon',title:isSleeping()?'포근한 꿈을 꾸는 중':'느긋하게 쉬어가는 시간',note:plots.some(Boolean)?'흙이 촉촉해요. 다음 물주기 때 만나요':'편지 한 장으로 오늘의 마음을 전해요',button:'편지 보러 가기',action:'openPigeonLetters()'};
 }
@@ -82,11 +83,37 @@ function worldDashboardHtml(place){
   const task=worldNextTask(place),count=worldProduceTotal();
   return `<section class="world-dashboard" aria-label="아지트의 작은 할 일"><div class="world-dashboard-top"><span class="world-kicker">오늘의 작은 행복</span><button type="button" class="pantry-chip" data-world-focus="pantry" onclick="openWorldPantry()">${worldIcon('basket')}<span>수확 바구니 <b>${count}</b></span></button></div><div class="world-objective"><span class="world-objective-icon">${worldIcon(task.icon)}</span><div><strong>${esc(task.title)}</strong><p>${esc(task.note)}</p></div><button type="button" data-world-focus="objective" data-pet-id="${esc(task.petId||'')}" onclick="${esc(task.action)}">${task.button}<span aria-hidden="true"> ↗</span></button></div></section>`;
 }
+const PRODUCE_TRADE_COST=4,PRODUCE_TRADE_REWARD=6,PRODUCE_TRADE_LIMIT=2;
+function produceTradeUsed(state=LV,day=dayKey()){return Math.max(0,Math.floor(Number(state.produceTrades?.[day])||0));}
+function christmasShopOpen(now=appNow()){const md=dayKey(new Date(now)).slice(5);return md>='11-15'||md<='01-07';}
+function furnitureProduceCost(item){return item.produceCost||Math.ceil(item.cost*.65);}
 function openWorldPantry(){
-  const total=worldProduceTotal();
-  openAzitDialog('우리의 수확 바구니',`<div class="pantry-intro">${worldIcon('basket')}<div><strong>직접 기른 선물 ${total}개</strong><p>마당에서 자란 마음을 함께 나눠요.</p></div></div><div class="pantry-grid">${Object.entries(FRUITS).map(([id,f])=>`<div class="pantry-crop ${(LV.pantry?.[id]||0)>0?'has-produce':''}"><svg viewBox="0 0 60 46" aria-hidden="true">${cropG({type:id,stage:4},30,24)}</svg><span>${f.n}</span><b>${Math.max(0,Math.floor(Number(LV.pantry?.[id])||0))}<small>개</small></b></div>`).join('')}</div><div class="pantry-uses"><button type="button" onclick="document.getElementById('azitDialog').close();openPigeonLetters()"><b>비둘기에게 간식 주기 ↗</b><span>수확물 1개로 편지 도착을 앞당겨요</span></button><button type="button" onclick="document.getElementById('azitDialog').close();openProduceQna()"><b>둘만의 특별 질문 ↗</b><span>수확물 4개로 새로운 이야기를 시작해요</span></button></div><p class="dialog-note">수확물은 함께 쓰는 바구니에 차곡차곡 모여요.</p>`);
+  const total=worldProduceTotal(),left=Math.max(0,PRODUCE_TRADE_LIMIT-produceTradeUsed());
+  openAzitDialog('우리의 수확 바구니',`<div class="pantry-intro">${worldIcon('basket')}<div><strong>직접 기른 선물 ${total}개</strong><p>자란 만큼, 함께 누릴 즐거움도 늘어요.</p></div></div><details class="pantry-crops"><summary>작물별 보유량 보기</summary><div class="pantry-grid">${Object.entries(FRUITS).map(([id,f])=>`<div class="pantry-crop ${(LV.pantry?.[id]||0)>0?'has-produce':''}"><svg viewBox="0 0 60 60" aria-hidden="true">${cropG({type:id,stage:4},30,37)}</svg><span>${f.n}</span><b>${Math.max(0,Math.floor(Number(LV.pantry?.[id])||0))}<small>개</small></b></div>`).join('')}</div></details><section class="harvest-market" aria-labelledby="harvestMarketTitle"><h3 id="harvestMarketTitle">오늘의 수확 교환소</h3><p>아무 수확물 ${PRODUCE_TRADE_COST}개 → ${PRODUCE_TRADE_REWARD}하트<br>둘이 합쳐 하루 ${PRODUCE_TRADE_LIMIT}번 · 오늘 ${left}번 남았어요</p><button type="button" id="produceTrade" class="btn" onclick="tradeProduce(this)" ${!left||total<PRODUCE_TRADE_COST?'disabled':''}>${!left?'오늘 교환 완료':total<PRODUCE_TRADE_COST?'수확물 '+(PRODUCE_TRADE_COST-total)+'개 더 필요':'수확물 4개로 6하트 받기'}</button><small>일반 보상 ${DAILY_HEART_CAP}하트와 별도예요. 한국 시간 자정에 다시 열려요.</small></section><div class="pantry-uses"><button type="button" onclick="openFurnitureWorkshop()"><b>수확물로 소품 만들기 ↗</b><span>하트 대신 수확물을 쓰고 거실·마당에 배치해요</span></button><button type="button" onclick="$('azitDialog').close();setLoc('garden');$('gardenTreeCard')?.scrollIntoView({behavior:worldStill?'auto':'smooth'})"><b>우리 나무에 퇴비 주기 ↗</b><span>수확물 4개로 함께 키우는 나무를 응원해요</span></button><button type="button" onclick="$('azitDialog').close();openPigeonLetters()"><b>비둘기에게 간식 주기 ↗</b><span>수확물 1개로 편지 도착을 앞당겨요</span></button><button type="button" onclick="$('azitDialog').close();openProduceQna()"><b>둘만의 특별 질문 ↗</b><span>수확물 4개로 새로운 이야기를 시작해요</span></button></div><p class="dialog-note">교환·제작·퇴비에는 바구니의 앞쪽 작물부터 사용해요. 모든 수확물은 같은 가치로 쓸 수 있어요.</p>`);
 }
-function gardenGuideHtml(){return `<div class="garden-guide garden-journey"><strong>새싹에서 작은 선물까지</strong><ol><li><b>01</b><span>씨앗 심기<small>3하트</small></span></li><li><b>02</b><span>물주기 4번<small>첫 물은 바로 · 이후 4시간</small></span></li><li><b>03</b><span>수확물 2개<small>편지 간식 · 특별 질문</small></span></li></ol></div>`;}
+async function tradeProduce(button){
+  if(worldBusy)return;const day=dayKey();if(button)button.disabled=true;
+  try{
+    const ok=await changeWorld(state=>{
+      const used=produceTradeUsed(state,day);if(used>=PRODUCE_TRADE_LIMIT)return worldFail('오늘은 두 번 모두 교환했어요. 내일 다시 만나요');
+      if(!spendProduce(state,PRODUCE_TRADE_COST))return worldFail('수확물 4개가 필요해요');
+      state.hearts+=PRODUCE_TRADE_REWARD;state.produceTrades={...(state.produceTrades||{}),[day]:used+1};
+      for(const key of Object.keys(state.produceTrades).sort().slice(0,-14))delete state.produceTrades[key];
+      return{message:'수확물 4개를 나누고 6하트를 받았어요 ♡'};
+    });
+    if(ok&&$('azitDialog')?.open&&$('produceTrade'))openWorldPantry();
+  }finally{if(button?.isConnected)button.disabled=produceTradeUsed()>=PRODUCE_TRADE_LIMIT||worldProduceTotal()<PRODUCE_TRADE_COST;}
+}
+function openFurnitureWorkshop(){
+  const list=Object.entries(FURNITURE).filter(([,f])=>!f.seasonal||christmasShopOpen());
+  openAzitDialog('수확물 소품 공방',`<p class="dialog-note">바구니의 수확물로 소품을 만들어요. 만든 소품은 바로 배치되고, 상점에서 언제든 무료로 보관·재배치할 수 있어요.</p><p class="workshop-wallet">함께 모은 수확물 <b>${worldProduceTotal()}개</b></p><div class="workshop-grid">${list.map(([id,f])=>{const cost=furnitureProduceCost(f),owned=LV.ownedFurniture.includes(id);return `<article><div class="workshop-art">${furnitureArt(f.kind)}</div><h3>${esc(f.n)}</h3><small>${f.slot.startsWith('yard')?'마당':'거실'} · 수확물 ${cost}개</small><button type="button" class="btn ghost" data-furniture-id="${id}" onclick="craftFurniture(this.dataset.furnitureId,this)" ${owned||worldProduceTotal()<cost?'disabled':''}>${owned?'이미 보유 중':worldProduceTotal()<cost?(cost-worldProduceTotal())+'개 더 모아요':'만들고 배치'}</button></article>`;}).join('')}</div>${!christmasShopOpen()?'<p class="dialog-note">11월 15일~1월 7일에는 크리스마스 소품도 만들 수 있어요.</p>':''}<button type="button" class="btn ghost form-submit" onclick="openWorldPantry()">바구니로 돌아가기</button>`);
+}
+async function craftFurniture(id,button){
+  if(worldBusy)return;if(button)button.disabled=true;
+  try{const ok=await buyFurniture(id,'produce');if(ok&&$('azitDialog')?.open)openFurnitureWorkshop();}
+  finally{if(button?.isConnected)button.disabled=false;}
+}
+function gardenGuideHtml(){return `<div class="garden-guide garden-journey"><strong>새싹에서 작은 선물까지</strong><ol><li><b>01</b><span>씨앗 심기<small>${CROP_SEED_COST}하트</small></span></li><li><b>02</b><span>물주기 4번<small>첫 물은 바로 · 이후 4시간</small></span></li><li><b>03</b><span>수확물 2개<small>하트·소품·나무 퇴비</small></span></li></ol></div>`;}
 
 function roomAtmosphereG(){
   const night=isNight(),th=THEMES[LV.theme]||THEMES.cozy;
@@ -286,7 +313,10 @@ const FURNITURE={
   arcade:{n:'미니 아케이드',cost:90,desc:'반짝이는 픽셀 게임 화면',slot:'shelf',kind:'arcade'},
   picnic:{n:'체크 피크닉 세트',cost:55,desc:'마당에 펼치는 담요와 도시락',slot:'yard',kind:'picnic'},
   greenhouse:{n:'작은 유리 온실',cost:100,desc:'햇빛이 비치는 마당 속 식물방',slot:'yard',kind:'greenhouse'},
-  firefly:{n:'반딧불 랜턴',cost:40,desc:'마당을 밝히는 두 개의 작은 등',slot:'yardLight',kind:'firefly'}
+  firefly:{n:'반딧불 랜턴',cost:40,desc:'마당을 밝히는 두 개의 작은 등',slot:'yardLight',kind:'firefly'},
+  xmasLights:{n:'크리스마스 별빛 전구',cost:24,produceCost:12,desc:'빨강과 초록 불빛으로 물드는 겨울',slot:'light',kind:'xmasLights',seasonal:true},
+  snowGlobe:{n:'눈 내리는 스노볼',cost:36,produceCost:18,desc:'선반 위 작은 겨울 마을',slot:'shelf',kind:'snowGlobe',seasonal:true},
+  giftBench:{n:'선물 가득 겨울 벤치',cost:48,produceCost:24,desc:'마당에서 함께 기다리는 크리스마스',slot:'yard',kind:'giftBench',seasonal:true}
 };
 Object.assign(THEMES,{
   cafe:{n:'크림 소다 카페',e:'☕',wall:'#efdfc3',blanket:'#649d90',floor:'#ba946c',floorLine:'#a27f59',trim:'#91aca1',rug:'#648e82',rug2:'#d9e7c9'},
@@ -325,23 +355,41 @@ function themeDetailG(){
   if(t==='lavender'||t==='sunset')out+=`<rect x="72" y="31" width="57" height="29" rx="2" fill="#fff0df"/><circle cx="111" cy="41" r="7" fill="${t==='sunset'?'#e49d6b':'#a392bd'}"/><path d="M76 55 90 38 101 52 111 44 125 57" fill="${t==='sunset'?'#b88679':'#8c8da9'}"/>`;
   return out;
 }
-function furnitureShopHtml(){return shopSection('shop-furniture','🛋️','소품 편집숍','같은 자리의 소품은 교체돼요 · 보유한 소품은 무료로 다시 배치',Object.entries(FURNITURE).map(([id,f])=>{
+function furnitureShopHtml(){return shopSection('shop-furniture','🛋️','소품 편집숍','같은 자리의 소품은 교체돼요 · 보유한 소품은 무료로 다시 배치',Object.entries(FURNITURE).filter(([,f])=>!f.seasonal).map(([id,f])=>{
   const owned=LV.ownedFurniture.includes(id),active=LV.furniture[f.slot]===id,short=!owned&&LV.hearts<f.cost;
   return shopCard(furnitureArt(f.kind),f.n,active?'배치 중 · 보관하기':owned?'보유 · 무료 배치':'💗 '+f.cost,`buyFurniture('${id}')`,false,`furniture-card ${active?'is-placed':owned?'is-owned':''}`).replace('</span><span class="cost">',`</span><small class="furniture-description">${f.desc}</small><span class="furniture-room">${f.slot.startsWith('yard')?'마당 소품':'거실 소품'}${short?' · '+(f.cost-LV.hearts)+'💗 더 모아요':''}</span><span class="cost">`);
 }).join(''));}
-async function buyFurniture(id){const f=FURNITURE[id];if(!f)return;await changeWorld(state=>{
-  if(state.furniture[f.slot]===id){delete state.furniture[f.slot];return{message:f.n+'를 보관했어요'};}
-  if(!state.ownedFurniture.includes(id)){if(!spendWorld(state,f.cost))return worldFail('하트가 부족해요 💔');state.ownedFurniture.push(id);}
-  state.furniture[f.slot]=id;return{message:f.n+' 배치 완료! '+(f.slot.startsWith('yard')?'마당':'거실')+'에서 만나보세요'};
-});}
+function holidayShopHtml(){
+  const open=christmasShopOpen();
+  const cards=Object.entries(FURNITURE).filter(([,f])=>f.seasonal).map(([id,f])=>{
+    const owned=LV.ownedFurniture.includes(id),active=LV.furniture[f.slot]===id;
+    return shopCard(furnitureArt(f.kind),f.n,active?'배치 중 · 보관하기':owned?'보유 · 무료 배치':open?'💗 '+f.cost:'11월 15일 오픈',`buyFurniture('${id}')`,!open&&!owned).replace('</span><span class="cost">',`</span><small class="furniture-description">${esc(f.desc)}<br>수확물 ${furnitureProduceCost(f)}개로 제작 가능</small><span class="cost">`);
+  }).join('');
+  return `<section class="holiday-notice"><b>${open?'크리스마스 마켓이 열렸어요':'미리 만나는 크리스마스'}</b><p>11월 15일~1월 7일 · 한국 시간 기준<br>구매한 장식은 계절이 지나도 계속 꾸밀 수 있어요.</p><button type="button" class="btn ghost" onclick="openFurnitureWorkshop()">수확물 공방 보기</button></section>`+shopSection('shop-christmas','🎄','둘만의 크리스마스',open?'하트로 사거나 수확물 공방에서 만들어요':'다가올 겨울의 새 장식을 구경해 보세요',cards);
+}
+async function buyFurniture(id,payment='hearts'){
+  const f=FURNITURE[id];if(!f||!['hearts','produce'].includes(payment))return false;
+  const seasonOpen=christmasShopOpen();
+  return changeWorld(state=>{
+    const owned=state.ownedFurniture.includes(id);
+    if(payment==='produce'&&owned)return worldFail('이미 만든 소품이에요. 상점에서 무료로 배치해 주세요');
+    if(state.furniture[f.slot]===id){delete state.furniture[f.slot];return{message:f.n+'를 보관했어요'};}
+    if(!owned){
+      if(f.seasonal&&!seasonOpen)return worldFail('크리스마스 마켓은 11월 15일~1월 7일에 열려요');
+      if(payment==='produce'?!spendProduce(state,furnitureProduceCost(f)):!spendWorld(state,f.cost))return worldFail(payment==='produce'?'수확물이 부족해요':'하트가 부족해요 💔');
+      state.ownedFurniture.push(id);
+    }
+    state.furniture[f.slot]=id;return{message:f.n+(payment==='produce'?' 제작·배치 완료! ':' 배치 완료! ')+(f.slot.startsWith('yard')?'마당':'거실')+'에서 만나보세요'};
+  });
+}
 
 function plotPicker(i){
   if(!Number.isInteger(i)||i<0||i>=LV.garden.plots.length||LV.garden.plots[i])return;
-  openAzitDialog((i+1)+'번 밭 · 무엇을 심을까요?',`<p class="dialog-note">씨앗 3💗 · 물주기 4번 뒤 수확물 2개가 생겨요.<br>첫 물은 바로, 다음 물주기는 4시간 뒤예요.</p><div class="seed-choice">${Object.entries(FRUITS).map(([id,f])=>`<button type="button" onclick="plantSeed(${i},'${id}')" ${LV.hearts<3?'disabled':''}><svg viewBox="0 0 60 42" aria-hidden="true">${cropG({type:id,stage:4},30,20)}</svg><b>${f.n}</b><small>씨앗 3💗 · 수확물 2개</small></button>`).join('')}</div>${LV.hearts<3?'<p class="form-error" role="status">씨앗을 심으려면 3하트가 필요해요.</p>':''}`);
+  openAzitDialog((i+1)+'번 밭 · 무엇을 심을까요?',`<p class="dialog-note">씨앗 ${CROP_SEED_COST}💗 · 물주기 4번 뒤 수확물 2개가 생겨요.<br>첫 물은 바로, 다음 물주기는 4시간 뒤예요.</p><div class="seed-choice">${Object.entries(FRUITS).map(([id,f])=>`<button type="button" onclick="plantSeed(${i},'${id}')" ${LV.hearts<CROP_SEED_COST?'disabled':''}><svg viewBox="0 0 60 60" aria-hidden="true">${cropG({type:id,stage:4},30,37)}</svg><b>${f.n}</b><small>씨앗 ${CROP_SEED_COST}💗 · 수확물 2개</small></button>`).join('')}</div>${LV.hearts<CROP_SEED_COST?'<p class="form-error" role="status">씨앗을 심으려면 '+CROP_SEED_COST+'하트가 필요해요.</p>':''}`);
 }
 async function plantSeed(i,type){
   if(!FRUITS[type])return;
-  const ok=await changeWorld(state=>{if(!Number.isInteger(i)||i<0||i>=state.garden.plots.length||state.garden.plots[i])return worldFail('이미 작물이 자라는 밭이에요');if(!spendWorld(state,3))return worldFail('씨앗은 3💗가 필요해요');state.garden.plots[i]={type,stage:0,care:[Date.now()],plantedAt:Date.now()};return{message:FRUITS[type].n+' 씨앗을 심었어요. 첫 물을 주세요!'};});
+  const ok=await changeWorld(state=>{if(!Number.isInteger(i)||i<0||i>=state.garden.plots.length||state.garden.plots[i])return worldFail('이미 작물이 자라는 밭이에요');if(!spendWorld(state,CROP_SEED_COST))return worldFail('씨앗은 '+CROP_SEED_COST+'💗가 필요해요');state.garden.plots[i]={type,stage:0,care:[Date.now()],plantedAt:Date.now()};return{message:FRUITS[type].n+' 씨앗을 심었어요. 첫 물을 주세요!'};});
   if(ok)$('azitDialog').close();
 }
 async function waterPlot(i){await changeWorld(state=>{const p=Number.isInteger(i)&&state.garden.plots[i];if(!p||p.stage>=4)return worldFail('수확할 수 있는 작물인지 확인해 주세요');if(!dueCare(p.care))return worldFail('촉촉한 흙이에요. '+nextCareLabel(p.care));p.stage=(p.stage||0)+1;p.care=p.stage>=4?[]:[Date.now()+4*3600000];p.wateredAt=Date.now();return{message:p.stage>=4?'다 자랐어요! 수확물 2개를 바구니에 담아보세요':'물을 주니 한 뼘 자랐어요 · '+p.stage+'/4'};});}
@@ -361,7 +409,7 @@ function gardenPlotsG(){
     const f=p?FRUITS[p.type]||FRUITS.tomato:null;
     const action=!p?`plotPicker(${i})`:ready?`collectPlot(${i})`:`waterPlot(${i})`;
     const due=p&&!ready&&dueCare(p.care),fresh=p&&p.wateredAt&&Date.now()-p.wateredAt<8000;
-    const label=(i+1)+'번 밭 '+(!p?'씨앗 심기 · 3하트':f.n+(ready?' 수확하기 · 수확물 2개':` ${p.stage||0}/4 · `+(due?'지금 물주기':nextCareLabel(p.care))));
+    const label=(i+1)+'번 밭 '+(!p?'씨앗 심기 · '+CROP_SEED_COST+'하트':f.n+(ready?' 수확하기 · 수확물 2개':` ${p.stage||0}/4 · `+(due?'지금 물주기':nextCareLabel(p.care))));
     let g=`<g class="clk garden-plot ${ready?'plot-ready':''}" role="button" tabindex="0" data-world-focus="plot-${i}" aria-label="${esc(label)}" onclick="${action}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${action}}">
       <rect x="${x}" y="${y+5}" width="${w}" height="${h}" rx="8" fill="#785135"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${ready?'#e9c37e':'#bf986c'}" stroke="#987046" stroke-width="2"/><rect x="${x+6}" y="${y+6}" width="${w-12}" height="${h-12}" rx="4" fill="${p&&p.wateredAt&&Date.now()-p.wateredAt<3600000?'#765140':'#906448'}"/>`;
     for(let r=0;r<3;r++)g+=`<path d="M${x+12} ${y+17+r*18}h101" stroke="#6f4d38" stroke-width="3" opacity=".6"/>`;
@@ -386,6 +434,7 @@ window.render_game_to_text=()=>JSON.stringify({
   pantry:{total:worldProduceTotal(),items:LV.pantry||{}},
   objective:locView==='shop'?null:worldNextTask(locView).title,
   pets:(LV.pets||[]).map(p=>({id:p.id,name:petName(p),kind:p.type,breed:p.breed,place:p.place,affection:p.affection||0,visible:p.place===locView})),
+  sharedTree:typeof gardenTreeTextState==='function'?gardenTreeTextState():null,
   garden:{plots:(LV.garden.plots||[]).map((p,index)=>p?{index,crop:p.type,stage:p.stage||0,ready:(p.stage||0)>=4,needsWater:(p.stage||0)<4&&Boolean(dueCare(p.care)),nextWaterAt:(p.care||[])[0]||null}:null),harvests:LV.garden.harvests||0},
   furniture:Object.values(LV.furniture||{}),
   cinema:cinemaState()

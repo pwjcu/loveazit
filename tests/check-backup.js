@@ -24,7 +24,7 @@ async (page) => {
       localStorage.setItem('events', JSON.stringify([{ id: 'same', title: '현재 일정', date: '2026-09-12', ts: 1 }]));
       const backup = prepareBackup(JSON.stringify({
         S: { start: '', n1: '백업 이름', n2: '백업 상대', h1: '#333333', h2: '#444444' },
-        AV: { p1: 35 }, living: { hearts: 77,together:{total:1,days:{'2026-09-12':{completed:true,'1':{mood:'sun',answer:'함께'}}}} },
+        AV: { p1: 35 }, living: { hearts: 77,produceTrades:{'2026-09-19':1},garden:{sharedTree:{id:'backup-tree',species:'pine',growth:24,careDays:{'1':'2026-09-19'}},treeCollection:{apple:1}},together:{total:1,days:{'2026-09-12':{completed:true,'1':{mood:'sun',answer:'함께'}}}} },
         notes:[{id:'archived-chalk',who:1,text:'보관할 마음',ts:1,boardVersion:2,boardArchivedAt:2}],
         events: [
           { id: 'same', title: '덮으면 안 됨', date: '2026-09-12', ts: 2 },
@@ -36,6 +36,7 @@ async (page) => {
       let restored = JSON.parse(localStorage.getItem('events'));
       check(JSON.parse(localStorage.getItem('settings')).n1 === '백업 이름' && JSON.parse(localStorage.getItem('living')).hearts === 77, '설정과 생활공간은 백업으로 교체');
       check(JSON.parse(localStorage.getItem('living')).together.total===1&&JSON.parse(localStorage.getItem('notes'))[0].boardArchivedAt===2,'참여 도장·일일 기록과 칠판 보관 상태를 백업에서 복원');
+      check(JSON.parse(localStorage.getItem('living')).garden.sharedTree.growth===24&&JSON.parse(localStorage.getItem('living')).garden.treeCollection.apple===1&&JSON.parse(localStorage.getItem('living')).produceTrades['2026-09-19']===1,'공동 나무·완성 나무·수확 교환 한도를 백업에서 복원');
       check(restored.length === 2 && restored.find(row => row.id === 'same').title === '현재 일정', '기존 ID 항목을 우선하고 없는 기록만 추가');
       check(restored.find(row => row.id === 'new-event').ts === 12345, '백업 ID와 작성 시각을 보존');
       base = { values: Object.fromEntries(BACKUP_MAIN_KEYS.map(key => [key, localStorage.getItem(key)])) };

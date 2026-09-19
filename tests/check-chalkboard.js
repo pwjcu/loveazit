@@ -48,7 +48,7 @@ async page=>{
   check(await page.evaluate(text=>notes.length===1&&notes[0].text===text&&notes[0].kind==='chalk',first),'첫 한마디를 기존 notes 저장소에 추가');
   check(await page.locator('.chalk-stack .chalk-copy').textContent()===first&&await page.locator('.chalk-stack img').count()===0&&await page.evaluate(()=>!window.__chalkXss),'게시된 칠판에서도 HTML 실행 없이 원문 표시');
   const firstReward=await page.evaluate(()=>({hearts:LV.hearts,count:LV.rewardLedger[dayKey()]?.counts?.note}));
-  check(firstReward.hearts===2&&firstReward.count===1,'첫 한마디에 note 활동 보상 1회 지급');
+  check(firstReward.hearts===3&&firstReward.count===1,'첫 한마디에 note 활동 보상 1회 지급');
 
   // New notes accumulate, including multiple messages by the same writer.
   await page.locator('#chalkComposeOpen').click();

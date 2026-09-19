@@ -72,7 +72,7 @@ const clone=value=>JSON.parse(JSON.stringify(value));
     const letters=Object.values(shared.value.mailbox||{});
     const today=await pages[0].evaluate(()=>dayKey());
     if(letters.length!==2||new Set(letters.map(letter=>letter.from)).size!==2)throw new Error(`simultaneous letters were not both retained (count=${letters.length}, senders=${letters.map(letter=>letter.from).join(',')})`);
-    if(shared.value.hearts!==2||shared.value.rewardLedger?.[today]?.counts?.note!==1)throw new Error(`letter rewards did not honor the shared daily cap (hearts=${shared.value.hearts}, note=${shared.value.rewardLedger?.[today]?.counts?.note})`);
+    if(shared.value.hearts!==3||shared.value.rewardLedger?.[today]?.counts?.note!==1)throw new Error(`letter rewards did not honor the shared daily cap (hearts=${shared.value.hearts}, note=${shared.value.rewardLedger?.[today]?.counts?.note})`);
 
     const before=clone(shared);
     const rejected=await pages[0].evaluate(()=>changeWorld(state=>{state.hearts=999;return worldFail('expected rollback');}));
@@ -80,7 +80,7 @@ const clone=value=>JSON.parse(JSON.stringify(value));
 
     await sync();
     const reflected=await Promise.all(pages.map(page=>page.evaluate(()=>({mail:Object.keys(LV.mailbox||{}).length,hearts:LV.hearts,note:Object.values(LV.rewardLedger||{})[0]?.counts?.note}))));
-    if(reflected.some(state=>state.mail!==2||state.hearts!==2||state.note!==1))throw new Error('latest shared state was not reflected in both clients');
+    if(reflected.some(state=>state.mail!==2||state.hearts!==3||state.note!==1))throw new Error('latest shared state was not reflected in both clients');
 
     process.stdout.write('PASS couple transactions: paid Q&A, 72h gate, pigeon feed, letters, rollback, two-client sync\n');
   }finally{

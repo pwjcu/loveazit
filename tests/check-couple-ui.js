@@ -8,8 +8,8 @@ async page=>{
   await page.evaluate(()=>document.fonts.ready);
   const nav=async text=>page.locator('nav button').filter({hasText:text}).click();
   const shot=async name=>page.screenshot({path:'output/playwright/couple-'+name+'.png',fullPage:true,animations:'disabled'});
-  check(await page.evaluate(()=>{const s=defaultLiving(),d=dayKey();for(let i=0;i<4;i++)grantHeart(s,'photo',2,d);grantHeart(s,'visit',2,d);grantHeart(s,'note',2,d);grantHeart(s,'care',1,d);grantHeart(s,'care',1,d);return s.hearts===28&&!grantHeart(s,'sleep',1,d)&&grantHeart(s,'photo',2,'2099-01-01')}),'활동별 반복 제한·하루8하트·다음날 보상');
-  check(await page.evaluate(()=>{const s=defaultLiving();s.dailyEarn[dayKey()]={photo:1};return!grantHeart(s,'note',2,dayKey())&&s.hearts===20}),'업데이트 전 오늘 적립량을 고려하고 기존 잔액 보존');
+  check(await page.evaluate(()=>{const s=defaultLiving(),d=dayKey();for(let i=0;i<4;i++)grantHeart(s,'photo',3,d);grantHeart(s,'visit',3,d);grantHeart(s,'note',3,d);grantHeart(s,'qa',3,d);grantHeart(s,'care',2,d);grantHeart(s,'care',2,d);return s.hearts===36&&!grantHeart(s,'care',2,d)&&!grantHeart(s,'sleep',1,d)&&grantHeart(s,'photo',3,'2099-01-01')}),'활동별 반복 제한·하루16하트·다음날 보상');
+  check(await page.evaluate(()=>{const s=defaultLiving();s.dailyEarn[dayKey()]={photo:1};return grantHeart(s,'note',3,dayKey())&&s.hearts===23&&s.rewardLedger[dayKey()].earned===13}),'업데이트 전 오늘 적립량을 고려하고 기존 잔액 보존');
   await page.evaluate(async()=>{LV=mergeLiving({hearts:60,pantry:{tomato:4},pets:[{id:'ui-husky',type:'dog',breed:'husky',care:[0],place:'room'}],garden:{plots:[{type:'tomato',stage:4,care:[]},null,null,null,null,null]}});await saveLiving();});
   await nav('룸');await page.locator('#locGarden').click();
   const beforeHarvest=await page.evaluate(()=>LV.hearts);
@@ -17,9 +17,9 @@ async page=>{
   check(await page.evaluate(()=>LV.pantry.tomato===6&&LV.garden.plots[0]===null)&&await page.evaluate(()=>LV.hearts)===beforeHarvest,'텃밭 수확은 하트 대신 수확물2개');
   await page.getByRole('button',{name:/1번 밭.*씨앗/}).click();
   await page.locator('.seed-choice button').first().click();
-  check(await page.evaluate(()=>LV.garden.plots[0].stage===0)&&await page.evaluate(()=>LV.hearts)===beforeHarvest-3,'씨앗3하트 구매');
+  check(await page.evaluate(()=>LV.garden.plots[0].stage===0)&&await page.evaluate(()=>LV.hearts)===beforeHarvest-2,'씨앗2하트 구매');
   await page.getByRole('button',{name:/1번 밭.*방울토마토/}).click();
-  check(await page.evaluate(()=>LV.garden.plots[0].stage===1)&&await page.evaluate(()=>LV.hearts)===beforeHarvest-3,'첫 물주기·하트 무지급');
+  check(await page.evaluate(()=>LV.garden.plots[0].stage===1)&&await page.evaluate(()=>LV.hearts)===beforeHarvest-2,'첫 물주기·하트 무지급');
   await page.evaluate(()=>waterPlot(0));check(await page.evaluate(()=>LV.garden.plots[0].stage===1),'물주기4시간 대기');
   await shot('garden');await page.locator('#locRoom').click();await shot('room');
   await nav('한마디');await page.locator('#letterBody').fill('<마음> 오늘도 고마워');
