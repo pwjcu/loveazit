@@ -120,14 +120,14 @@ furnitureArt=function(kind){
   return `<svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" shape-rendering="crispEdges">${tileRect(9,53,62,4,'#69534922')}${art[kind]||''}</svg>`;
 };
 placedFurnitureG=function(place){
-  const pos=place==='room'?{pet:[352,350,109,62],shelf:[368,207,63,45],light:[435,237,42,48]}:{yard:[316,113,102,74],yardLight:[132,127,82,60]};
+  const pos=place==='room'?{pet:[352,350,109,62],shelf:[368,207,63,45],light:[435,237,42,48]}:{yard:[365,222,105,76],yardLight:[108,152,65,52]};
   return Object.values(LV.furniture||{}).map(id=>{const f=FURNITURE[id],p=f&&pos[f.slot];return p?`<svg x="${p[0]}" y="${p[1]}" width="${p[2]}" height="${p[3]}" viewBox="0 0 80 60">${furnitureArt(f.kind)}</svg>`:'';}).join('');
 };
 
 const tileBasePetScene=petSceneG;
 petSceneG=function(place){
   // Each pet has its own clear lane: three friends never share a furniture slot.
-  return tileBasePetScene(place).replace(/translate\((185|249|316),260\)/g,(_,x)=>`translate(${({185:136,249:207,316:278})[x]},351)`).replace(/translate\((110|212|312),164\)/g,(_,x)=>`translate(${({110:120,212:208,312:294})[x]},185)`);
+  return tileBasePetScene(place).replace(/translate\((185|249|316),260\)/g,(_,x)=>`translate(${({185:136,249:207,316:278})[x]},351)`).replace(/translate\((110|212|312),164\)/g,(_,x)=>`translate(${({110:64,212:204,312:354})[x]},335)`);
 };
 
 roomScene=function(){
@@ -203,7 +203,7 @@ roomScene=function(){
 
 gardenPlotsG=function(){
   return LV.garden.plots.map((p,i)=>{
-    const x=19+(i%3)*150,y=265+Math.floor(i/3)*110,w=140,h=91,ready=p&&p.stage>=4,due=p&&!ready&&dueCare(p.care),f=p?(FRUITS[p.type]||FRUITS.tomato):null;
+    const x=19+(i%3)*150,y=435+Math.floor(i/3)*110,w=140,h=91,ready=p&&p.stage>=4,due=p&&!ready&&dueCare(p.care),f=p?(FRUITS[p.type]||FRUITS.tomato):null;
     const action=!p?`plotPicker(${i})`:ready?`collectPlot(${i})`:`waterPlot(${i})`,label=(i+1)+'번 밭 '+(!p?`씨앗 심기 · ${CROP_SEED_COST}하트`:f.n+(ready?' 수확하기 · 수확물 2개':` ${p.stage||0}/4 · `+(due?'지금 물주기':nextCareLabel(p.care))));
     let art=tileRect(x,y+5,w,h,'#795c3a')+tileRect(x,y,w,h,ready?'#e6c17c':'#c49a61')+tileRect(x+4,y+4,w-8,h-8,'#9a7148')+tileRect(x+7,y+7,w-14,h-25,p&&p.wateredAt&&Date.now()-p.wateredAt<3600000?'#695644':'#886442');
     for(let r=0;r<4;r++)art+=tileRect(x+10,y+15+r*14,w-20,3,'#4e4838','opacity=".36"');
@@ -220,9 +220,9 @@ gardenPlotsG=function(){
   }).join('');
 };
 renderGarden=function(){
-  const season=seasonOf(),night=isNight(),rows=Math.max(1,Math.ceil(LV.garden.plots.length/3)),H=278+rows*110;
+  const season=seasonOf(),night=isNight(),rows=Math.max(1,Math.ceil(LV.garden.plots.length/3)),H=448+rows*110;
   const pal={spring:['#b9d7d0','#b2bd7b','#89985e'],summer:['#a1cbd3','#9fae67','#788954'],fall:['#bfd0c7','#c4ae6e','#9d8b54'],winter:['#cadbd9','#e0e7d5','#bdcbbd']}[season];
-  let g=`<svg class="scene pixel-scene" viewBox="0 0 480 ${H}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-label="계절 나무와 돌길, 작물이 자라는 픽셀 텃밭">${tileRect(0,0,480,H,pal[1])}${tileRect(0,0,480,118,night?'#34475d':pal[0])}`;
+  let g=`<svg class="scene pixel-scene" viewBox="0 0 480 ${H}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-label="함께 키우는 나무와 작물이 자라는 픽셀 텃밭">${tileRect(0,0,480,H,pal[1])}${tileRect(0,0,480,118,night?'#34475d':pal[0])}`;
   g+=tileCloud(72,28,.95)+tileCloud(250,16,.7)+tileRect(408,28,24,24,night?'#e9e0b0':'#f4dca2')+tileRect(403,33,34,14,night?'#e9e0b0':'#f4dca2');
   g+='<path d="M0 88H20V80H47V72H78V63H103V72H126V80H150V91H177V84H200V77H227V68H253V74H278V83H306V92H331V82H356V72H386V64H411V74H442V85H480V125H0Z" fill="'+(night?'#465b5c':'#a2b397')+'"/>';
   for(let i=0;i<11;i++)g+=tileTree(i*49+8,131+(i%2)*7,.69);
@@ -241,20 +241,22 @@ renderGarden=function(){
   const fence=LV.garden.decor==='fence'||LV.garden.decor==='fountain';
   for(let i=0;i<11;i++){const x=127+i*31;g+=tileRect(x,142,6,fence?35:20,fence?'#aa8153':'#798554')+tileRect(x,139,6,4,fence?'#e0b77a':'#a9b275');}
   g+=tileRect(125,153,345,4,fence?'#c59b65':'#91a365');if(fence)g+=tileRect(125,168,345,4,'#9a754d');
-  g+=tileRect(0,229,480,25,'#aa966c')+tileRect(0,230,480,20,'#d3bd88');
-  for(let x=0;x<480;x+=23)g+=tileRect(x,230,1,20,'#aa966c')+tileRect(x+3,233,15,2,'#ead3a1');
-  for(let i=0;i<4;i++)g+=tileRect(35+i*7,190+i*9,30,6,'#c9ba93')+tileRect(38+i*7,190+i*9,23,2,'#e8d8ac');
+  g+=tileRect(0,399,480,25,'#aa966c')+tileRect(0,400,480,20,'#d3bd88');
+  for(let x=0;x<480;x+=23)g+=tileRect(x,400,1,20,'#aa966c')+tileRect(x+3,403,15,2,'#ead3a1');
+  for(let i=0;i<15;i++)g+=tileRect(37+(i%4)*4,196+i*14,30,7,'#c9ba93')+tileRect(40+(i%4)*4,196+i*14,23,2,'#e8d8ac');
   // Field sign and potting supplies.
-  g+=tileRect(239,126,6,47,'#8a6847')+tileRect(208,126,70,28,'#735b43')+tileRect(211,129,64,22,'#a98857')+tileLabel(243,144,'우리 텃밭','#ffedbf',12);
+  g+=tileRect(100,224,6,47,'#8a6847')+tileRect(70,222,70,28,'#735b43')+tileRect(73,225,64,22,'#a98857')+tileLabel(105,240,'우리 텃밭','#ffedbf',12);
   g+=tileGroup(440,202,1,'<path d="M-10-4H7V11H-10Z" fill="#7aa0a0"/><path d="M7-2H14V2H11V8H7M-10-2H-17V-6H-22V-9H-18V-7H-10" fill="#7aa0a0"/><path d="M-7-4V-9H4V-4" fill="none" stroke="#5e7f83" stroke-width="3"/><path d="M-7-1H-4V8H-7" fill="#b6c8b0"/>');
   if(LV.garden.decor==='fountain')g+=tileGroup(433,158,.72,'<path d="M-29 6H30V18H22V23H-21V18H-29Z" fill="#798d8e"/><path d="M-25 5H26V14H-25Z" fill="#9fc9c4"/><path d="M-5-23H5V7H-5M-15-26H15V-20H-15" fill="#a5b5a6"/><path class="water-sprinkles" d="M-1-41H2V-27H-1M7-37H10V-27H7M-9-35H-6V-27H-9" fill="#b8e0d5"/>');
   else g+=tileTree(444,166,.78);
+  if(typeof gardenTreeSceneG==='function')g+=gardenTreeSceneG();
   g+=placedFurnitureG('garden')+petSceneG('garden')+gardenPlotsG();
-  for(let i=0;i<rows*4;i++)g+=tileFlower(i%2?469:8,278+Math.floor(i/2)*48,season==='winter'?'#f8edd7':i%3?'#f4dba0':'#d59e9e',.7);
+  for(let i=0;i<rows*4;i++)g+=tileFlower(i%2?469:8,448+Math.floor(i/2)*48,season==='winter'?'#f8edd7':i%3?'#f4dba0':'#d59e9e',.7);
   if(night)g+=tileRect(0,0,480,H,'#293c50','opacity=".15" pointer-events="none"');
   g+='</svg>';
   const empty=LV.garden.plots.filter(p=>!p).length,ready=LV.garden.plots.filter(p=>p&&p.stage>=4).length,growing=LV.garden.plots.length-empty-ready;
-  $('livingView').innerHTML=sceneToolbar('햇살 머무는 우리 텃밭')+`<div class="living-scene pixel-garden ${worldStill?'world-still':''}">${g}<div class="pixel-scene-caption"><span>THE LITTLE GARDEN</span><small>${SEASON_META[season].n} · 함께 키우는 작은 선물</small></div></div><div class="garden-summary"><span class="garden-stat"><b>${growing}</b><small>자라는 중</small></span><span class="garden-stat ready"><b>${ready}</b><small>수확 가능</small></span><span class="garden-stat"><b>${empty}</b><small>빈 밭</small></span></div>`+(typeof gardenTreeHtml==='function'?gardenTreeHtml():'')+worldDashboardHtml('garden')+gardenGuideHtml()+worldControls()+petFamilyHtml();
+  $('livingView').innerHTML=sceneToolbar('햇살 머무는 우리 텃밭')+`<div class="living-scene pixel-garden ${worldStill?'world-still':''}">${g}<div class="pixel-scene-caption"><span>THE LITTLE GARDEN</span><small>${SEASON_META[season].n} · 나무와 밭을 눌러 돌봐요</small></div></div><div class="garden-summary"><span class="garden-stat"><b>${growing}</b><small>자라는 중</small></span><span class="garden-stat ready"><b>${ready}</b><small>수확 가능</small></span><span class="garden-stat"><b>${empty}</b><small>빈 밭</small></span></div>`+worldDashboardHtml('garden')+gardenGuideHtml()+worldControls()+petFamilyHtml();
+  if(typeof renderGardenTreeDialog==='function')renderGardenTreeDialog();
 };
 
 function pixelShopFront(){

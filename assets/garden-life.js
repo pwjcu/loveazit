@@ -17,7 +17,7 @@ function gardenTreeTextState(){
   const tree=gardenTree(),day=dayKey();
   return{tree:tree?{species:tree.species,stage:TREE_STAGES[gardenTreeStage(tree)],growth:gardenTreeGrowth(tree),goal:80,cared:[1,2].filter(slot=>tree.careDays?.[slot]===day),composted:tree.compostDay===day}:null,collection:{...LV.garden?.treeCollection}};
 }
-function gardenTreeSvg(species,stage=4){
+function gardenTreeArt(species,stage=4){
   const t=GARDEN_TREES[species]||GARDEN_TREES.apple;
   let crown='';
   if(stage===0){
@@ -35,7 +35,27 @@ function gardenTreeSvg(species,stage=4){
     }
     crown=`<g transform="scale(${scale})">${trunk}${crown}</g>`;
   }
-  return `<svg viewBox="0 0 360 210" role="img" aria-label="${t.name} · ${TREE_STAGES[stage]}" shape-rendering="crispEdges"><rect width="360" height="210" fill="#edf5e7"/><path d="M0 128h34v-9h58v9h41v-8h64v7h52v-9h64v10h47v82H0Z" fill="#dbe9cf"/><rect y="163" width="360" height="47" fill="#c5d8b2"/><path d="M44 178h10v-5h5v5h8m226-7h9v-6h5v6h10M85 195h10v-5h4v5h11" stroke="#a2bf90" stroke-width="3" fill="none"/><path d="M281 36h32v8h12v10h-57V44h13ZM28 53h35v8h11v8H16V61h12Z" fill="#fffaf1"/><path d="M139 181h83v7h-83Z" fill="#adc595"/><g transform="translate(180,181)">${crown}</g><path d="M56 164v25m-7-12h14M305 181v13m-5-7h11" stroke="#779d6f" stroke-width="3"/><path d="M51 161h10v7H51ZM300 177h10v7h-10Z" fill="${t.light}"/></svg>`;
+  return crown;
+}
+function gardenTreeSvg(species,stage=4){
+  const t=GARDEN_TREES[species]||GARDEN_TREES.apple;
+  return `<svg viewBox="0 0 240 190" role="img" aria-label="${t.name} · ${TREE_STAGES[stage]}" shape-rendering="crispEdges"><path d="M71 172h98v7H71Z" fill="#adc595"/><g transform="translate(120,172)">${gardenTreeArt(species,stage)}</g></svg>`;
+}
+// The same rooted sprite grows in place, inside the crop garden's SVG world.
+function gardenTreeSceneG(){
+  const tree=gardenTree(),growth=gardenTreeGrowth(tree),stage=gardenTreeStage(tree);
+  const title=tree?GARDEN_TREES[tree.species].name:'묘목 심기';
+  const status=tree?TREE_STAGES[stage]+' · '+growth+'/80':'빈 나무 자리 · 8하트';
+  let art=tileRect(150,72,248,241,'transparent');
+  art+='<path class="tree-ground" d="M219 249h110v7h22v15h-17v8H211v-8h-18v-15h26Z" fill="#9b8757"/><path d="M225 251h98v6h17v11H215v-11h10Z" fill="#b9a373"/><path d="M214 267h14v4h-14M303 253h12v3h-12M266 273h18v3h-18" fill="#7e794e"/>';
+  if(tree){
+    art+=tileGroup(274,265,1.18,gardenTreeArt(tree.species,stage));
+    if(growth<80&&tree.careDays?.[Number(who)===2?2:1]!==dayKey())art+=tileGroup(335,245,1,'<path d="M0-8h4v4h4v8H4v4H0V4h-4V-4h4Z" fill="#cae9e0"/><path d="M0-3h2v6H0Z" fill="#fff9df"/>');
+  }else{
+    art+='<path d="M272 265v-27h4v27M274 244l-9-8m9 1 9-9" fill="none" stroke="#88704e" stroke-width="3"/><path d="M258 230h10v7h-10M280 223h10v8h-10" fill="#628559"/><path d="M226 237v-26h4v26M219 209h18v10h-18Z" fill="#9b7651"/><path d="M224 211v6m-3-3h6" stroke="#f7ddb2" stroke-width="2"/>';
+  }
+  art+=tileRect(190,281,168,21,'#69563e')+tileRect(193,283,162,17,'#f2d9a6')+tileLabel(274,296,title,'#604e37',14)+tileLabel(274,316,status,'#4f503b',12);
+  return tileAction(title+' · '+status+' · 눌러서 '+(tree?'돌보기':'심기'),'openGardenTree()',art,'id="gardenTreePlot" class="clk garden-tree-plot" data-world-focus="tree-open" aria-haspopup="dialog"');
 }
 function gardenTreeCollectionHtml(){
   const collection=LV.garden?.treeCollection||{};
@@ -44,13 +64,43 @@ function gardenTreeCollectionHtml(){
 }
 function gardenTreeHtml(){
   const tree=gardenTree(),day=dayKey();
-  const head='<div class="tree-heading"><div><span class="tree-eyebrow">OUR LITTLE FOREST</span><h3 id="gardenTreeTitle">같이 키우는 큰 나무</h3></div><span class="tree-tag">둘이 한 그루</span></div>';
-  if(!tree)return `<section id="gardenTreeCard" class="garden-tree-card" aria-labelledby="gardenTreeTitle">${head}<p class="tree-intro">작은 묘목부터, 우리 손으로 만드는 그늘.<br>매일 한 번씩 함께 돌보면 더 빨리 자라요.</p><div class="tree-seeds">${Object.entries(GARDEN_TREES).map(([key,t])=>`<button type="button" data-world-focus="tree-plant-${key}" onclick="plantGardenTree('${key}')" ${LV.hearts<8?'disabled':''}>${gardenTreeSvg(key)}<strong>${t.name}</strong><small>${t.hint}</small><span>묘목 심기 · 8💗</span></button>`).join('')}</div><p class="tree-fine">나무는 한 번에 한 그루씩 키워요. 돌보지 못한 날에도 시들지 않아요.</p>${gardenTreeCollectionHtml()}</section>`;
+  if(!tree)return `<section id="gardenTreeCard" class="garden-tree-care" aria-label="텃밭에 나무 심기"><p class="tree-intro">텃밭의 빈 나무 자리에 어떤 묘목을 심을까요?<br>둘이 돌볼수록 그 자리에서 커다랗게 자라요.</p><div class="tree-seeds">${Object.entries(GARDEN_TREES).map(([key,t])=>`<button type="button" data-world-focus="tree-plant-${key}" onclick="plantGardenTree('${key}')" ${LV.hearts<8?'disabled':''}>${gardenTreeSvg(key)}<strong>${t.name}</strong><small>${t.hint}</small><span>묘목 심기 · 8💗</span></button>`).join('')}</div><p class="tree-fine">보유 ${LV.hearts}하트 · 나무는 한 번에 한 그루씩 키워요.<br>돌보지 못한 날에도 시들지 않아요.</p>${gardenTreeCollectionHtml()}</section>`;
   const growth=gardenTreeGrowth(tree),stage=gardenTreeStage(tree),mature=growth>=80,selected=Number(who)===2?2:1;
   const names={1:S.n1,2:S.n2},both=[1,2].every(slot=>tree.careDays?.[slot]===day);
-  return `<section id="gardenTreeCard" class="garden-tree-card" aria-labelledby="gardenTreeTitle">${head}<div class="tree-landscape">${gardenTreeSvg(tree.species,stage)}<span class="tree-stage">${TREE_STAGES[stage]}</span></div><div class="tree-growth-heading"><strong>${GARDEN_TREES[tree.species].name}</strong><span>성장 ${growth} / 80</span></div><progress max="80" value="${growth}" aria-label="나무 성장">${growth} / 80</progress>${mature?`<p class="tree-intro">두 사람의 손길이 커다란 나무가 되었어요.<br>그대로 감상하거나, 우리 숲에 보관하고 새 묘목을 심어보세요.</p><button type="button" class="tree-main" data-world-focus="tree-archive" onclick="archiveGardenTree()">우리 숲에 보관하기</button>`:`<p class="tree-next">${TREE_STAGES[stage+1]}까지 ${TREE_THRESHOLDS[stage+1]-growth} · 하루 최대 성장 +8</p><div class="tree-people" role="group" aria-label="나무를 돌볼 사람">${[1,2].map(slot=>`<button type="button" data-world-focus="tree-person-${slot}" aria-pressed="${selected===slot}" onclick="chooseGardenTreePerson(${slot})"><strong>${esc(names[slot])}</strong><small>${tree.careDays?.[slot]===day?'오늘 돌봄 완료 ✓':'오늘의 손길을 기다려요'}</small></button>`).join('')}</div><button type="button" class="tree-main" data-world-focus="tree-care" ${tree.careDays?.[selected]===day?'disabled':''} onclick="careGardenTree()">${esc(names[selected])}${tree.careDays?.[selected]===day?' · 오늘 돌봄 완료':'의 손길 주기 · 성장 +2'}</button><p class="tree-coop">${both?'✓ 둘이 함께 돌봐서 성장 +2를 더 받았어요':'둘 다 돌보면 함께 돌봄 보너스 +2'}</p><button type="button" class="tree-compost" data-world-focus="tree-compost" ${tree.compostDay===day||produceCount()<4?'disabled':''} onclick="compostGardenTree()">${tree.compostDay===day?'오늘의 퇴비 주기 완료 ✓':'수확물 4개로 퇴비 주기 · 성장 +2'}</button><p class="tree-fine">수확물 ${produceCount()}개 보유 · 퇴비는 둘이 합쳐 하루 한 번<br>매일 한국 시간 자정에 다시 돌볼 수 있어요.</p>`}${gardenTreeCollectionHtml()}</section>`;
+  return `<section id="gardenTreeCard" class="garden-tree-care" aria-label="텃밭 나무 돌보기"><div class="tree-growth-heading"><strong>${GARDEN_TREES[tree.species].name}</strong><span>${TREE_STAGES[stage]} · ${growth} / 80</span></div><progress max="80" value="${growth}" aria-label="나무 성장">${growth} / 80</progress>${mature?`<p class="tree-intro">두 사람의 손길이 커다란 나무가 되었어요.<br>텃밭에서 계속 감상하거나, 우리 숲에 보관하고 이 자리에 새 묘목을 심어보세요.</p><button type="button" class="tree-main" data-world-focus="tree-archive" onclick="archiveGardenTree()">우리 숲에 보관하기</button>`:`<p class="tree-next">${TREE_STAGES[stage+1]}까지 ${TREE_THRESHOLDS[stage+1]-growth} · 하루 최대 성장 +8</p><div class="tree-people" role="group" aria-label="나무를 돌볼 사람">${[1,2].map(slot=>`<button type="button" data-world-focus="tree-person-${slot}" aria-pressed="${selected===slot}" onclick="chooseGardenTreePerson(${slot})"><strong>${esc(names[slot])}</strong><small>${tree.careDays?.[slot]===day?'오늘 돌봄 완료 ✓':'오늘의 손길을 기다려요'}</small></button>`).join('')}</div><button type="button" class="tree-main" data-world-focus="tree-care" ${tree.careDays?.[selected]===day?'disabled':''} onclick="careGardenTree()">${esc(names[selected])}${tree.careDays?.[selected]===day?' · 오늘 돌봄 완료':'의 손길 주기 · 성장 +2'}</button><p class="tree-coop">${both?'✓ 둘이 함께 돌봐서 성장 +2를 더 받았어요':'둘 다 돌보면 함께 돌봄 보너스 +2'}</p><button type="button" class="tree-compost" data-world-focus="tree-compost" ${tree.compostDay===day||produceCount()<4?'disabled':''} onclick="compostGardenTree()">${tree.compostDay===day?'오늘의 퇴비 주기 완료 ✓':'수확물 4개로 퇴비 주기 · 성장 +2'}</button><p class="tree-fine">수확물 ${produceCount()}개 보유 · 퇴비는 둘이 합쳐 하루 한 번<br>매일 한국 시간 자정에 다시 돌볼 수 있어요.</p>`}${gardenTreeCollectionHtml()}</section>`;
 }
-function renderGardenTree(){const card=$('gardenTreeCard');if(card)card.outerHTML=gardenTreeHtml();}
+function openGardenTree(){
+  openAzitDialog('텃밭의 우리 나무',gardenTreeHtml());
+  $('azitDialog').addEventListener('close',restoreGardenTreeFocus);
+}
+function restoreGardenTreeFocus(){
+  const dialog=$('azitDialog');
+  // A previous dialog's queued close event can arrive after this one opens.
+  if(dialog.open)return;
+  dialog.removeEventListener('close',restoreGardenTreeFocus);
+  document.querySelector('[data-world-focus="tree-open"]')?.focus({preventScroll:true});
+}
+function renderGardenTreeDialog(){
+  const dialog=$('azitDialog'),card=$('gardenTreeCard');
+  if(!dialog?.open||!card)return;
+  const focusKey=card.contains(document.activeElement)?document.activeElement.dataset.worldFocus:null;
+  const scroll=dialog.scrollTop;
+  const collectionOpen=!!card.querySelector('.tree-collection[open]');
+  card.outerHTML=gardenTreeHtml();
+  const updated=$('gardenTreeCard');
+  if(collectionOpen)updated.querySelector('.tree-collection')?.setAttribute('open','');
+  updated.setAttribute('aria-busy',String(worldBusy));
+  if(worldBusy)updated.querySelectorAll('button').forEach(button=>button.disabled=true);
+  if(focusKey){
+    const target=Array.from(updated.querySelectorAll('[data-world-focus]')).find(el=>el.dataset.worldFocus===focusKey&&!el.disabled);
+    (target||dialog.querySelector('.dialog-close'))?.focus({preventScroll:true});
+  }
+  dialog.scrollTop=scroll;
+}
+function renderGardenTree(){
+  if(locView==='garden')renderLiving();
+  else renderGardenTreeDialog();
+}
 function chooseGardenTreePerson(slot){setWho(slot);renderGardenTree();document.querySelector(`[data-world-focus="tree-person-${Number(slot)===2?2:1}"]`)?.focus({preventScroll:true});}
 async function plantGardenTree(species){
   if(!Object.hasOwn(GARDEN_TREES,species))return false;

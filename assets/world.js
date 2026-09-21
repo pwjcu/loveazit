@@ -5,6 +5,7 @@ async function changeWorld(edit){
   worldBusy=true;
   const focusKey=document.activeElement?.dataset?.worldFocus;
   $('livingView')?.setAttribute('aria-busy','true');
+  if(typeof renderGardenTreeDialog==='function')renderGardenTreeDialog();
   let message='';
   try{
     if(db){
@@ -29,7 +30,7 @@ async function changeWorld(edit){
     if(message)toast(message);
     return true;
   }catch(error){console.error('아지트 저장 실패',error);toast('저장하지 못했어요. 연결을 확인하고 다시 눌러주세요');return false;}
-  finally{worldBusy=false;$('livingView')?.removeAttribute('aria-busy');}
+  finally{worldBusy=false;$('livingView')?.removeAttribute('aria-busy');if(typeof renderGardenTreeDialog==='function')renderGardenTreeDialog();}
 }
 function spendWorld(state,cost){if(state.hearts<cost)return false;state.hearts-=cost;return true;}
 function worldFail(message){return{ok:false,message};}
@@ -89,7 +90,7 @@ function christmasShopOpen(now=appNow()){const md=dayKey(new Date(now)).slice(5)
 function furnitureProduceCost(item){return item.produceCost||Math.ceil(item.cost*.65);}
 function openWorldPantry(){
   const total=worldProduceTotal(),left=Math.max(0,PRODUCE_TRADE_LIMIT-produceTradeUsed());
-  openAzitDialog('우리의 수확 바구니',`<div class="pantry-intro">${worldIcon('basket')}<div><strong>직접 기른 선물 ${total}개</strong><p>자란 만큼, 함께 누릴 즐거움도 늘어요.</p></div></div><details class="pantry-crops"><summary>작물별 보유량 보기</summary><div class="pantry-grid">${Object.entries(FRUITS).map(([id,f])=>`<div class="pantry-crop ${(LV.pantry?.[id]||0)>0?'has-produce':''}"><svg viewBox="0 0 60 60" aria-hidden="true">${cropG({type:id,stage:4},30,37)}</svg><span>${f.n}</span><b>${Math.max(0,Math.floor(Number(LV.pantry?.[id])||0))}<small>개</small></b></div>`).join('')}</div></details><section class="harvest-market" aria-labelledby="harvestMarketTitle"><h3 id="harvestMarketTitle">오늘의 수확 교환소</h3><p>아무 수확물 ${PRODUCE_TRADE_COST}개 → ${PRODUCE_TRADE_REWARD}하트<br>둘이 합쳐 하루 ${PRODUCE_TRADE_LIMIT}번 · 오늘 ${left}번 남았어요</p><button type="button" id="produceTrade" class="btn" onclick="tradeProduce(this)" ${!left||total<PRODUCE_TRADE_COST?'disabled':''}>${!left?'오늘 교환 완료':total<PRODUCE_TRADE_COST?'수확물 '+(PRODUCE_TRADE_COST-total)+'개 더 필요':'수확물 4개로 6하트 받기'}</button><small>일반 보상 ${DAILY_HEART_CAP}하트와 별도예요. 한국 시간 자정에 다시 열려요.</small></section><div class="pantry-uses"><button type="button" onclick="openFurnitureWorkshop()"><b>수확물로 소품 만들기 ↗</b><span>하트 대신 수확물을 쓰고 거실·마당에 배치해요</span></button><button type="button" onclick="$('azitDialog').close();setLoc('garden');$('gardenTreeCard')?.scrollIntoView({behavior:worldStill?'auto':'smooth'})"><b>우리 나무에 퇴비 주기 ↗</b><span>수확물 4개로 함께 키우는 나무를 응원해요</span></button><button type="button" onclick="$('azitDialog').close();openPigeonLetters()"><b>비둘기에게 간식 주기 ↗</b><span>수확물 1개로 편지 도착을 앞당겨요</span></button><button type="button" onclick="$('azitDialog').close();openProduceQna()"><b>둘만의 특별 질문 ↗</b><span>수확물 4개로 새로운 이야기를 시작해요</span></button></div><p class="dialog-note">교환·제작·퇴비에는 바구니의 앞쪽 작물부터 사용해요. 모든 수확물은 같은 가치로 쓸 수 있어요.</p>`);
+  openAzitDialog('우리의 수확 바구니',`<div class="pantry-intro">${worldIcon('basket')}<div><strong>직접 기른 선물 ${total}개</strong><p>자란 만큼, 함께 누릴 즐거움도 늘어요.</p></div></div><details class="pantry-crops"><summary>작물별 보유량 보기</summary><div class="pantry-grid">${Object.entries(FRUITS).map(([id,f])=>`<div class="pantry-crop ${(LV.pantry?.[id]||0)>0?'has-produce':''}"><svg viewBox="0 0 60 60" aria-hidden="true">${cropG({type:id,stage:4},30,37)}</svg><span>${f.n}</span><b>${Math.max(0,Math.floor(Number(LV.pantry?.[id])||0))}<small>개</small></b></div>`).join('')}</div></details><section class="harvest-market" aria-labelledby="harvestMarketTitle"><h3 id="harvestMarketTitle">오늘의 수확 교환소</h3><p>아무 수확물 ${PRODUCE_TRADE_COST}개 → ${PRODUCE_TRADE_REWARD}하트<br>둘이 합쳐 하루 ${PRODUCE_TRADE_LIMIT}번 · 오늘 ${left}번 남았어요</p><button type="button" id="produceTrade" class="btn" onclick="tradeProduce(this)" ${!left||total<PRODUCE_TRADE_COST?'disabled':''}>${!left?'오늘 교환 완료':total<PRODUCE_TRADE_COST?'수확물 '+(PRODUCE_TRADE_COST-total)+'개 더 필요':'수확물 4개로 6하트 받기'}</button><small>일반 보상 ${DAILY_HEART_CAP}하트와 별도예요. 한국 시간 자정에 다시 열려요.</small></section><div class="pantry-uses"><button type="button" onclick="openFurnitureWorkshop()"><b>수확물로 소품 만들기 ↗</b><span>하트 대신 수확물을 쓰고 거실·마당에 배치해요</span></button><button type="button" onclick="$('azitDialog').close();setLoc('garden');openGardenTree()"><b>우리 나무에 퇴비 주기 ↗</b><span>수확물 4개로 함께 키우는 나무를 응원해요</span></button><button type="button" onclick="$('azitDialog').close();openPigeonLetters()"><b>비둘기에게 간식 주기 ↗</b><span>수확물 1개로 편지 도착을 앞당겨요</span></button><button type="button" onclick="$('azitDialog').close();openProduceQna()"><b>둘만의 특별 질문 ↗</b><span>수확물 4개로 새로운 이야기를 시작해요</span></button></div><p class="dialog-note">교환·제작·퇴비에는 바구니의 앞쪽 작물부터 사용해요. 모든 수확물은 같은 가치로 쓸 수 있어요.</p>`);
 }
 async function tradeProduce(button){
   if(worldBusy)return;const day=dayKey();if(button)button.disabled=true;

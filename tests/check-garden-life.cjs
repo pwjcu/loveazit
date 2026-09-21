@@ -6,7 +6,7 @@ const EXECUTABLE='C:/Users/pwjcu/AppData/Local/ms-playwright/chromium_headless_s
 const clone=value=>JSON.parse(JSON.stringify(value));
 (async()=>{
   const browser=await chromium.launch({headless:true,executablePath:EXECUTABLE});
-  const contexts=await Promise.all([browser.newContext({viewport:{width:320,height:800}}),browser.newContext()]);
+  const contexts=await Promise.all([browser.newContext({viewport:{width:320,height:800},reducedMotion:'reduce'}),browser.newContext()]);
   const pages=await Promise.all(contexts.map(context=>context.newPage()));
   const errors=[];pages.forEach(page=>page.on('pageerror',error=>errors.push(error.message)));
   let shared={value:null,revision:0},checks=0;
@@ -69,8 +69,17 @@ const clone=value=>JSON.parse(JSON.stringify(value));
     });
     checks+=local.length;
     const page=pages[0];
+    const captureGarden=async name=>{
+      await page.waitForFunction(()=>!$('toast').classList.contains('on'));
+      await page.locator('.pixel-garden').evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
+      await page.locator('.pixel-garden').screenshot({path:`output/playwright/${name}.png`,animations:'disabled'});
+    };
     await page.evaluate(()=>{LV.hearts=80;gardenTree().growth=48;gardenTree().careDays={};S.n1='아주 긴 첫 번째 사람 이름';S.n2='두 번째 사람';renderLiving();go(5,document.querySelectorAll('nav button')[5]);setLoc('garden');});
-    await page.locator('#gardenTreeCard').scrollIntoViewIfNeeded();
+    check(await page.locator('#livingView #gardenTreeCard').count()===0,'tree has no separate card below the garden');
+    check(await page.locator('.pixel-garden svg #gardenTreePlot').count()===1,'saved tree occupies one place in the garden SVG');
+    await page.locator('#gardenTreePlot').click();
+    check(await page.locator('#azitDialog').evaluate(dialog=>dialog.open)&&await page.locator('#azitDialog #gardenTreeCard').count()===1,'garden tree opens its care controls');
+    check(await page.locator('#azitDialog .tree-landscape').count()===0,'care controls do not duplicate the garden landscape');
     await page.locator('[data-world-focus="tree-person-2"]').click();
     check(await page.locator('[data-world-focus="tree-person-2"]').getAttribute('aria-pressed')==='true','person chooser is explicit');
     await page.locator('[data-world-focus="tree-care"]').click();
@@ -79,11 +88,73 @@ const clone=value=>JSON.parse(JSON.stringify(value));
     check(await page.evaluate(()=>JSON.parse(window.render_game_to_text()).sharedTree.tree.cared.includes(2)),'text state exposes the visible selected-person care');
     check(await page.locator('[data-world-focus="tree-care"]').isDisabled(),'completed care has disabled action');
     check(await page.evaluate(()=>document.documentElement.scrollWidth<=320),'320px has no horizontal overflow');
-    await page.locator('#gardenTreeCard').screenshot({path:'output/playwright/tree-320.png',animations:'disabled'});
-    await page.evaluate(()=>{gardenTree().growth=80;renderLiving();});
-    await page.locator('#gardenTreeCard').screenshot({path:'output/playwright/tree-mature-320.png',animations:'disabled'});
+    await page.locator('#azitDialog').screenshot({path:'output/playwright/tree-controls-320.png',animations:'disabled'});
+    await page.locator('#azitDialog .dialog-close').click();
+    check(await page.locator('#gardenTreePlot').evaluate(el=>el===document.activeElement),'closing care returns focus to the tree after its scene rerender');
+    for(const key of ['Enter','Space']){
+      await page.locator('#gardenTreePlot').focus();await page.keyboard.press(key);
+      check(await page.locator('#azitDialog').evaluate(dialog=>dialog.open),key+' opens the garden tree');
+      await page.keyboard.press('Escape');
+      check(await page.locator('#gardenTreePlot').evaluate(el=>el===document.activeElement),'Escape restores tree focus after '+key);
+    }
     await page.evaluate(()=>{LV.garden.sharedTree=null;renderLiving();});
-    await page.locator('#gardenTreeCard').screenshot({path:'output/playwright/tree-species-320.png',animations:'disabled'});
+    await captureGarden('tree-in-garden-empty-320');
+    await page.locator('#gardenTreePlot').click();
+    check(await page.locator('#azitDialog [data-world-focus^="tree-plant-"]').count()===4,'empty garden place offers four saplings');
+    await page.locator('#azitDialog').screenshot({path:'output/playwright/tree-species-320.png',animations:'disabled'});
+    await page.locator('[data-world-focus="tree-plant-pine"]').click();
+    await page.waitForFunction(()=>!worldBusy&&gardenTree()?.species==='pine');
+    check(await page.locator('#azitDialog [data-world-focus="tree-care"]').count()===1&&await page.locator('#azitDialog [data-world-focus^="tree-plant-"]').count()===0,'planting updates the same dialog to care controls');
+    const plantedId=await page.evaluate(()=>gardenTree().id);
+    await page.locator('#azitDialog .dialog-close').click();
+    await page.reload({waitUntil:'load'});await page.waitForFunction(()=>typeof openGardenTree==='function'&&coupleBooted);
+    await page.evaluate(()=>{go(5,document.querySelectorAll('nav button')[5]);setLoc('garden');});
+    check(await page.evaluate(id=>gardenTree()?.id===id&&gardenTree().species==='pine',plantedId),'planted garden tree survives a page reload');
+    for(const width of [320,390,1280]){
+      await page.setViewportSize({width,height:900});
+      await page.evaluate(()=>{gardenTree().species='cherry';gardenTree().growth=80;renderLiving();});
+      const bounds=await page.locator('#gardenTreePlot').boundingBox();
+      check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)&&bounds.width>0&&bounds.x>=0&&bounds.x+bounds.width<=width+1,width+'px garden shows the tree without horizontal clipping');
+      await captureGarden(`tree-in-garden-${width}`);
+    }
+    await page.setViewportSize({width:390,height:900});
+    for(const species of ['apple','zelkova','cherry','pine']){
+      const artwork=[],spriteHeights=[];
+      for(const growth of [0,8,24,48,80]){
+        await page.evaluate(({species,growth})=>{gardenTree().species=species;gardenTree().growth=growth;renderGardenTree();},{species,growth});
+        artwork.push(await page.locator('#gardenTreePlot').innerHTML());
+        spriteHeights.push(await page.locator('#gardenTreePlot > g').first().evaluate(el=>el.getBBox().height));
+        check(await page.evaluate(({species,growth})=>{const state=JSON.parse(render_game_to_text()).sharedTree.tree;return state.species===species&&state.growth===growth;},{species,growth}),species+' '+growth+' scene and text state agree');
+      }
+      check(new Set(artwork).size===5,species+' changes its in-garden art at every growth stage');
+      check(spriteHeights.every((height,index)=>height>0&&(index===0||height>spriteHeights[index-1])),species+' actual tree sprite grows taller at every stage');
+      await captureGarden(`tree-in-garden-${species}`);
+    }
+    await page.evaluate(()=>{gardenTree().growth=0;renderGardenTree();});
+    await captureGarden('tree-in-garden-sapling');
+    await page.locator('[data-world-focus="pantry"]').click();
+    await page.locator('#azitDialog button').filter({hasText:'우리 나무에 퇴비 주기'}).click();
+    check(await page.locator('#azitDialog').evaluate(dialog=>dialog.open)&&await page.locator('#azitDialog [data-world-focus="tree-compost"]').count()===1,'pantry use opens the garden tree controls');
+    await page.locator('#azitDialog .dialog-close').click();
+    check(await page.locator('#gardenTreePlot').evaluate(el=>el===document.activeElement),'pantry-to-tree close returns focus to the garden tree');
+    await page.evaluate(()=>{
+      gardenTree().species='zelkova';gardenTree().growth=80;
+      LV.garden.plots=['carrot','pumpkin','corn','blueberry','strawberry','grape'].map(type=>({type,stage:4,care:[]}));
+      LV.pets=[{id:'cocker',type:'dog',breed:'cocker',place:'garden',care:[]},{id:'pomeranian',type:'dog',breed:'pomeranian',place:'garden',care:[]},{id:'norwegian',type:'cat',breed:'norwegian',place:'garden',care:[]}];
+      LV.garden.decor='fountain';LV.furniture={yard:'greenhouse',yardLight:'firefly'};
+      isNight=()=>false;isSleeping=()=>false;worldStill=true;renderLiving();
+    });
+    for(const width of [320,390]){
+      await page.setViewportSize({width,height:900});await captureGarden(`tree-in-garden-populated-${width}`);
+      check(await page.locator('.pixel-garden [data-pet-id]').count()===3&&await page.locator('.pixel-garden [data-pixel-plot]').count()===6,width+'px populated garden keeps three pets and six crop plots');
+    }
+    await page.locator('#gardenTreePlot').click();
+    check(await page.locator('#azitDialog [data-world-focus="tree-archive"]').count()===1,'large mature tree remains selectable alongside pets and furniture');
+    await page.locator('#azitDialog .dialog-close').click();
+    for(const id of ['cocker','pomeranian','norwegian']){
+      await page.locator(`.pixel-garden [data-world-focus="pet-${id}"]`).click();await page.waitForFunction(()=>!worldBusy);
+      check(await page.evaluate(id=>LV.pets.find(p=>p.id===id).lastAction?.kind==='stroke',id),id+' remains clickable beside the large tree');
+    }
     // Two browser clients use compare-and-set transactions with an intentional first retry.
     await Promise.all(pages.map(async page=>{
       await page.exposeFunction('__treeRead',async()=>clone(shared));
@@ -117,6 +188,6 @@ const clone=value=>JSON.parse(JSON.stringify(value));
     await Promise.all(pages.map(page=>page.evaluate(()=>archiveGardenTree())));
     check(shared.value.garden.sharedTree===null&&shared.value.garden.treeCollection.zelkova===1,'concurrent archive collects exactly once');
     assert.deepEqual(errors,[],'no browser exceptions');
-    process.stdout.write(`PASS shared trees: ${checks} checks; growth, co-op, compost, persistence, failure, concurrency, mobile UI\n`);
+    process.stdout.write(`PASS shared trees: ${checks} checks; garden scene, keyboard, growth, co-op, compost, persistence, failure, concurrency, mobile UI\n`);
   }finally{await Promise.all(contexts.map(context=>context.close()));await browser.close();}
 })().catch(error=>{process.stderr.write(error.stack+'\n');process.exitCode=1;});
