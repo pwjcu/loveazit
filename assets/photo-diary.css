@@ -1,0 +1,42 @@
+/* A monthly photo journal shares the app's warm paper and berry palette. */
+#p2 .photo-diary{background:#fffdf7;border-color:#e4d6c5;padding:20px;overflow:hidden}
+.diary-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.diary-heading small{font:10px/1.5 monospace;letter-spacing:2px;color:#927662}
+.diary-heading h2{font:24px/1.3 Jua,sans-serif;color:#855765;margin:5px 0}
+.diary-stamp{display:grid;place-items:center;width:44px;height:48px;color:#bc7b85;border:2px dashed #d9a9a1;font-size:27px;transform:rotate(8deg);background:#fff1e6}
+.diary-intro{color:#89736a;font-size:13px;line-height:1.8;margin:12px 0 20px}
+.diary-month-nav{display:flex;align-items:center;gap:10px;justify-content:space-between;border-top:1px solid #eddfd1;padding-top:15px}
+.diary-month-nav>button{width:44px;height:44px;padding:0;font:25px/1 Jua;background:#f9eee4;color:#835d61;flex-shrink:0}
+.diary-month-picker{min-width:0;flex:1;text-align:center}
+.diary-month-picker input{width:100%;min-width:0;max-width:210px;min-height:44px;padding:8px 5px;border:1px solid transparent;background:transparent;color:#76535e;font-family:inherit;font-weight:bold;font-size:16px;line-height:1.4;text-align:center;border-radius:8px}
+.diary-month-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:8px 0 16px;font-size:11px;color:#947b69}
+.diary-month-tools>span{flex:1;min-width:125px}.diary-month-tools button{border:0;border-radius:9px;background:#f5ece1;color:#7d645d;font:inherit;min-height:36px;padding:6px 9px;cursor:pointer}
+.diary-weekdays,.diary-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.diary-weekdays{padding-bottom:8px;text-align:center;color:#9f8b7f;font-size:11px}.diary-weekdays span:first-child{color:#b67077}.diary-weekdays span:last-child{color:#6f8e9d}
+.diary-calendar{border-bottom:1px solid #eddfd1;padding-bottom:14px}
+.diary-day-cell{position:relative;min-width:0;min-height:52px;aspect-ratio:4/5;padding:0;border:1px solid #eee3d7;border-radius:7px;overflow:hidden;background:#faf5ed;color:#8c796d;text-align:left;cursor:pointer;font:12px/1.3 Jua,sans-serif}
+.diary-day-cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.diary-day-number{position:absolute;z-index:1;left:3px;top:3px;min-width:17px;text-align:center;border-radius:4px;padding:1px 2px}
+.diary-day-cell.has-memory .diary-day-number{background:#fffdf2ee;color:#634c47;box-shadow:0 1px 3px #4c382322}
+.diary-cell-count{position:absolute;right:2px;bottom:2px;z-index:1;background:#533f43d9;color:#fff7ed;border-radius:5px;padding:1px 4px;font:9px/1.4 sans-serif}
+.diary-cell-mark{display:block;text-align:center;padding-top:26px;color:#c79b96}
+.diary-day-cell.selected{border:2px solid #ae717d;box-shadow:0 0 0 1px #ae717d}
+.diary-day-cell.is-today .diary-day-number{background:#ac6b7a;color:white}
+.diary-calendar-hint{font-size:11px;line-height:1.6;color:#978174;margin:10px 0 0}
+.diary-undated{border:0;background:#f4eee6;color:#7b6460;padding:9px 12px;min-height:40px;border-radius:9px;margin-top:10px;font:inherit;font-size:12px;cursor:pointer}
+.diary-day{margin-top:22px;scroll-margin-top:20px}.diary-day h3{font:17px/1.5 Jua;margin:0 0 4px;color:#815b62}.diary-day .mut{color:#8e7970;font-size:12px;line-height:1.7}.diary-day #pempty{padding:15px 0}
+#p2 .photo-tile{background:white;border:1px solid #e9ddcf;padding:4px;border-radius:5px;box-shadow:0 2px 3px #84694f0c;color:#896c64;text-align:left}
+#p2 .photo-tile img{border-radius:3px}#p2 .photo-tile .photo-count{font-size:9px;padding:2px 5px;top:7px;right:7px}
+.diary-tile-caption{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;font-family:inherit;font-size:11px;line-height:1.6;padding:5px 2px 3px;min-height:26px}
+.diary-compose{margin-top:22px;padding:16px 13px;background:#f6eee4;border:1px dashed #decabb;border-radius:12px}
+.diary-compose-title{display:flex;flex-direction:column;gap:5px;color:#875d64;font-size:14px;margin-bottom:12px}.diary-compose-title small{font-size:11px;color:#9b8071;font-weight:400}
+.diary-compose>label{display:block;margin-bottom:6px;font-size:12px;color:#856b62}
+#pcap{width:100%;min-height:70px;resize:vertical;background:#fffdf7;border:1px solid #e0cfc0;border-radius:9px;padding:10px;font-family:inherit;font-size:13px;line-height:1.7;color:#71585c}
+.diary-upload-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:10px}.diary-upload-row label.chk{margin:0;color:#866c62;font-size:12px}.diary-upload-row .btn{min-height:44px;display:inline-flex;align-items:center}
+.diary-compose .mut{font-size:11px;line-height:1.7;color:#987a6d;margin-top:8px}.diary-compose #photoUploadStatus:not(:empty){color:#775967;background:#fff9ef;border-radius:7px;padding:8px}
+.photo-diary button:focus-visible,.photo-diary input:focus-visible,.photo-diary textarea:focus-visible{outline:3px solid #ae717d;outline-offset:2px}.photo-diary button:disabled{opacity:.45;cursor:default}
+#modal{overflow-y:auto;justify-content:flex-start;padding:18px;max-height:94dvh;background:#322c30}#modal>div{flex-shrink:0}
+#modal img{height:min(47dvh,500px)}.diary-modal-note{width:100%;margin:16px 0 10px;background:#fff9ee;color:#755c5b;padding:15px;border-radius:8px;box-sizing:border-box;text-align:left}
+.diary-modal-note time{display:block;font-size:11px;color:#a48179}#modal .diary-modal-note .cap{color:#755c5b;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.8;margin:8px 0 0}
+.photo-post-nav{display:flex;align-items:center;justify-content:space-between;gap:7px;width:100%;margin:0 0 12px}.photo-post-nav[hidden]{display:none}.photo-post-nav span{font-size:11px;text-align:center;color:#edd7d5}.photo-post-nav button{min-height:44px;font-size:12px;white-space:nowrap}#modal #mdel{background:transparent;color:#b7a3a6;border:1px solid #6c565e;font-size:11px;min-height:36px}
+@media(max-width:360px){#p2 .photo-diary{padding:14px 12px}.diary-weekdays,.diary-calendar{gap:3px}.diary-day-cell{min-height:48px;font-size:11px}.diary-month-nav{gap:5px}.diary-month-picker input{font-size:14px}.diary-month-tools>span{min-width:110px;font-size:10px}.diary-month-tools button{padding:5px 7px}.diary-compose{padding:13px 10px}.diary-tile-caption{font-size:10px}#modal{padding:12px}.photo-post-nav button{font-size:11px;padding:7px 9px}}

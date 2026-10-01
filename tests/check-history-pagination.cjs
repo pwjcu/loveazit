@@ -1,0 +1,101 @@
+const fs=require('fs');
+const {chromium}=require('../output/npm-cache/_npx/31e32ef8478fbf80/node_modules/playwright');
+const EXECUTABLE='C:/Users/pwjcu/AppData/Local/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-win64/chrome-headless-shell.exe';
+
+(async()=>{
+  const browser=await chromium.launch({headless:true,executablePath:EXECUTABLE}),page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),checks=[],errors=[];
+  const check=(ok,name)=>{if(!ok)throw Error(name);checks.push(name);};
+  const nav=async text=>page.locator('nav button').filter({hasText:text}).click();
+  const shot=async name=>page.screenshot({path:'output/playwright/history-'+name+'.png',fullPage:true,animations:'disabled'});
+  page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());
+  fs.mkdirSync('output/playwright',{recursive:true});
+  try{
+    await page.goto('http://127.0.0.1:4173/?local-preview=1');
+    check(await page.evaluate(()=>db===null),'격리된 미리보기만 사용');
+    await page.evaluate(()=>localStorage.clear());await page.reload();
+    await page.evaluate(async()=>{
+      const now=coupleNow();who=1;S.n1='초록 <우리>';S.n2='분홍 &너';qaList=[];
+      LV=mergeLiving({hearts:80,pantry:{tomato:10,carrot:5}});
+      LV.qaRounds={};
+      for(let i=0;i<27;i++)LV.qaRounds['q'+i]={question:'질문 '+i+' <img src=x onerror=alert(1)>',a1:'첫 답변 '+i,a2:'두 번째 답변 '+i,ts:now-i*QA_INTERVAL,revealed:true};
+      LV.qaRounds.q12={...LV.qaRounds.q12,special:true,question:'보호해야 하는 특별 질문'};
+      LV.qaRounds.q13={...LV.qaRounds.q13,revealed:false,skipped:true,a1:'노출 금지 답변'};
+      LV.qaRounds.active={question:'현재 질문',a1:'',a2:'',ts:now+1,revealed:false};
+      LV.mailbox={};
+      for(let i=0;i<19;i++)LV.mailbox['mail'+i]={from:i%2?1:2,to:i%2?2:1,body:'편지 내용 '+i+' <script>bad()</script>',sentAt:now-i*86400000,deliveryAt:i<7?now+7200000:now-60000,feeds:0};
+      await saveLiving();renderAll();
+    });
+    await nav('Q&A');
+    check(await page.locator('#qaHist .qhistitem').count()===8,'Q&A 첫 페이지 8개');
+    check((await page.locator('#qaPageStatus').innerText()).includes('1 / 4')&&(await page.locator('#qaPageStatus').innerText()).includes('27개'),'27개의 Q&A 기록 전체 페이지 표시');
+    await page.locator('#qa_in_active_1').fill('계속 작성 중인 답변');
+    await page.locator('[data-history-page="qa-next"]').focus();await page.keyboard.press('Enter');
+    check((await page.locator('#qaPageStatus').innerText()).includes('2 / 4')&&await page.locator('#qa_in_active_1').inputValue()==='계속 작성 중인 답변','키보드 페이지 이동 중 현재 답변 초안 유지');
+    check(await page.locator('#qaHist').innerText().then(text=>!text.includes('보호해야 하는')&&!text.includes('노출 금지 답변')),'다음 페이지의 특별 질문 동의·건너뛴 답변 잠금 유지');
+    await page.locator('#qa_in_active_1').focus();await page.locator('#qa_in_active_1').evaluate(el=>el.setSelectionRange(3,6));
+    await page.evaluate(()=>{LV.qaRounds.incoming={question:'동기화된 답변',a1:'A',a2:'B',ts:coupleNow()+2,revealed:true};renderCouple();});
+    check(await page.evaluate(()=>qaHistoryPage===1&&document.activeElement.id==='qa_in_active_1'&&document.activeElement.selectionStart===3)&&await page.locator('#qa_in_active_1').inputValue()==='계속 작성 중인 답변','공유 갱신 후 Q&A 페이지·초안·커서 유지');
+    await page.locator('[data-history-page="qa-bottom-next"]').click();
+    check(await page.evaluate(()=>qaHistoryPage===2&&document.activeElement.id==='qaPageStatus'),'아래쪽 Q&A 페이지 버튼은 다음 기록 시작점으로 초점 이동');
+    await page.evaluate(()=>openQAHistory('q26'));
+    check(await page.locator('[data-qa-history="q26"]').count()===1&&await page.locator('[data-history-page="qa-next"]').isDisabled(),'20개 이전 Q&A도 바로가기와 마지막 페이지로 접근');
+    await page.evaluate(()=>{LV.qaRounds={q0:LV.qaRounds.q0,active:LV.qaRounds.active};renderQA();});
+    check(await page.evaluate(()=>qaHistoryPage===0)&&await page.locator('#qaHist .qhistitem').count()===1,'Q&A 기록 축소 시 유효 페이지로 보정');
+    check(await page.locator('#qaHist img').count()===0&&await page.locator('#qaHist').innerText().then(text=>text.includes('<img')),'Q&A 질문과 이름 텍스트 안전 표시');
+    await nav('한마디');
+    check(await page.locator('.letter-card').count()===6&&(await page.locator('#letterPageStatus').innerText()).includes('1 / 4'),'편지 6통씩 4페이지');
+    check((await page.locator('.mail-unread').innerText()).includes('6통'),'전체 편지에서 수신 미읽음 수 계산');
+    await page.locator('#letterBody').fill('사라지면 안 되는 초안');
+    await page.locator('[data-history-page="letter-next"]').click();
+    check(await page.evaluate(()=>letterHistoryPage===1)&&await page.locator('#letterBody').inputValue()==='사라지면 안 되는 초안','편지 페이지 이동 중 초안 유지');
+    await page.locator('#feed_mail6').selectOption('carrot');
+    await page.evaluate(()=>renderCouple());
+    check(await page.locator('#feed_mail6').inputValue()==='carrot'&&await page.evaluate(()=>letterHistoryPage===1),'공유 갱신에도 페이지와 먹이 선택 유지');
+    await page.locator('[data-letter="mail6"] .pigeon-feed button').click();
+    check(await page.evaluate(()=>LV.mailbox.mail6.feeds===1&&LV.pantry.carrot===4&&letterHistoryPage===1),'두 번째 페이지에서 먹이 주기 저장');
+    check(await page.locator('[data-letter="mail6"] .pigeon-feed button').evaluate(el=>document.activeElement===el),'먹이 주기 후 키보드 초점 보존');
+    await page.locator('[data-letter="mail8"] .envelope-open').click();
+    check((await page.locator('[data-letter="mail8"] .letter-paper').innerText()).includes('<script>bad()</script>')&&await page.locator('[data-letter="mail8"] script').count()===0,'두 번째 페이지에서 편지 열기·본문 이스케이프');
+    check(await page.locator('[data-letter="mail8"]').evaluate(el=>document.activeElement===el),'봉투 열기 뒤 열린 편지로 키보드 초점 유지');
+    check((await page.locator('.mail-unread').innerText()).includes('5통'),'편지 열기 후 미읽음 수 갱신');
+    await page.evaluate(()=>setWho(2));
+    check(await page.locator('[data-letter="mail8"] .letter-paper').count()===0,'이름 변경 시 상대 수신 편지 내용 숨김');
+    await page.evaluate(()=>setWho(1));
+    await page.locator('[data-letter-filter="flight"]').click();
+    check(await page.locator('.letter-card').count()===6&&await page.evaluate(()=>letterHistoryPage===0),'비행 중 필터는 해당 편지만 페이지화');
+    await page.locator('[data-history-page="letter-next"]').click();
+    check(await page.locator('.letter-card').count()===1,'필터 두 번째 페이지');
+    await page.locator('#letterBody').focus();await page.locator('#letterBody').evaluate(el=>el.setSelectionRange(2,4));
+    await page.evaluate(()=>{LV.mailbox.mail0.deliveryAt=coupleNow()-1;updateLetterClocks();});
+    check((await page.locator('.mail-unread').innerText()).includes('6통')&&await page.evaluate(()=>letterHistoryPage===0),'보이지 않는 페이지의 편지 도착도 미읽음·필터·페이지 보정');
+    check(await page.locator('#letterBody').inputValue()==='사라지면 안 되는 초안'&&await page.evaluate(()=>document.activeElement.id==='letterBody'&&document.activeElement.selectionStart===2),'시간 경과 갱신에도 작성 초안과 커서 유지');
+    await page.locator('[data-letter-filter="arrived"]').click();
+    check(await page.locator('.letter-card.in-flight').count()===0&&(await page.locator('#letterPageStatus').innerText()).includes('13통'),'도착 필터 정확한 개수');
+    await page.evaluate(()=>openPigeonLetters('mail18'));
+    check(await page.locator('[data-letter="mail18"]').count()===1&&await page.evaluate(()=>letterHistoryFilter==='all'&&letterHistoryPage===3),'지난 편지 바로가기에서 해당 페이지 선택');
+    await page.locator('[data-history-page="letter-bottom-prev"]').click();
+    check(await page.evaluate(()=>letterHistoryPage===2&&document.activeElement.id==='letterPageStatus'),'아래쪽 편지 페이지 버튼은 기록 시작점으로 초점 이동');
+    await page.evaluate(()=>{LV.mailbox={mail18:LV.mailbox.mail18};renderPostOffice();});
+    check(await page.evaluate(()=>letterHistoryPage===0)&&await page.locator('.letter-card').count()===1,'편지 기록 축소 시 페이지 보정');
+    await page.locator('[data-letter-filter="arrived"]').click();
+    await page.locator('#letterBody').fill('새로 보내는 마음');
+    await page.getByRole('button',{name:'💌 봉인해서 보내기',exact:true}).click();
+    await page.waitForFunction(()=>!letterSending&&Object.keys(LV.mailbox).length===2);
+    check(await page.evaluate(()=>letterHistoryPage===0&&letterHistoryFilter==='all')&&await page.locator('.letter-card').first().getAttribute('class').then(c=>c.includes('in-flight')),'발송 성공 시 새 편지가 있는 전체 첫 페이지로 이동');
+    check(await page.locator('#letterBody').inputValue()==='','성공한 발송의 초안만 초기화');
+    await page.reload();await nav('한마디');
+    check(await page.evaluate(()=>Object.keys(LV.mailbox).length===2&&Object.keys(LV.qaRounds).length===2),'페이지화는 저장 데이터 유지·새로고침 복원');
+    await page.evaluate(async()=>{
+      const now=coupleNow();LV.qaRounds={};LV.mailbox={};
+      for(let i=0;i<23;i++){LV.qaRounds['q'+i]={question:'함께 오래 기억하고 싶은 오늘의 순간은? '+i,a1:'너와 함께 걷던 골목, 바람이 참 좋았어.',a2:'작은 카페에서 나눈 다정한 대화가 좋아.',ts:now-i*QA_INTERVAL,revealed:true};LV.mailbox['m'+i]={from:2,to:1,body:'오늘도 너의 하루를 응원해.\n주말에는 오래 걷고 맛있는 것 먹자 ♡',sentAt:now-i*86400000,deliveryAt:now-60000,openedAt:now,feeds:0};}renderCouple();
+    });
+    for(const width of [320,390,1280]){
+      await page.setViewportSize({width,height:844});await nav('한마디');await page.locator('#letterArchive').scrollIntoViewIfNeeded();
+      check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'편지 가로 넘침 없음 '+width);await shot('letters-'+width);
+      await nav('Q&A');check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Q&A 가로 넘침 없음 '+width);await shot('qa-'+width);
+    }
+    check(errors.length===0,'JavaScript 오류 없음');
+    console.log(JSON.stringify({count:checks.length,checks},null,2));
+  }catch(error){console.error(error);await shot('failure');process.exitCode=1;}
+  finally{await browser.close();}
+})();

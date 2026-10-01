@@ -38,7 +38,7 @@ async page=>{
   await page.evaluate(()=>{LV.mailbox={test:{to:who,deliveryAt:appNow()+5000}};serverTimeOffset+=6000;renderTogether();});
   check((await panel.locator('.together-shortcuts').innerText()).includes('안 읽은 1통'),'Unread arrival uses synchronized clock');
   await page.setViewportSize({width:320,height:740});
-  await panel.locator('summary').click();
+  await panel.locator('.together-stamps summary').click();
   check(await page.evaluate(()=>document.documentElement.scrollWidth<=320),'No horizontal overflow at 320px');
   check(await panel.locator('.earned').count()===1,'Earned cosmetic stamp is visible');
   await page.screenshot({path:'output/playwright/together-320.png',fullPage:true,animations:'disabled'});

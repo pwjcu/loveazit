@@ -184,6 +184,8 @@ const COUPLE_FREE=Object.entries(COUPLE_QUESTIONS).flatMap(([category,questions]
 const legacyMutateQA=mutateQA;
 let coupleBooted=false,letterSending=false;
 const letterDrafts={1:'',2:''};
+const QA_HISTORY_SIZE=8, LETTER_HISTORY_SIZE=6;
+let qaHistoryPage=0,letterHistoryPage=0,letterHistoryFilter='all',letterClockSignature='';
 const coupleNow=()=>typeof appNow==='function'?appNow():Date.now();
 const coupleId=()=> 'c'+(typeof crypto.randomUUID==='function'?crypto.randomUUID().replaceAll('-',''):Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join(''));
 const coupleEntries=obj=>Object.entries(obj||{}).filter(([,v])=>v&&typeof v==='object').map(([id,v])=>({...v,id}));
@@ -200,7 +202,11 @@ function specialReady(state=LV){return [1,2].every(slot=>state.specialConsent?.[
 function coupleDuration(ms){const m=Math.max(1,Math.ceil(ms/60000));return m>=1440?Math.floor(m/1440)+'일 '+Math.floor(m%1440/60)+'시간':m>=60?Math.floor(m/60)+'시간 '+m%60+'분':m+'분';}
 function letterDeliveryAt(now,random){return now+COUPLE_HOUR+Math.floor(Math.max(0,Math.min(1,random))*(7*24*COUPLE_HOUR-COUPLE_HOUR));}
 function fedDeliveryAt(deliveryAt,now,random){const remaining=deliveryAt-now;if(remaining<=300000)return deliveryAt;return Math.round(now+Math.max(300000,remaining*(1-(.15+.20*Math.max(0,Math.min(1,random))))));}
-function openPigeonLetters(){go(3,document.querySelectorAll('nav button')[3]);renderPostOffice();$('postOffice')?.scrollIntoView({behavior:chalkMotion()?'smooth':'auto',block:'start'});}
+function openPigeonLetters(id){
+  go(3,document.querySelectorAll('nav button')[3]);
+  if(typeof id==='string'){letterHistoryFilter='all';const index=letterRecords().findIndex(l=>l.id===id);letterHistoryPage=Math.floor(Math.max(0,index)/LETTER_HISTORY_SIZE);}
+  renderPostOffice();$('letterArchive')?.scrollIntoView({behavior:chalkMotion()?'smooth':'auto',block:'start'});
+}
 function openProduceQna(){go(4,document.querySelectorAll('nav button')[4]);renderQA();}
 function renderCouple(){renderPostOffice();renderQA();if(typeof renderTogether==='function')renderTogether();}
 function bootCouple(){
@@ -212,9 +218,35 @@ function bootCouple(){
 }
 function pigeonSvg(){return `<svg class="pigeon" viewBox="0 0 90 66" aria-hidden="true"><ellipse cx="42" cy="39" rx="24" ry="16" fill="#dedbeb"/><path d="M24 34 7 43l19 5" fill="#c5bfda"/><ellipse class="pigeon-wing" cx="39" cy="32" rx="20" ry="9" transform="rotate(-25 39 32)" fill="#f9f7ff"/><circle cx="61" cy="23" r="13" fill="#efecf6"/><path d="m72 23 11 5-12 4" fill="#eab071"/><circle cx="65" cy="20" r="2.4" fill="#574358"/><circle cx="67" cy="29" r="3" fill="#efb9c7"/><path d="m38 52-3 8m13-8 2 8" stroke="#c58c90" stroke-width="3" stroke-linecap="round"/><path d="m35 55 16 0 0 10-16 0z" fill="#fff5db" stroke="#ca9ba4"/><path d="m35 55 8 6 8-6" fill="none" stroke="#ca9ba4"/></svg>`;}
 function captureLetterDraft(){const el=$('letterBody');if(el)letterDrafts[el.dataset.slot]=el.value;}
+function letterRecords(){return coupleEntries(LV.mailbox).sort((a,b)=>(Number(b.sentAt)||0)-(Number(a.sentAt)||0)||String(b.id).localeCompare(String(a.id)));}
+function coupleHistoryPager(kind,page,pages,total,bottom=false){
+  const label=kind==='letter'?'편지':'Q&A 기록',handler=kind==='letter'?'changeLetterHistoryPage':'changeQAHistoryPage',key=kind+(bottom?'-bottom':'');
+  return `<div class="couple-history-pager" role="group" aria-label="${label} ${bottom?'아래쪽 ':''}페이지"><button type="button" data-history-page="${key}-prev" onclick="${handler}(-1)" ${page===0?'disabled':''}>이전</button><span id="${kind}PageStatus${bottom?'Bottom':''}" tabindex="-1" ${bottom?'':'role="status"'}>${page+1} / ${pages}<small>전체 ${total}${kind==='letter'?'통':'개'}</small></span><button type="button" data-history-page="${key}-next" onclick="${handler}(1)" ${page===pages-1?'disabled':''}>다음</button></div>`;
+}
+function restoreHistoryFocus(host,key,statusId){if(!key)return;const button=Array.from(host.querySelectorAll('[data-history-page]')).find(el=>el.dataset.historyPage===key);(button&&!button.disabled?button:$(statusId))?.focus({preventScroll:true});}
+function changeLetterHistoryPage(delta){const bottom=document.activeElement?.dataset.historyPage?.includes('-bottom-');letterHistoryPage+=delta;renderLetterArchive();if(bottom)$('letterPageStatus')?.focus({preventScroll:true});$('letterArchive')?.scrollIntoView({behavior:chalkMotion()?'smooth':'auto',block:'start'});}
+function setLetterHistoryFilter(filter){if(!['all','arrived','flight'].includes(filter))return;letterHistoryFilter=filter;letterHistoryPage=0;renderLetterArchive();$('letterArchive')?.querySelector(`[data-letter-filter="${filter}"]`)?.focus({preventScroll:true});}
+function renderLetterArchive(){
+  const host=$('letterArchive');if(!host)return;
+  const list=letterRecords(),now=coupleNow(),arrived=list.filter(l=>Number(l.deliveryAt)<=now),flight=list.length-arrived.length,unread=arrived.filter(l=>Number(l.to)===Number(who)&&!l.openedAt).length;
+  const filtered=letterHistoryFilter==='arrived'?arrived:letterHistoryFilter==='flight'?list.filter(l=>Number(l.deliveryAt)>now):list,pages=Math.max(1,Math.ceil(filtered.length/LETTER_HISTORY_SIZE));
+  letterHistoryPage=Math.max(0,Math.min(pages-1,letterHistoryPage));
+  const focus=document.activeElement?.dataset.historyPage,filterFocus=document.activeElement?.dataset.letterFilter;
+  const feedValues=Object.fromEntries(Array.from(host.querySelectorAll('.pigeon-feed select')).map(el=>[el.id,el.value]));
+  const activeFeed=document.activeElement?.closest('.letter-card')?.dataset.letter,feedControl=document.activeElement?.matches('.pigeon-feed select')?'select':document.activeElement?.matches('.pigeon-feed button')?'button':document.activeElement?.matches('.envelope-open')?'open':null;
+  host.innerHTML=`<div class="stitle">📮 오가는 편지 <span class="mail-count">${list.length}</span></div><p class="mail-unread" role="status">${esc(who===1?S.n1:S.n2)}에게 도착한 편지 · ${unread?'안 읽은 '+unread+'통':'모두 읽었어요'}</p><div class="letter-filters" role="group" aria-label="편지 상태별 보기">${[['all','전체',list.length],['arrived','도착',arrived.length],['flight','비행 중',flight]].map(([id,label,count])=>`<button type="button" data-letter-filter="${id}" aria-pressed="${letterHistoryFilter===id}" onclick="setLetterHistoryFilter(this.dataset.letterFilter)">${label} <span>${count}</span></button>`).join('')}</div>${coupleHistoryPager('letter',letterHistoryPage,pages,filtered.length)}<div class="letter-list">${filtered.slice(letterHistoryPage*LETTER_HISTORY_SIZE,(letterHistoryPage+1)*LETTER_HISTORY_SIZE).map(l=>letterCard(l,now)).join('')||`<div class="post-empty"><span>✉</span><p>${list.length?(letterHistoryFilter==='arrived'?'아직 도착한 편지가 없어요.':'지금 날아오는 편지가 없어요.'):'우체통이 아직 조용해요.<br>첫 편지를 비둘기에게 맡겨보세요.'}</p></div>`}</div>`;
+  if(pages>1)host.insertAdjacentHTML('beforeend',coupleHistoryPager('letter',letterHistoryPage,pages,filtered.length,true));
+  for(const [id,value] of Object.entries(feedValues)){const select=$(id);if(select&&Array.from(select.options).some(option=>option.value===value))select.value=value;}
+  restoreHistoryFocus(host,focus,'letterPageStatus');
+  if(filterFocus)Array.from(host.querySelectorAll('[data-letter-filter]')).find(el=>el.dataset.letterFilter===filterFocus)?.focus({preventScroll:true});
+  if(activeFeed){const card=Array.from(host.querySelectorAll('[data-letter]')).find(el=>el.dataset.letter===activeFeed);if(card){const target=feedControl?card.querySelector(feedControl==='open'?'.envelope-open':'.pigeon-feed '+feedControl):null;if(target&&!target.disabled)target.focus({preventScroll:true});else{card.tabIndex=-1;card.focus({preventScroll:true});}}}
+  letterClockSignature=JSON.stringify([who,list.map(l=>[l.id,Number(l.deliveryAt)<=now,!!l.openedAt])]);
+}
 function renderPostOffice(){
   renderChalkboard();
   const host=$('postOffice');if(!host)return;
+  const oldArchive=$('letterArchive'),historyFocus=document.activeElement?.dataset.historyPage,filterFocus=document.activeElement?.dataset.letterFilter;
+  const archiveFocus=oldArchive?.contains(document.activeElement)?document.activeElement:null;
   const field=$('letterBody'),focused=field&&document.activeElement===field,selection=focused?[field.selectionStart,field.selectionEnd]:null;
   captureLetterDraft();
   const list=coupleEntries(LV.mailbox).sort((a,b)=>b.sentAt-a.sentAt),now=coupleNow();
@@ -223,8 +255,11 @@ function renderPostOffice(){
     <div class="who" role="group" aria-label="편지를 쓸 사람">${[1,2].map(s=>`<button type="button" class="${who===s?'on':''}" aria-pressed="${who===s}" onclick="setWho(${s});renderPostOffice()">${esc(s===1?S.n1:S.n2)}</button>`).join('')}</div>
     <form class="letter-compose" onsubmit="event.preventDefault();sendPigeonLetter()"><label for="letterBody">${esc(who===1?S.n2:S.n1)}에게 보낼 봉인 편지</label><textarea id="letterBody" data-slot="${who}" maxlength="1000" placeholder="천천히 도착해도 변하지 않을 마음을 적어주세요." oninput="letterDrafts[this.dataset.slot]=this.value">${esc(letterDrafts[who])}</textarea><div class="letter-compose-foot"><small>보내면 수정할 수 없어요 · 비행 중 ${pending}/3통</small><button type="submit" class="btn sm" ${letterSending||pending>=3?'disabled':''}>${letterSending?'비둘기가 준비 중…':'💌 봉인해서 보내기'}</button></div></form>
     <div class="post-inventory">🌾 우리 수확물 <b>${produceCount()}개</b><span>한 개를 먹이면 남은 비행이 15~35% 짧아져요</span></div><p class="couple-fine">편지당 먹이 3번 · 최소 5분은 더 날아요. 도착할 때까지 봉투가 잠겨 있어요.</p></div>
-    <div class="card"><div class="stitle">📮 오가는 편지 <span class="mail-count">${list.length}</span></div><div class="letter-list">${list.map(l=>letterCard(l,now)).join('')||'<div class="post-empty"><span>✉</span><p>우체통이 아직 조용해요.<br>첫 편지를 비둘기에게 맡겨보세요.</p></div>'}</div></div>
+    <div class="card" id="letterArchive"></div>
     <p class="couple-fine privacy-disclosure">봉인과 이름 선택은 화면에서 내용을 가리는 기능이에요. 로그인이나 암호화로 보호되는 개인 보관함은 아니에요.</p>`;
+  if(oldArchive){$('letterArchive').replaceWith(oldArchive);archiveFocus?.focus({preventScroll:true});}
+  renderLetterArchive();restoreHistoryFocus($('letterArchive'),historyFocus,'letterPageStatus');
+  if(filterFocus)Array.from($('letterArchive').querySelectorAll('[data-letter-filter]')).find(el=>el.dataset.letterFilter===filterFocus)?.focus({preventScroll:true});
   if(focused&&$('letterBody')){$('letterBody').focus({preventScroll:true});$('letterBody').setSelectionRange(...selection);}
 }
 function letterCard(l,now){
@@ -236,8 +271,9 @@ function letterCard(l,now){
     ${canFeed?`<div class="pigeon-feed"><label class="sr-only" for="feed_${esc(l.id)}">비둘기 먹이 선택</label><select id="feed_${esc(l.id)}" ${fruits.length?'':'disabled'}>${fruits.length?fruits.map(([id,f])=>`<option value="${id}">${f.e} ${f.n} (${Math.max(0,Math.floor(Number(LV.pantry[id])||0))}개)</option>`).join(''):'<option>수확물이 없어요</option>'}</select><button type="button" class="btn ghost sm" ${fruits.length?'':'disabled'} data-letter-id="${esc(l.id)}" onclick="feedPigeon(this.dataset.letterId)">먹이 1개 주기</button></div>`:''}</div></article>`;
 }
 function updateLetterClocks(){
-  let arrival=false;document.querySelectorAll('.letter-clock[data-delivery]').forEach(el=>{const left=Number(el.dataset.delivery)-coupleNow();if(left<=0&&el.closest('.in-flight'))arrival=true;else if(left>0)el.textContent=coupleDuration(left)+' 뒤 도착 예정';});
-  if(arrival)renderPostOffice();
+  const now=coupleNow(),signature=JSON.stringify([who,letterRecords().map(l=>[l.id,Number(l.deliveryAt)<=now,!!l.openedAt])]);
+  if(signature!==letterClockSignature){renderPostOffice();if(typeof renderTogether==='function')renderTogether();return;}
+  document.querySelectorAll('.letter-clock[data-delivery]').forEach(el=>{const left=Number(el.dataset.delivery)-now;if(left>0)el.textContent=coupleDuration(left)+' 뒤 도착 예정';});
 }
 async function sendPigeonLetter(){
   if(letterSending)return;captureLetterDraft();
@@ -250,7 +286,7 @@ async function sendPigeonLetter(){
       state.mailbox={...state.mailbox,[id]:{from,to:from===1?2:1,body,sentAt:now,deliveryAt,initialDeliveryAt:deliveryAt,feeds:0}};
       return {message:'봉인 완료! 비둘기가 마음을 싣고 떠났어요 🕊️'};
     });
-    if(ok){if(letterDrafts[from].trim()===body){letterDrafts[from]='';const el=$('letterBody');if(el&&Number(el.dataset.slot)===from)el.value='';}await earnHeart('note',ACT_REWARD).catch(()=>{});}
+    if(ok){letterHistoryFilter='all';letterHistoryPage=0;if(letterDrafts[from].trim()===body){letterDrafts[from]='';const el=$('letterBody');if(el&&Number(el.dataset.slot)===from)el.value='';}await earnHeart('note',ACT_REWARD).catch(()=>{});}
   }finally{letterSending=false;renderPostOffice();}
 }
 async function openPigeonLetter(id){
@@ -328,6 +364,20 @@ async function setSpecialConsent(field,value){
   if(!['adult','optIn'].includes(field))return;const slot=who,now=coupleNow();
   await changeWorld(state=>{state.specialConsent={...state.specialConsent};const next={...state.specialConsent[slot],[field]:value===true,updatedAt:now};if(field==='adult'&&!value)next.optIn=false;if(next.optIn&&!next.adult)return worldFail('먼저 성인임을 확인해 주세요');state.specialConsent[slot]=next;return{message:''};});renderQA();
 }
+function qaHistoryRecords(){return qaAllRecords().filter(q=>q.revealed||q.skipped);}
+function openQAHistory(id){
+  go(4,document.querySelectorAll('nav button')[4]);
+  if(typeof id==='string'){const index=qaHistoryRecords().findIndex(q=>q.id===id);qaHistoryPage=Math.floor(Math.max(0,index)/QA_HISTORY_SIZE);}
+  renderQAHistory();$('qaHist')?.scrollIntoView({behavior:chalkMotion()?'smooth':'auto',block:'start'});
+}
+function changeQAHistoryPage(delta){const bottom=document.activeElement?.dataset.historyPage?.includes('-bottom-');qaHistoryPage+=delta;renderQAHistory();if(bottom)$('qaPageStatus')?.focus({preventScroll:true});$('qaHist')?.scrollIntoView({behavior:chalkMotion()?'smooth':'auto',block:'start'});}
+function renderQAHistory(){
+  const host=$('qaHist');if(!host)return;const history=qaHistoryRecords(),pages=Math.max(1,Math.ceil(history.length/QA_HISTORY_SIZE)),focus=document.activeElement?.dataset.historyPage;
+  qaHistoryPage=Math.max(0,Math.min(pages-1,qaHistoryPage));
+  host.innerHTML=coupleHistoryPager('qa',qaHistoryPage,pages,history.length)+history.slice(qaHistoryPage*QA_HISTORY_SIZE,(qaHistoryPage+1)*QA_HISTORY_SIZE).map(q=>`<article class="qhistitem" data-qa-history="${esc(q.id)}"><small class="qa-history-date">${new Date(Number(q.ts)||0).toLocaleDateString('ko-KR')} · ${q.skipped?'건너뛴 질문':q.special?'특별 질문':'함께 연 답변'}</small>${q.skipped?'<b>🍃 편안하게 건너뛴 질문</b><small>답변을 공개하지 않았어요.</small>':q.special&&!specialReady()?'<b>🌙 특별 질문 기록</b><small>두 사람의 특별 질문 동의 후 볼 수 있어요.</small>':`<b>${esc(q.question)}</b><span class="hist-answer"><small>${esc(S.n1)}</small><span>${esc(q.a1)}</span></span><span class="hist-answer"><small>${esc(S.n2)}</small><span>${esc(q.a2)}</span></span>`}</article>`).join('')+(history.length?'':'<div class="mut">함께 열어본 답변을 여기 모아둘게요.</div>');
+  if(pages>1)host.insertAdjacentHTML('beforeend',coupleHistoryPager('qa',qaHistoryPage,pages,history.length,true));
+  restoreHistoryFocus(host,focus,'qaPageStatus');
+}
 renderQA=function(){
   if(!$('qaActive'))return;
   const focused=document.activeElement,focusId=focused?.id?.startsWith('qa_in_')?focused.id:null,selection=focusId?[focused.selectionStart,focused.selectionEnd]:null;
@@ -338,8 +388,7 @@ renderQA=function(){
     const both=!!(cur.a1&&cur.a2),allowed=!cur.special||specialReady();
     $('qaActive').innerHTML=`<div class="qcard"><div class="hint">${cur.special?'🌙':'💌'} ${esc(cur.category||'우리의 이야기')}</div>${allowed?`<div class="q">${esc(cur.question)}</div><div class="qans">${qaAnswerBox(cur,1)}${qaAnswerBox(cur,2)}</div>${both?`<div class="consent-board"><div class="consent-title">🤝 답변을 함께 공개할까요?</div><div class="consent-grid">${[1,2].map(s=>`<div class="consent-status ${qaConsent(cur,s)?'ok':''}">${qaConsent(cur,s)?'✓':'○'} ${esc(s===1?S.n1:S.n2)} ${qaConsent(cur,s)?'동의':'대기'}</div>`).join('')}</div><button type="button" class="btn sm consent-action" data-question-id="${esc(cur.id)}" onclick="toggleQAConsent(this.dataset.questionId,${who})">${qaConsent(cur,who)?'내 동의 취소':'내 답변 공개에 동의하기'}</button><p class="qa-privacy">둘 다 동의하면 바로 열려요. 다음 질문은 72시간 간격을 지켜요.</p></div>`:'<p class="qa-privacy">제출한 답변은 둘 다 공개에 동의할 때까지 잠겨요.</p>'}`:'<p class="q">특별 질문을 잠시 덮어두었어요.</p><p class="couple-fine">두 사람의 성인 확인과 동의가 있으면 다시 볼 수 있어요.</p>'}<button class="qa-skip" type="button" data-question-id="${esc(cur.id)}" onclick="skipCoupleQA(this.dataset.questionId)">이 질문 무료로 건너뛰기</button></div>`;
   }else $('qaActive').innerHTML='<div class="qa-rest"><span>☕</span><p>서로의 답을 천천히 음미해요.<br>새로운 대화는 72시간마다 찾아와요.</p></div>';
-  const history=qaAllRecords().filter(q=>q.revealed||q.skipped).slice(0,20);
-  $('qaHist').innerHTML=history.map(q=>`<div class="qhistitem">${q.skipped?'<b>🍃 편안하게 건너뛴 질문</b><small>답변을 공개하지 않았어요.</small>':q.special&&!specialReady()?'<b>🌙 특별 질문 기록</b><small>두 사람의 특별 질문 동의 후 볼 수 있어요.</small>':`<b>${esc(q.question)}</b><span class="hist-answer"><small>${esc(S.n1)}</small><span>${esc(q.a1)}</span></span><span class="hist-answer"><small>${esc(S.n2)}</small><span>${esc(q.a2)}</span></span>`}</div>`).join('')||'<div class="mut">함께 열어본 답변을 여기 모아둘게요.</div>';
+  renderQAHistory();
   renderQAExtras();
   if(focusId&&$(focusId)){$(focusId).focus({preventScroll:true});$(focusId).setSelectionRange(...selection);}
 };

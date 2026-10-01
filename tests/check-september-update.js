@@ -32,6 +32,7 @@ async (page) => {
   const data=await page.evaluate(async img=>{const one=Array.from({length:21},(_,i)=>({id:'legacy-'+i,img,cap:'legacy '+i,date:'2026-09-08',ts:i}));localStorage.setItem('photos',JSON.stringify(one));await refreshLocal('photos');return one.length},validPng);
   check(data===21,'레거시 사진 fixture 생성');
   await page.locator('nav button').filter({hasText:'추억'}).click();
+  await page.evaluate(()=>{setPhotoMonth('2026-09');selectPhotoDay('2026-09-08',false)});
   check((await page.locator('#photoPageLabel').innerText()).includes('1 / 2')&&await page.locator('.photo-tile').count()===20,'사진 페이지 20개 기준');
   await page.locator('#photoNextPage').click(); check((await page.locator('#photoPageLabel').innerText()).includes('2 / 2')&&await page.locator('.photo-tile').count()===1,'사진 다음 페이지');
   await page.evaluate(async()=>{localStorage.setItem('photos',JSON.stringify(JSON.parse(localStorage.getItem('photos')).slice(0,20)));await refreshLocal('photos')});

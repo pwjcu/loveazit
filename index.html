@@ -323,8 +323,9 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
 }
 </style>
 <link rel="stylesheet" href="assets/azit.css?v=20260921-garden">
-<link rel="stylesheet" href="assets/couple.css?v=20260912-pixel">
-<link rel="stylesheet" href="assets/together.css?v=20260912-pixel">
+<link rel="stylesheet" href="assets/couple.css?v=20261001-diary">
+<link rel="stylesheet" href="assets/together.css?v=20261001-diary">
+<link rel="stylesheet" href="assets/photo-diary.css?v=20261001-diary">
 <link rel="stylesheet" href="assets/garden-life.css?v=20260921-garden">
 <link rel="stylesheet" href="assets/settings-extra.css?v=20260908-life">
 </head>
@@ -417,18 +418,31 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
 
 <!-- 추억 -->
 <div class="page" id="p2">
-  <div class="card">
-    <div class="stitle">📸 우리의 추억</div>
-    <div class="upl">
-      <input type="text" id="pcap" placeholder="한 줄 설명 (선택)" maxlength="40">
-      <label class="btn sm" id="photoUploadLabel">사진 선택<input type="file" id="pfile" aria-label="추억 사진 선택" accept="image/*" multiple hidden></label>
+  <div class="card photo-diary">
+    <div class="diary-heading"><div><small>OUR PHOTO DIARY</small><h2>우리의 추억</h2></div><span class="diary-stamp" aria-hidden="true">♡</span></div>
+    <p class="diary-intro">사진 한 장, 그날의 한마디.<br>함께 쌓은 날들을 달력에서 펼쳐보세요.</p>
+    <div class="diary-month-nav">
+      <button type="button" class="btn ghost sm" id="photoPrevMonth" onclick="changePhotoMonth(-1)" aria-label="이전 달 추억">‹</button>
+      <label class="diary-month-picker"><span class="sr-only">추억을 볼 연월</span><input type="month" id="photoMonthInput" onchange="setPhotoMonth(this.value)" aria-label="추억을 볼 연월"></label>
+      <button type="button" class="btn ghost sm" id="photoNextMonth" onclick="changePhotoMonth(1)" aria-label="다음 달 추억">›</button>
     </div>
-    <label class="chk"><input type="checkbox" id="photoGroup" checked> 선택한 사진을 한 게시글로 묶기</label>
-    <div class="mut">한 번에 최대 20장 · 묶은 사진은 눌러서 넘겨볼 수 있어요</div>
-    <div id="photoUploadStatus" class="mut" role="status" aria-live="polite"></div>
-    <div class="pgrid" id="pgrid"></div>
-    <div class="mut" id="pempty">아직 사진이 없어요. 첫 추억을 올려보세요!</div>
-    <div class="photo-pages" id="photoPages" hidden><button class="btn ghost sm" id="photoPrevPage" onclick="changePhotoPage(-1)">이전</button><span id="photoPageLabel" aria-live="polite"></span><button class="btn ghost sm" id="photoNextPage" onclick="changePhotoPage(1)">다음</button></div>
+    <div class="diary-month-tools"><span id="photoMonthSummary" aria-live="polite"></span><button type="button" id="photoToday" onclick="goPhotoToday()">오늘</button><button type="button" id="photoLatest" onclick="goLatestPhotoDay()">최근 기록</button></div>
+    <div class="diary-weekdays" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+    <div id="photoCalendar" class="diary-calendar" role="group" aria-label="사진이 담긴 달력"></div>
+    <p class="diary-calendar-hint">업로드한 날짜에 사진이 남아요 · 사진이 있는 날을 눌러보세요</p>
+    <button type="button" id="photoUndated" class="diary-undated" onclick="selectPhotoDay('undated',false)" hidden>날짜 없는 이전 추억</button>
+    <div class="diary-compose"><div class="diary-compose-title"><b>오늘의 한 페이지 남기기</b><small>업로드 날짜 기준 · 한국 시간</small></div>
+      <label for="pcap">사진과 함께 남길 메모</label>
+      <textarea id="pcap" placeholder="오늘 함께해서 좋았던 순간은? (선택)" maxlength="500" rows="2"></textarea>
+      <div class="diary-upload-row"><label class="btn sm" id="photoUploadLabel">사진 선택<input type="file" id="pfile" aria-label="추억 사진 선택" accept="image/*" multiple hidden></label><label class="chk"><input type="checkbox" id="photoGroup" checked> 한 게시글로 묶기</label></div>
+      <p class="mut">한 번에 최대 20장 · 묶은 사진은 좌우로 넘겨볼 수 있어요</p>
+      <div id="photoUploadStatus" class="mut" role="status" aria-live="polite"></div>
+    </div>
+    <section class="diary-day" aria-labelledby="photoDayTitle"><h3 id="photoDayTitle" tabindex="-1"></h3><p id="photoDaySummary" class="mut"></p>
+      <div class="pgrid" id="pgrid"></div>
+      <div class="mut" id="pempty">아직 사진이 없어요. 첫 추억을 올려보세요!</div>
+      <div class="photo-pages" id="photoPages" hidden><button class="btn ghost sm" id="photoPrevPage" onclick="changePhotoPage(-1)">이전</button><span id="photoPageLabel" aria-live="polite"></span><button class="btn ghost sm" id="photoNextPage" onclick="changePhotoPage(1)">다음</button></div>
+    </section>
   </div>
 </div>
 
@@ -505,7 +519,9 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
   <div class="photo-modal-head"><span id="photoSlideCount" aria-live="polite"></span><button class="btn ghost sm" onclick="closePhotoModal()" aria-label="추억 사진 닫기">✕</button></div>
   <div class="photo-stage"><img id="mimg" alt="추억 사진"></div>
   <div class="photo-slider" id="photoSlider"><button class="btn ghost sm" id="photoPrevSlide" onclick="slidePhoto(-1)" aria-label="이전 사진">◀</button><span>좌우로 넘겨보세요</span><button class="btn ghost sm" id="photoNextSlide" onclick="slidePhoto(1)" aria-label="다음 사진">▶</button></div>
-  <div class="cap" id="mcap"></div><button class="btn sm" id="mdel" onclick="deletePhotoPost()">게시글 삭제</button>
+  <div class="diary-modal-note"><time id="mdate"></time><div class="cap" id="mcap"></div></div>
+  <div class="photo-post-nav" id="photoPostNav"><button type="button" class="btn ghost sm" id="photoPrevPost" onclick="changePhotoPost(-1)">이전 추억</button><span id="photoPostLabel" aria-live="polite"></span><button type="button" class="btn ghost sm" id="photoNextPost" onclick="changePhotoPost(1)">다음 추억</button></div>
+  <button class="btn sm" id="mdel" onclick="deletePhotoPost()">게시글 삭제</button>
 </dialog>
 
 <dialog id="azitDialog" class="azit-dialog" aria-labelledby="azitDialogTitle"></dialog>
@@ -1153,6 +1169,7 @@ $('wishList').addEventListener('click',async e=>{
 /* ---- 추억 ---- */
 const PHOTO_PAGE_SIZE=20,PHOTO_POST_LIMIT=20;
 let photoPage=1,photoUploadBusy=false,activePhotoId=null,activePhotoSlide=0;
+let photoMonth='',photoSelectedDay='',photoModalReturn=null;
 function photoImages(post){
   const raw=Array.isArray(post.images)?post.images:post.images&&typeof post.images==='object'?Object.values(post.images):[post.img];
   return raw.filter(src=>typeof src==='string'&&(/^data:image\/(jpeg|png|webp|gif);base64,/i.test(src)||/^https?:\/\//i.test(src)));
@@ -1163,7 +1180,7 @@ $('pfile').onchange=async e=>{
   const status=$('photoUploadStatus');
   if(files.length>PHOTO_POST_LIMIT){status.textContent='한 번에 최대 20장까지 선택해 주세요.';e.target.value='';return;}
   if(files.some(f=>!f.type.startsWith('image/')||f.size>25*1024*1024)){status.textContent='25MB 이하의 사진 파일을 선택해 주세요.';e.target.value='';return;}
-  const grouped=$('photoGroup').checked,caption=$('pcap').value.trim(),date=todayStr();
+  const grouped=$('photoGroup').checked,caption=$('pcap').value.trim().slice(0,500),uploadedAt=appNow(),date=dayKey(new Date(uploadedAt));
   photoUploadBusy=true;e.target.disabled=true;$('photoGroup').disabled=true;$('pcap').disabled=true;
   let saved=0;
   try{
@@ -1174,9 +1191,10 @@ $('pfile').onchange=async e=>{
       if(img.length>600000)throw new Error('사진 용량이 커요. 조금 작은 사진으로 다시 골라주세요.');
       images.push(img);
     }
-    const posts=grouped?[{images,cap:caption,date}]:images.map(img=>({img,cap:caption,date}));
+    const stamp={cap:caption,date,uploadedDay:date,uploadedAt};
+    const posts=grouped?[{images,...stamp}]:images.map(img=>({img,...stamp}));
     for(const post of posts){status.textContent=`추억 저장 중 · ${saved+1}/${posts.length}`;await DB.add('photos',post);saved++;}
-    photoPage=1;renderPhotos();$('pcap').value='';status.textContent=`${files.length}장을 ${saved}개의 추억으로 저장했어요.`;
+    photoMonth=date.slice(0,7);photoSelectedDay=date;photoPage=1;renderPhotos();$('pcap').value='';status.textContent=`${files.length}장을 ${saved}개의 추억으로 저장했어요.`;
   }catch(error){status.textContent=(saved?`${saved}개 게시글은 저장됐어요. 남은 사진만 다시 선택해 주세요. `:'')+(error.message||'사진을 저장하지 못했어요. 다시 시도해 주세요.');}
   finally{photoUploadBusy=false;e.target.disabled=false;$('photoGroup').disabled=false;$('pcap').disabled=false;e.target.value='';}
   if(saved)try{await earnHeart('photo',ACT_REWARD);}catch{toast('사진은 저장됐어요. 하트 연결은 잠시 후 확인해 주세요.');}
@@ -1197,32 +1215,89 @@ function compress(file,max,q){
     r.readAsDataURL(file);
   });
 }
+function photoDateValid(value){
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+  const date=new Date(value+'T00:00:00Z');return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value;
+}
+function photoDiaryDay(post){
+  if(photoDateValid(post.uploadedDay))return post.uploadedDay;
+  if(photoDateValid(post.date))return post.date;
+  const timestamp=Number(post.uploadedAt??post.ts);
+  return Number.isFinite(timestamp)&&timestamp>0&&Number.isFinite(new Date(timestamp).getTime())?dayKey(new Date(timestamp)):'undated';
+}
+function diaryPhotos(){return photos.filter(p=>p&&!p.deleted&&!p.deletedAt).sort((x,y)=>(Number(y.uploadedAt??y.ts)||0)-(Number(x.uploadedAt??x.ts)||0)||String(y.id).localeCompare(String(x.id)));}
+function diaryDayPosts(day){return diaryPhotos().filter(p=>photoDiaryDay(p)===day);}
+function photoDayLabel(day){return day==='undated'?'날짜 없는 이전 추억':day.replace(/^(\d{4})-(\d{2})-(\d{2})$/,'$1년 $2월 $3일');}
 function renderPhotos(){
-  const a=[...photos].sort((x,y)=>(Number(y.ts)||0)-(Number(x.ts)||0)||String(y.id).localeCompare(String(x.id)));
-  const pages=Math.max(1,Math.ceil(a.length/PHOTO_PAGE_SIZE));photoPage=Math.max(1,Math.min(photoPage,pages));
+  const all=diaryPhotos(),today=dayKey();
+  if(!photoMonth)photoMonth=today.slice(0,7);
+  const monthPosts=all.filter(p=>photoDiaryDay(p).startsWith(photoMonth+'-')),days={};
+  monthPosts.forEach(p=>{const date=photoDiaryDay(p);(days[date]||=[]).push(p);});
+  if(!photoSelectedDay)photoSelectedDay=Object.keys(days).sort().at(-1)||(photoMonth===today.slice(0,7)?today:photoMonth+'-01');
+  $('photoMonthInput').value=photoMonth;
+  $('photoPrevMonth').disabled=photoMonth==='0001-01';$('photoNextMonth').disabled=photoMonth==='9999-12';
+  $('photoMonthSummary').textContent=`${Object.keys(days).length}일의 추억 · 사진 ${monthPosts.reduce((sum,p)=>sum+photoImages(p).length,0)}장`;
+  $('photoLatest').disabled=!all.some(p=>photoDiaryDay(p)!=='undated');
+  const first=new Date(photoMonth+'-01T00:00:00Z'),last=new Date(first);last.setUTCMonth(last.getUTCMonth()+1);last.setUTCDate(0);
+  let html=Array.from({length:first.getUTCDay()},()=>'<span class="diary-day-blank" aria-hidden="true"></span>').join('');
+  for(let n=1;n<=last.getUTCDate();n++){
+    const date=photoMonth+'-'+pad(n),posts=days[date]||[],cover=posts.flatMap(photoImages)[0],count=posts.reduce((sum,p)=>sum+photoImages(p).length,0),isToday=date===today;
+    html+=`<button type="button" class="diary-day-cell ${posts.length?'has-memory':''} ${date===photoSelectedDay?'selected':''} ${isToday?'is-today':''}" data-photo-day="${date}" onclick="selectPhotoDay(this.dataset.photoDay)" aria-label="${photoDayLabel(date)} · ${posts.length?`추억 ${posts.length}개, 사진 ${count}장 · 펼쳐보기`:'추억 없음'}" aria-pressed="${date===photoSelectedDay}" ${isToday?'aria-current="date"':''}><span class="diary-day-number">${n}</span>${cover?`<img src="${esc(cover)}" alt="" loading="lazy">`:posts.length?'<span class="diary-cell-mark" aria-hidden="true">♡</span>':''}${count>1?`<small class="diary-cell-count">${count>99?'99+':count}</small>`:''}</button>`;
+  }
+  $('photoCalendar').innerHTML=html;
+  const undated=all.filter(p=>photoDiaryDay(p)==='undated').length;
+  $('photoUndated').hidden=!undated;$('photoUndated').textContent=`날짜 없는 이전 추억 ${undated}개 보기`;
+  const a=all.filter(p=>photoDiaryDay(p)===photoSelectedDay),pages=Math.max(1,Math.ceil(a.length/PHOTO_PAGE_SIZE));
+  photoPage=Math.max(1,Math.min(photoPage,pages));
   const current=a.slice((photoPage-1)*PHOTO_PAGE_SIZE,photoPage*PHOTO_PAGE_SIZE);
-  $('pgrid').innerHTML=current.map((p,i)=>{const images=photoImages(p);return `<button type="button" class="photo-tile" onclick="openP(${i})" aria-label="${esc(p.cap||'추억 사진')} · ${images.length}장">${images.length?`<img src="${esc(images[0])}" alt="${esc(p.cap||'추억 사진')}" loading="lazy">`:'사진을 읽을 수 없어요'}${images.length>1?`<span class="photo-count">▧ ${images.length}</span>`:''}</button>`;}).join('');
-  $('pempty').style.display=a.length?'none':'block';
-  $('photoPages').hidden=!a.length;$('photoPageLabel').textContent=`${photoPage} / ${pages} 페이지 · 추억 ${a.length}개`;
+  $('photoDayTitle').textContent=photoDayLabel(photoSelectedDay);
+  $('photoDaySummary').textContent=a.length?`추억 ${a.length}개 · 사진 ${a.reduce((sum,p)=>sum+photoImages(p).length,0)}장`:'';
+  $('pgrid').innerHTML=current.map((p,i)=>{const images=photoImages(p);return `<button type="button" class="photo-tile" data-photo-id="${esc(p.id)}" onclick="openP(${i})" aria-label="${esc(p.cap||'추억 사진')} · ${images.length}장">${images.length?`<img src="${esc(images[0])}" alt="" loading="lazy">`:'사진을 읽을 수 없어요'}${images.length>1?`<span class="photo-count">▧ ${images.length}</span>`:''}<span class="diary-tile-caption">${esc(p.cap||'함께한 순간')}</span></button>`;}).join('');
+  $('pempty').style.display=a.length?'none':'block';$('pempty').textContent=all.length?'이날은 아직 비어 있어요. 사진을 올리면 오늘 날짜에 기록돼요.':'아직 사진이 없어요. 아래에서 첫 페이지를 남겨보세요.';
+  $('photoPages').hidden=a.length<=PHOTO_PAGE_SIZE;$('photoPageLabel').textContent=`${photoPage} / ${pages} 페이지 · 추억 ${a.length}개`;
   $('photoPrevPage').disabled=photoPage===1;$('photoNextPage').disabled=photoPage===pages;
   window._pv=current;
-  if($('modal').open){if(photos.some(p=>p.id===activePhotoId))renderPhotoSlide();else closePhotoModal();}
+  if($('modal').open){if(all.some(p=>p.id===activePhotoId))renderPhotoSlide();else closePhotoModal();}
 }
-function changePhotoPage(delta){photoPage+=delta;renderPhotos();$('p2').scrollIntoView({block:'start'});}
-function openP(i){
-  const p=window._pv[i];if(!p||!photoImages(p).length)return;
-  activePhotoId=p.id;activePhotoSlide=0;renderPhotoSlide();$('modal').showModal();
+function setPhotoMonth(value){
+  if(!/^\d{4}-\d{2}$/.test(value)||!photoDateValid(value+'-01')||value<'0001-01'){$('photoMonthInput').value=photoMonth;return;}
+  photoMonth=value;photoSelectedDay='';photoPage=1;renderPhotos();
 }
+function changePhotoMonth(delta){const date=new Date(photoMonth+'-01T00:00:00Z');date.setUTCMonth(date.getUTCMonth()+delta);if(date.getUTCFullYear()>=1&&date.getUTCFullYear()<=9999)setPhotoMonth(date.toISOString().slice(0,7));}
+function goPhotoToday(){photoMonth=dayKey().slice(0,7);photoSelectedDay=dayKey();photoPage=1;renderPhotos();}
+function goLatestPhotoDay(){const days=diaryPhotos().map(photoDiaryDay).filter(day=>day!=='undated').sort();if(days.length)selectPhotoDay(days.at(-1),false);}
+function selectPhotoDay(day,open=true){
+  if(day!=='undated'&&!photoDateValid(day))return;
+  if(day!=='undated')photoMonth=day.slice(0,7);
+  photoSelectedDay=day;photoPage=1;renderPhotos();
+  if(open&&window._pv.some(p=>photoImages(p).length)){
+    photoModalReturn={day};openPhotoPost(window._pv.find(p=>photoImages(p).length));
+  }
+}
+function changePhotoPage(delta){photoPage+=delta;renderPhotos();$('photoDayTitle').focus({preventScroll:true});$('photoDayTitle').scrollIntoView({block:'start',behavior:'auto'});}
+function openPhotoPost(post){if(!post||!photoImages(post).length)return;activePhotoId=post.id;activePhotoSlide=0;renderPhotoSlide();if(!$('modal').open)$('modal').showModal();}
+function openP(i){const p=window._pv[i];if(!p)return;photoModalReturn={id:p.id,day:photoDiaryDay(p)};openPhotoPost(p);}
 function renderPhotoSlide(){
-  const p=photos.find(p=>p.id===activePhotoId);if(!p)return;const images=photoImages(p);
+  const p=diaryPhotos().find(p=>p.id===activePhotoId);if(!p)return;const images=photoImages(p);
   if(!images.length){closePhotoModal();return;}
   activePhotoSlide=Math.max(0,Math.min(activePhotoSlide,images.length-1));
   $('mimg').src=images[activePhotoSlide];$('mimg').alt=(p.cap||'추억 사진')+` · ${activePhotoSlide+1}/${images.length}`;
-  $('mcap').textContent=(p.cap?p.cap+' · ':'')+(p.date||'');$('photoSlideCount').textContent=`${activePhotoSlide+1} / ${images.length}`;
+  $('mcap').textContent=p.cap||'말없이 남겨도 소중한 우리의 순간.';
+  const day=photoDiaryDay(p);$('mdate').textContent=photoDayLabel(day)+(day==='undated'?'':' · 업로드');if(day!=='undated')$('mdate').dateTime=day;else $('mdate').removeAttribute('datetime');
+  $('photoSlideCount').textContent=`${activePhotoSlide+1} / ${images.length}`;
   $('photoSlider').hidden=images.length<2;$('photoPrevSlide').disabled=activePhotoSlide===0;$('photoNextSlide').disabled=activePhotoSlide===images.length-1;
+  const posts=diaryDayPosts(day).filter(p=>photoImages(p).length),index=posts.findIndex(p=>p.id===activePhotoId);
+  $('photoPostNav').hidden=posts.length<2;$('photoPostLabel').textContent=`이날의 추억 ${index+1} / ${posts.length}`;$('photoPrevPost').disabled=index<=0;$('photoNextPost').disabled=index>=posts.length-1;
 }
+function changePhotoPost(delta){const current=photos.find(p=>p.id===activePhotoId);if(!current)return;const posts=diaryDayPosts(photoDiaryDay(current)).filter(p=>photoImages(p).length),index=posts.findIndex(p=>p.id===activePhotoId);if(posts[index+delta])openPhotoPost(posts[index+delta]);}
 function slidePhoto(delta){activePhotoSlide+=delta;renderPhotoSlide();}
-function closePhotoModal(){if($('modal').open)$('modal').close();activePhotoId=null;}
+function closePhotoModal(){if($('modal').open)$('modal').close();}
+$('modal').addEventListener('close',()=>{
+  if($('modal').open)return;activePhotoId=null;
+  const target=photoModalReturn?.id?Array.from(document.querySelectorAll('#pgrid [data-photo-id]')).find(el=>el.dataset.photoId===photoModalReturn.id):null;
+  const day=photoModalReturn?.day;
+  (target||Array.from(document.querySelectorAll('[data-photo-day]')).find(el=>el.dataset.photoDay===day)||$('photoDayTitle'))?.focus({preventScroll:true});photoModalReturn=null;
+});
 async function deletePhotoPost(){
   const id=activePhotoId,p=photos.find(p=>p.id===id);if(!p||!confirm(`이 추억 게시글의 사진 ${photoImages(p).length}장을 지울까요?`))return;
   $('mdel').disabled=true;try{await DB.del('photos',id);closePhotoModal();}catch{toast('삭제하지 못했어요. 연결을 확인해 주세요.');}finally{$('mdel').disabled=false;}
@@ -2166,10 +2241,10 @@ function renderAll(){ renderHome(); renderSeasonCard(); renderCal(); renderWishe
 <script src="assets/pixel-world.js?v=20260921-garden"></script>
 <script src="assets/fortune.js"></script>
 <script src="assets/fortune-sync.js?v=20260912-pixel"></script>
-<script src="assets/couple.js?v=20260912-pixel"></script>
+<script src="assets/couple.js?v=20261001-diary"></script>
 <script src="assets/garden-life.js?v=20260921-garden"></script>
 <script src="assets/settings-extra.js?v=20260912-pixel"></script>
-<script src="assets/together.js?v=20260912-pixel"></script>
+<script src="assets/together.js?v=20261001-diary"></script>
 <script>setWho(who); applySeason(); boot().then(async()=>{bootFortune();bootCouple();bootTogether();bootSettingsExtras();await bootFortuneServices();});</script>
 </body>
 </html>
