@@ -56,7 +56,7 @@ function bootFortune(){
 function saveFortuneLocal(next){localStorage.setItem(FORTUNE_KEY,JSON.stringify(next));FT=next;renderFortune();}
 async function restoreFortune(value){saveFortuneLocal(fortuneNormalize(value));}
 window.addEventListener('storage',event=>{if(event.key===FORTUNE_KEY)bootFortune();});
-function goFortune(){go(7,document.querySelectorAll('nav button')[7]);renderFortune();}
+function goFortune(){go(7,document.getElementById('fortuneNav'));renderFortune();}
 function switchFortune(tab){if(!['compat','daily','tarot'].includes(tab))return;fortuneTab=tab;renderFortune();}
 function fortunePerson(w){fortuneWho=w===2?2:1;renderFortune();}
 function profileName(w){return w===1?S.n1:S.n2;}

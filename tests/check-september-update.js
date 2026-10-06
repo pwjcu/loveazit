@@ -64,7 +64,7 @@ async (page) => {
     await page.locator('nav button').filter({hasText:'추억'}).click(); const failCount=await page.evaluate(()=>photos.length);
     await page.locator('#pfile').setInputFiles([png]);
     await page.waitForFunction(()=>document.querySelector('#photoUploadStatus').textContent.includes('simulated'));
-    check(!await page.locator('#photoUploadLabel input').isDisabled()&&await page.evaluate(()=>photos.length)===failCount,'사진 저장 실패 busy 복구·개수 불변');
+    check(!await page.locator('#pfile').isDisabled()&&await page.evaluate(()=>photos.length)===failCount,'사진 저장 실패 busy 복구·개수 불변');
   } finally { await page.evaluate(()=>{DB.add=window.__oldAdd;delete window.__oldAdd}); }
   await shot('grid'); check(errors.length===0,'페이지 오류 없음'); return {checks,count:checks.length};
 }
