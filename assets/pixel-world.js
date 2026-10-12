@@ -76,13 +76,14 @@ cropG=function(p,cx,cy){
   const stage=Math.min(4,Math.max(0,Number(p.stage)||0)),type=FRUITS[p.type]?p.type:'tomato',color=FRUITS[type].c;
   if(!stage)return tileGroup(cx,cy,1,'<path d="M-9 7H-5V10H-9M1 10H5V13H1M8 5H11V8H8" fill="#e9c086"/><path d="M-8 7H-6V8H-8M2 10H4V11H2" fill="#fff0be"/>');
   let art='<path d="M-12 12H13V16H-12Z" fill="#3d392b33"/>';
-  if(['carrot','pumpkin','corn','blueberry'].includes(type)){
+  if(['carrot','pumpkin','corn','blueberry','fig'].includes(type)){
     const mature=stage===4,scale=stage===1?.42:stage===2?.7:stage===3?.85:1;
     let plant='';
     if(type==='carrot')plant='<path d="M-2 4H2V-14H-2M-4 2H-7V-8H-10V-18H-6V-12H-3M3 1H6V-10H9V-21H5V-13H2M-1-8H2V-26H-1" fill="#648d49"/><path d="M-9-17H-7V-10H-9M5-20H7V-13H5M-1-25H1V-16H-1" fill="#a8c971"/>'+(stage>=3?`<path d="M-7 0H7V6H5V11H3V16H0V20H-2V15H-4V9H-6Z" fill="${color}"/><path d="M-5 2H-2V9H-4M-2 10H0V14H-2" fill="#ffd08b"/><path d="M2 5H6V7H2M0 11H3V13H0" fill="#c87436"/>`:'');
     if(type==='pumpkin')plant='<path d="M-18 9H18V12H-18M-12 10V0H-9V10M6 9V-5H9V9" fill="#587c3e"/><path d="M-20-1H-14V-5H-8V2H-12V7H-19M8-10H14V-6H20V1H12V-2H7" fill="#829e50"/><path d="M-18-1H-13V2H-18M10-7H14V-4H10" fill="#b5c572"/>'+(stage>=3?`<path d="M-11 3H-6V0H6V3H12V7H15V16H11V20H-10V17H-14V7H-11Z" fill="${color}"/><path d="M-2 1V-6H2V-9H6V-6H3V1Z" fill="#687842"/><path d="M-8 5H-5V16H-8M4 4H7V17H4" fill="#efb560"/><path d="M-1 3H1V19H-1M11 8H13V15H11" fill="#b97635"/>`:'');
     if(type==='corn')plant='<path d="M-2 16H2V-30H-2M-2-9H-7V-13H-13V-18H-17V-13H-13V-7H-8V-3H-2M2 3H7V-3H13V-9H18V-13H13V-8H7V-3H2M-2 8H-8V3H-15V0H-19V5H-13V10H-7V13H-2" fill="#6f914b"/><path d="M-1-29H1V-34H-1M-5-28H-2V-32H-5M2-27H5V-31H2" fill="#d5bd79"/>'+(stage>=3?`<path d="M3-17H8V-14H10V1H7V5H3V1H1V-13H3Z" fill="${color}"/><path d="M4-13H6V-10H4M7-9H9V-6H7M3-6H5V-3H3M6-2H8V1H6" fill="#fff0a3"/><path d="M0-5H3V0H6V5H9V0H12V-7H15V-1H12V6H7V9H3V5H0Z" fill="#9bb466"/>`:'');
     if(type==='blueberry')plant='<path d="M-2 14H2V-13H-2M-13 0H13V3H-13" fill="#6d6943"/><path d="M-17-10H-12V-16H-4V-21H5V-17H12V-12H18V1H13V7H5V10H-7V6H-15V1H-19V-6H-17Z" fill="#658951"/><path d="M-12-12H-5V-15H2V-18H5V-12H11V-7H3V-4H-6V-7H-12M-14 0H-7V4H-14M8 1H14V4H8" fill="#96ad68"/>'+(stage>=3?[[-11,-3],[1,-10],[10,-2],[-2,4]].slice(0,mature?4:2).map(([x,y])=>tileGroup(x,y,1,`<path d="M-4-2H3V0H5V5H2V7H-3V5H-5V0H-4Z" fill="${color}"/><path d="M-3 0H0V2H-3" fill="#b1bddd"/><path d="M0 3H2V5H0" fill="#495d88"/>`)).join(''):'');
+    if(type==='fig')plant='<path d="M-3 14H2V-23H-3M-2-9H-12V-12H-2M1-15H12V-18H1" fill="#876348"/><path d="M-1-22H1V11H-1" fill="#b68a5c"/><path d="M-17-12H-14V-19H-10V-15H-6V-20H-2V-11H-6V-7H-10V-4H-14V-8H-18V-12M3-18H6V-24H10V-21H14V-25H18V-16H15V-12H11V-9H7V-13H3M-8-24H-5V-30H-1V-27H3V-31H7V-23H4V-19H0V-17H-4V-21H-8" fill="#6f9554"/><path d="M-13-16H-10V-10H-13M8-21H11V-16H8M-3-27H0V-22H-3" fill="#a8bf74"/>'+(stage>=3?[[-10,-2],[9,-7],[-1,5]].slice(0,mature?3:1).map(([x,y])=>tileGroup(x,y,1,`<path d="M-1-8H2V-4H4V-1H6V5H4V8H-4V5H-6V-1H-4V-4H-1Z" fill="${mature?color:'#b3bd82'}"/><path d="M-1-9H2V-6H-1" fill="#627b45"/><path d="M-3-1H0V2H-3V5H-5V1H-3" fill="${mature?'#cfa2b5':'#dae5ac'}"/><path d="M-2 6H2V8H-2" fill="${mature?'#613d59':'#859760'}"/>`)).join(''):'');
     art+=tileGroup(0,stage===1?7:0,scale,plant);
     if(mature)art+='<path class="spark" d="M18-22H20V-18H24V-16H20V-12H18V-16H14V-18H18Z" fill="#fff0a2"/>';
     return tileGroup(cx,cy,1,art);
@@ -293,3 +294,4 @@ shopCard=function(image,name,status,action,disabled=false,extra=''){
 };
 const tileRenderShop=renderShop;
 renderShop=function(){tileRenderShop();$('livingView').insertAdjacentHTML('afterbegin',pixelShopFront());};
+
