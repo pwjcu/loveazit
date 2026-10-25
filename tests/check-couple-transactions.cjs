@@ -47,6 +47,8 @@ const clone=value=>JSON.parse(JSON.stringify(value));
     const sync=()=>Promise.all(pages.map(page=>page.evaluate(value=>window.__installSharedLiving(value),clone(shared.value))));
     await sync();
 
+    // 앱이 켜지며 오늘의 미션을 준비하는 동안은 저장 중이라 다른 저장을 미뤄요. 준비가 끝난 뒤 동시에 누릅니다.
+    await Promise.all(pages.map(page=>page.waitForFunction(()=>{if(typeof togetherBooted==='undefined'||!togetherBooted||togetherAllocating||worldBusy||togetherMissionTimer)return false;const row=togetherState(LV).days[togetherDay()];return Boolean(row?.question||row?.exhausted);})));
     await Promise.all(pages.map(page=>page.evaluate(()=>startQA('hearts'))));
     let rounds=Object.values(shared.value.qaRounds||{});
     if(rounds.length!==1||shared.value.hearts!==8)throw new Error(`simultaneous paid Q&A was not charged exactly once (rounds=${rounds.length}, hearts=${shared.value.hearts})`);

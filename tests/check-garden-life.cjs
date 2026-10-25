@@ -69,6 +69,8 @@ const clone=value=>JSON.parse(JSON.stringify(value));
     });
     checks+=local.length;
     const page=pages[0];
+    // 대화상자를 닫으면 장면을 다시 그린 뒤 나무로 초점을 돌려줘요. 바로가 아니라 잠시 뒤라서, 돌아올 때까지 기다려 확인합니다.
+    const treeFocused=()=>page.waitForFunction(()=>document.activeElement?.id==='gardenTreePlot',null,{timeout:3000}).then(()=>true,()=>false);
     const captureGarden=async name=>{
       await page.waitForFunction(()=>!$('toast').classList.contains('on'));
       await page.locator('.pixel-garden').evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
@@ -90,12 +92,12 @@ const clone=value=>JSON.parse(JSON.stringify(value));
     check(await page.evaluate(()=>document.documentElement.scrollWidth<=320),'320px has no horizontal overflow');
     await page.locator('#azitDialog').screenshot({path:'output/playwright/tree-controls-320.png',animations:'disabled'});
     await page.locator('#azitDialog .dialog-close').click();
-    check(await page.locator('#gardenTreePlot').evaluate(el=>el===document.activeElement),'closing care returns focus to the tree after its scene rerender');
+    check(await treeFocused(),'closing care returns focus to the tree after its scene rerender');
     for(const key of ['Enter','Space']){
       await page.locator('#gardenTreePlot').focus();await page.keyboard.press(key);
       check(await page.locator('#azitDialog').evaluate(dialog=>dialog.open),key+' opens the garden tree');
       await page.keyboard.press('Escape');
-      check(await page.locator('#gardenTreePlot').evaluate(el=>el===document.activeElement),'Escape restores tree focus after '+key);
+      check(await treeFocused(),'Escape restores tree focus after '+key);
     }
     await page.evaluate(()=>{LV.garden.sharedTree=null;renderLiving();});
     await captureGarden('tree-in-garden-empty-320');
@@ -136,7 +138,7 @@ const clone=value=>JSON.parse(JSON.stringify(value));
     await page.locator('#azitDialog button').filter({hasText:'우리 나무에 퇴비 주기'}).click();
     check(await page.locator('#azitDialog').evaluate(dialog=>dialog.open)&&await page.locator('#azitDialog [data-world-focus="tree-compost"]').count()===1,'pantry use opens the garden tree controls');
     await page.locator('#azitDialog .dialog-close').click();
-    check(await page.locator('#gardenTreePlot').evaluate(el=>el===document.activeElement),'pantry-to-tree close returns focus to the garden tree');
+    check(await treeFocused(),'pantry-to-tree close returns focus to the garden tree');
     await page.evaluate(()=>{
       gardenTree().species='zelkova';gardenTree().growth=80;
       LV.garden.plots=['carrot','pumpkin','corn','blueberry','strawberry','grape'].map(type=>({type,stage:4,care:[]}));

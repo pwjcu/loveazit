@@ -35,7 +35,7 @@ async (page) => {
     await page.locator('[data-world-focus="plot-0"]').click();
     check(await page.evaluate(t=>LV.garden.plots[0]===null&&LV.pantry[t]===2,type),name+' 수확물 2개');
   }
-  check(await page.evaluate(()=>Object.keys(FRUITS).length===9),'씨앗 9종');
+  check(await page.evaluate(()=>Object.keys(FRUITS).length===10),'씨앗 10종(무화과 포함)');
   await page.evaluate(async()=>{
     LV=defaultLiving();LV.hearts=500;await saveLiving();
     await buyPet('dog','cocker');await buyPet('dog','pomeranian');await buyPet('cat','norwegian');
@@ -47,6 +47,8 @@ async (page) => {
     LV.pets=[{id:'cocker',type:'dog',breed:'cocker',place:'garden',care:[]},{id:'pomeranian',type:'dog',breed:'pomeranian',place:'garden',care:[]},{id:'norwegian',type:'cat',breed:'norwegian',place:'garden',care:[]}];
     isNight=()=>false;worldStill=true;await saveLiving();setLoc('garden');
   });
+  // 데이터를 초기화하면 앱이 오늘의 미션을 다시 준비하며 장면을 새로 그려요. 준비가 끝난 뒤 촬영합니다.
+  await page.waitForFunction(()=>{if(typeof togetherBooted==='undefined'||!togetherBooted||togetherAllocating||worldBusy||togetherMissionTimer)return false;const row=togetherState(LV).days[togetherDay()];return Boolean(row?.question||row?.exhausted);});
   for(const width of [320,390,1280]){
     await page.setViewportSize({width,height:900});
     await page.locator('.living-scene').screenshot({path:`output/playwright/variety-garden-${width}.png`,animations:'disabled'});
