@@ -6,7 +6,7 @@ async page=>{
   check(await page.evaluate(()=>db===null),'테스트가 실제 Firebase에 연결하지 않음');
   await page.evaluate(()=>{localStorage.clear();});await page.reload();
   await page.evaluate(()=>document.fonts.ready);
-  const nav=async text=>page.locator('nav button').filter({hasText:text}).click();
+  const nav=async text=>{const group={'한마디':'talk','Q&A':'talk','룸':'azit','운세':'azit'}[text];if(text==='설정')return page.locator('#settingsNav').click();if(!group)return page.locator('nav button').filter({hasText:text}).click();await page.locator(`nav [data-group=${group}]`).click();await page.locator('#subtabs button').filter({hasText:text}).click();};
   const shot=async name=>page.screenshot({path:'output/playwright/couple-'+name+'.png',fullPage:true,animations:'disabled'});
   check(await page.evaluate(()=>{const s=defaultLiving(),d=dayKey();for(let i=0;i<4;i++)grantHeart(s,'photo',3,d);grantHeart(s,'visit',3,d);grantHeart(s,'note',3,d);grantHeart(s,'qa',3,d);grantHeart(s,'care',2,d);grantHeart(s,'care',2,d);return s.hearts===36&&!grantHeart(s,'care',2,d)&&!grantHeart(s,'sleep',1,d)&&grantHeart(s,'photo',3,'2099-01-01')}),'활동별 반복 제한·하루16하트·다음날 보상');
   check(await page.evaluate(()=>{const s=defaultLiving();s.dailyEarn[dayKey()]={photo:1};return grantHeart(s,'note',3,dayKey())&&s.hearts===23&&s.rewardLedger[dayKey()].earned===13}),'업데이트 전 오늘 적립량을 고려하고 기존 잔액 보존');

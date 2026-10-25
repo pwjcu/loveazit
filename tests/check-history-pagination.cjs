@@ -5,7 +5,7 @@ const EXECUTABLE='C:/Users/pwjcu/AppData/Local/ms-playwright/chromium_headless_s
 (async()=>{
   const browser=await chromium.launch({headless:true,executablePath:EXECUTABLE}),page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),checks=[],errors=[];
   const check=(ok,name)=>{if(!ok)throw Error(name);checks.push(name);};
-  const nav=async text=>page.locator('nav button').filter({hasText:text}).click();
+  const nav=async text=>{const group={'한마디':'talk','Q&A':'talk','룸':'azit','운세':'azit'}[text];if(text==='설정')return page.locator('#settingsNav').click();if(!group)return page.locator('nav button').filter({hasText:text}).click();await page.locator(`nav [data-group=${group}]`).click();await page.locator('#subtabs button').filter({hasText:text}).click();};
   const shot=async name=>page.screenshot({path:'output/playwright/history-'+name+'.png',fullPage:true,animations:'disabled'});
   page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());
   fs.mkdirSync('output/playwright',{recursive:true});

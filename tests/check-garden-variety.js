@@ -6,7 +6,7 @@ async (page) => {
   await page.setViewportSize({width:390,height:844});
   await page.goto('http://127.0.0.1:4173/?local-preview=1');
   check(await page.evaluate(()=>db===null),'로컬 미리보기 전용 검증');
-  await page.getByRole('button',{name:'🏡 룸',exact:true}).click();
+  await page.locator('nav [data-group=azit]').click();await page.locator('#subtabs button').filter({hasText:'리빙룸'}).click();
   for(const [type,breed,name] of [['dog','cocker','코카스파니엘'],['dog','pomeranian','포메라니안'],['cat','norwegian','노르웨이숲'],['cat','bengal','뱅갈']]){
     await page.evaluate(async()=>{LV=defaultLiving();LV.hearts=200;await saveLiving();setLoc('shop');});
     await page.getByRole('button',{name:name+' 💗 50',exact:true}).click();
@@ -18,7 +18,7 @@ async (page) => {
     check(await page.evaluate(()=>window.varietyDuplicate),name+' 중복 구매 방지');
     await page.locator('.pet-family [data-pet-id]').first().getByRole('button',{name:/^마당에 보내기/}).click();
     check(await page.locator('.living-scene [data-pet-id]').count()===1,name+' 마당 이동');
-    await page.reload();await page.getByRole('button',{name:'🏡 룸',exact:true}).click();
+    await page.reload();await page.locator('nav [data-group=azit]').click();await page.locator('#subtabs button').filter({hasText:'리빙룸'}).click();
     check(await page.evaluate(b=>LV.pets[0].breed===b&&LV.pets[0].place==='garden',breed),name+' 재접속 유지');
   }
   await page.evaluate(async()=>{LV=defaultLiving();LV.hearts=200;await saveLiving();setLoc('garden');});

@@ -3,7 +3,7 @@ async (page) => {
   const check=(ok,label)=>{if(!ok)throw new Error(label);checks.push(label);};
   await page.setViewportSize({width:390,height:844});
   await page.goto('http://127.0.0.1:4173/?local-preview=1');
-  await page.getByRole('button',{name:'🏡 룸',exact:true}).click();
+  await page.locator('nav [data-group=azit]').click();await page.locator('#subtabs button').filter({hasText:'리빙룸'}).click();
   check(await page.locator('#p6').isVisible(),'룸 탭 연결');
   await page.evaluate(async()=>{if(db!==null)throw new Error('Local preview required');LV=defaultLiving();LV.hearts=1200;await saveLiving();});
   await page.getByRole('button',{name:'🛒 상점',exact:true}).click();
@@ -26,7 +26,7 @@ async (page) => {
   await pet.getByRole('button',{name:/^마당에 보내기/,exact:false}).click();
   check(await page.locator('.living-scene [data-pet-id]').count()===1&&await page.evaluate(()=>locView==='garden'),'펫 마당 이동과 화면 반영');
   await page.reload();
-  await page.getByRole('button',{name:'🏡 룸',exact:true}).click();
+  await page.locator('nav [data-group=azit]').click();await page.locator('#subtabs button').filter({hasText:'리빙룸'}).click();
   await page.getByRole('button',{name:'🌿 텃밭',exact:true}).click();
   check(await page.locator('.living-scene [data-pet-id]').count()===1&&await page.evaluate(()=>LV.pets[0].nickname==='구름이'),'펫 위치와 애칭 재접속 유지');
   await page.locator('[data-world-focus="plot-0"]').click();

@@ -3,7 +3,7 @@ async page=>{
   const check=(ok,name)=>{if(!ok)throw new Error(name);checks.push(name);};
   const waitForChalk=()=>page.waitForFunction(()=>typeof chalkSending==='boolean'&&!chalkSending);
   const closeChalk=()=>page.evaluate(()=>{const d=$('chalkDialog');if(d?.open)d.close();});
-  const openChalkPage=async()=>{await page.locator('nav button').filter({hasText:'한마디'}).click();await page.locator('#chalkComposeOpen').waitFor();};
+  const openChalkPage=async()=>{await page.locator('nav [data-group=talk]').click();await page.locator('#subtabs button').filter({hasText:'한마디'}).click();await page.locator('#chalkComposeOpen').waitFor();};
   page.on('pageerror',error=>pageErrors.push(error.message));
   page.on('dialog',dialog=>dialog.accept());
 

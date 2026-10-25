@@ -1,7 +1,7 @@
 async (page) => {
   const checks=[];const check=(ok,label)=>{if(!ok)throw new Error(label);checks.push(label);};
   await page.evaluate(()=>{if(db!==null)throw new Error('Local preview required');FT={profiles:{},daily:{}};localStorage.setItem(FORTUNE_KEY,JSON.stringify(FT));renderFortune();});
-  await page.getByRole('button',{name:'🔮 운세',exact:true}).click();
+  await page.locator('nav [data-group=azit]').click();await page.locator('#subtabs button').filter({hasText:'운세'}).click();
   check(await page.locator('#p7').isVisible(),'운세 메뉴 접근');
   check(await page.locator('.compat-tile').count()===6,'6종 궁합 모두 표시');
   check(await page.locator('.score-orb b').innerText()==='—','정보 없으면 점수 만들지 않음');
@@ -49,7 +49,7 @@ async (page) => {
   await page.locator('.daily-seal').first().click();
   const daily=await page.locator('.daily-luck').first().innerText();
   await page.reload();
-  await page.getByRole('button',{name:'🔮 운세',exact:true}).click();
+  await page.locator('nav [data-group=azit]').click();await page.locator('#subtabs button').filter({hasText:'운세'}).click();
   await page.getByRole('button',{name:'오늘 운세',exact:true}).click();
   check(await page.locator('.daily-luck').first().innerText()===daily,'새로고침 후 같은 일일 운세');
   await page.locator('#p7').screenshot({path:'output/playwright/daily-mobile.png'});
@@ -70,14 +70,14 @@ async (page) => {
     return f('2024-02-09').animal===3&&f('2024-02-10').animal===4&&f('2024-01-19').star.n==='염소자리'&&f('2024-01-20').star.n==='물병자리'&&f('2024-02-29')!==null&&f('2023-02-29')===null;
   }),'설 전후 띠·별자리 경계·양력 윤년');
   check(await page.evaluate(()=>koreaDay(new Date('2026-09-05T14:59:59Z'))==='2026-09-05'&&koreaDay(new Date('2026-09-05T15:00:00Z'))==='2026-09-06'),'한국 시간 자정 날짜 전환');
-  await page.getByRole('button',{name:'🔮 운세',exact:true}).click();
+  await page.locator('nav [data-group=azit]').click();await page.locator('#subtabs button').filter({hasText:'운세'}).click();
   for(const width of [320,375,390,768,1440]){
     await page.setViewportSize({width,height:900});
     check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'가로 넘침 없음 '+width+'px');
   }
   await page.setViewportSize({width:390,height:844});
   await page.emulateMedia({reducedMotion:'reduce'});
-  await page.getByRole('button',{name:'🏡 룸',exact:true}).click();
+  await page.locator('nav [data-group=azit]').click();await page.locator('#subtabs button').filter({hasText:'리빙룸'}).click();
   check(await page.evaluate(()=>{const el=document.querySelector('.pet-roam');return !el||getComputedStyle(el).animationName==='none';}),'동작 줄이기 설정 존중');
   await page.emulateMedia({reducedMotion:'no-preference'});
   return checks;

@@ -31,10 +31,16 @@ async (page) => {
     }finally{db=null;LV=mergeLiving(original);renderLiving();renderHearts();renderCareList();renderFortune();}
     return checks;
   });
-  for(let i=0;i<8;i++){
-    await page.locator('nav button').nth(i).click();
-    if(await page.locator('.page.on').count()!==1)throw new Error('Navigation page count '+i);
+  // 설정(헤더 ⚙)을 먼저 보고, 하단 탭 5개와 각 묶음의 서브탭을 모두 거쳐 운세에서 끝나요.
+  const seen=new Set(),visit=async(locator,label)=>{await locator.click();if(await page.locator('.page.on').count()!==1)throw new Error('Navigation page count '+label);seen.add(await page.locator('.page.on').getAttribute('id'));};
+  await visit(page.locator('#settingsNav'),'settings');
+  const tabs=page.locator('nav button');
+  for(let i=0;i<await tabs.count();i++){
+    await visit(tabs.nth(i),'tab '+i);
+    const subs=page.locator('#subtabs button');
+    for(let j=0;j<await subs.count();j++)await visit(subs.nth(j),'tab '+i+' sub '+j);
   }
+  if(seen.size!==8)throw new Error('Grouped navigation reaches '+seen.size+' of 8 screens');
   results.push('기존 7개 화면과 새 운세 화면 탐색');
   await page.locator('.fortune-profile').first().click();
   await page.keyboard.press('Escape');

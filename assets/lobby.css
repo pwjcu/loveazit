@@ -1,0 +1,105 @@
+/* 2026-10 로비형 정리 — 마지막에 불러와 기존 층을 덮어씁니다.
+   원칙: 핵심 행동만 카드로, 나머지는 글자 크기·굵기·간격으로 위계를 만듭니다. */
+:root{--line:#f1dde4;--ink:#4f3d44;--sub:#8b7179;--faint:#b49aa2}
+/* 아래에서 display를 지정한 요소도 hidden 속성은 항상 우선 */
+.subtabs[hidden],.uplist[hidden],.more-btn[hidden],.season-strip[hidden]{display:none!important}
+body{font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:15px;line-height:1.55;color:var(--ink);letter-spacing:-.005em}
+.card{box-shadow:0 6px 18px rgba(177,76,105,.08);border-color:rgba(255,214,225,.7)}
+.mut{color:var(--sub)}
+
+/* 헤더: 설정은 왼쪽 구석, 하트는 오른쪽 — 한 줄로 */
+.topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:0 0 6px}
+.topbar h1{grid-column:2;padding:0;font-size:21px;white-space:nowrap}
+.topbar .hearts{grid-column:3;justify-self:end}
+.icon-btn{grid-column:1;justify-self:start;display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:14px;background:transparent;font-size:19px;cursor:pointer;color:var(--sub);transition:background .16s ease}
+.icon-btn:hover,.icon-btn.on{background:rgba(255,255,255,.75)}
+
+/* 언더라인 탭 — 서브메뉴와 모든 분류 필터를 하나의 모양으로 */
+body :is(.utabs,.subtabs,.calendar-tabs,.loc-tabs,.letter-filters,.fortune-tabs,.wish-map-filters){display:flex;flex-wrap:nowrap;gap:22px;margin:4px 0 16px;padding:0 2px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;box-shadow:none;overflow-x:auto;scrollbar-width:none}
+body :is(.utabs,.subtabs,.calendar-tabs,.loc-tabs,.letter-filters,.fortune-tabs,.wish-map-filters)::-webkit-scrollbar{display:none}
+body :is(.utabs,.subtabs,.calendar-tabs,.loc-tabs,.letter-filters,.fortune-tabs,.wish-map-filters) :is(button,.btn){flex:0 0 auto;min-width:0;min-height:44px;margin:0 0 -1px;padding:10px 1px 8px;border:0;border-bottom:2.5px solid transparent;border-radius:0;background:none;box-shadow:none;color:var(--faint);font-family:'Jua',sans-serif;font-size:15px;white-space:nowrap;transform:none;filter:none;cursor:pointer;transition:color .16s ease,border-color .16s ease}
+body :is(.utabs,.subtabs,.calendar-tabs,.loc-tabs,.letter-filters,.fortune-tabs,.wish-map-filters) :is(button,.btn):hover{color:var(--sub)}
+body :is(.utabs,.subtabs,.calendar-tabs,.loc-tabs,.letter-filters,.fortune-tabs,.wish-map-filters) :is(button.on,button[aria-pressed=true],button[aria-current=page]){color:var(--berry-deep);border-bottom-color:var(--berry);background:none;box-shadow:none}
+#p6 .loc-tabs{gap:22px;padding:0 2px;border:0;border-bottom:1px solid var(--line);background:none;box-shadow:none}
+#p6 .loc-tabs button{color:var(--faint)}
+#p6 .loc-tabs button.on{background:none;box-shadow:none;color:var(--berry-deep)}
+.letter-filters span{margin-left:3px;font-family:'Pretendard Variable',Pretendard,sans-serif;font-size:12px;font-weight:600;opacity:.8}
+.subtabs{position:sticky;top:0;z-index:6;margin:0 -14px 14px;padding:0 16px;background:linear-gradient(180deg,rgba(255,244,247,.97) 75%,rgba(255,244,247,.86));backdrop-filter:blur(12px)}
+.subtabs button{font-size:17px}
+
+/* 하단 탭 5개 */
+nav button{flex:1 1 0;min-width:0;position:relative}
+nav button.has-dot::after{content:'';position:absolute;top:9px;left:calc(50% + 11px);width:8px;height:8px;border-radius:50%;background:#e8476f;box-shadow:0 0 0 2px #fff}
+
+/* 홈 — 환영(디데이) */
+.hero{padding:6px 2px 4px;text-align:center}
+.hero .chars{margin-top:4px}
+.hero .dday{margin-top:14px}
+.hero .dday .sub{font-size:13px;font-weight:500;color:var(--sub)}
+.hero .dday .big{margin:2px 0 1px;font-size:58px;line-height:1;color:var(--berry);letter-spacing:-.02em}
+.hero .banner{margin-top:14px}
+
+/* 홈 섹션 — 카드 없이 글자 위계와 여백으로 */
+.lobby-sec{margin-top:30px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 2px 2px}
+.sec-title{font-family:'Jua',sans-serif;font-weight:400;font-size:19px;color:var(--ink)}
+.sec-link{border:0;background:none;padding:6px 0;min-height:36px;color:var(--sub);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.sec-link:hover{color:var(--berry-deep)}
+.uplist{display:flex;flex-direction:column}
+.up-row{display:flex;align-items:center;gap:14px;width:100%;min-height:56px;padding:10px 2px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-family:inherit;text-align:left;cursor:pointer}
+.up-row:last-child{border-bottom:0}
+.up-row:hover .up-main b{color:var(--berry-deep)}
+.up-dd{flex:0 0 58px;font-family:'Jua',sans-serif;font-size:16px;color:var(--sub);text-align:left}
+.up-main{display:flex;flex-direction:column;min-width:0}
+.up-main b{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.up-main small{margin-top:1px;font-size:12px;color:var(--faint)}
+.up-row.next{min-height:72px}
+.up-row.next .up-dd{font-size:24px;color:var(--berry)}
+.up-row.next .up-main b{font-size:17px;font-weight:700}
+.uplist:not(.expanded) .up-row:nth-child(n+4){display:none}
+.uplist .mut{padding:12px 2px}
+.more-btn{display:block;width:100%;min-height:44px;margin-top:2px;border:0;border-top:1px solid var(--line);background:none;color:var(--sub);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.more-btn:hover{color:var(--berry-deep)}
+
+/* 오늘의 미션 — 홈에서 유일하게 카드로 남는 핵심 행동 */
+#togetherPanel{margin-top:26px}
+#togetherPanel .together-card{margin-top:0}
+#togetherPanel .together-intro{display:none}
+#togetherPanel .together-heading h2{font-family:'Jua',sans-serif;font-size:21px}
+#togetherPanel .together-mission h3{font-family:'Jua',sans-serif;font-size:18px;line-height:1.5;color:var(--ink)}
+#togetherPanel .together-people{margin-top:12px}
+/* 바로가기는 하단 탭과 겹치므로, 안 읽은 편지가 있을 때만 안내합니다 */
+#togetherPanel .together-shortcuts:not(:has(b)){display:none}
+#togetherPanel .together-shortcuts button:not(:has(b)){display:none}
+#togetherPanel .together-shortcuts button:has(b){width:100%}
+
+/* 계절 선물 — 받을 게 있을 때만 얇은 띠로 */
+.season-strip{display:flex;align-items:center;gap:12px;margin-top:22px;padding:12px 14px;border:1px solid var(--rose-line);border-radius:16px;background:rgba(255,255,255,.72)}
+.season-strip[hidden]{display:none}
+.season-strip .season-ico{font-size:24px}
+.season-strip div{flex:1;min-width:0;display:flex;flex-direction:column;word-break:keep-all}
+.season-strip b{font-family:'Jua',sans-serif;font-weight:400;font-size:15px;color:var(--ink)}
+.season-strip small{font-size:12px;color:var(--sub);line-height:1.45}
+.season-strip .btn{flex:none}
+
+/* 필요할 때만 펼치는 입력란 */
+.reveal{margin-top:12px;border-top:1px solid var(--line)}
+.reveal>summary{display:flex;align-items:center;gap:6px;min-height:48px;padding:6px 2px;list-style:none;cursor:pointer;color:var(--berry-deep);font-family:'Jua',sans-serif;font-size:15px}
+.reveal>summary::-webkit-details-marker{display:none}
+.reveal>summary::after{content:'＋';margin-left:auto;font-size:15px;color:var(--faint);transition:transform .16s ease}
+.reveal[open]>summary::after{transform:rotate(45deg)}
+.reveal[open]>summary{color:var(--sub)}
+.day-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+#selttl{font-size:18px}
+details.diary-compose>summary{display:flex;flex-direction:column;align-items:flex-start;gap:2px;list-style:none;cursor:pointer;min-height:52px;position:relative;padding-right:28px}
+details.diary-compose>summary::-webkit-details-marker{display:none}
+details.diary-compose>summary::after{content:'＋';position:absolute;right:4px;top:50%;transform:translateY(-50%);color:var(--faint);transition:transform .16s ease}
+details.diary-compose[open]>summary::after{transform:translateY(-50%) rotate(45deg)}
+details.diary-compose[open]>summary{margin-bottom:10px}
+details.diary-compose:not([open])>summary{margin-bottom:0}
+
+@media(max-width:380px){
+  .hero .dday .big{font-size:50px}
+  body :is(.utabs,.subtabs,.calendar-tabs,.loc-tabs,.letter-filters,.fortune-tabs,.wish-map-filters){gap:16px}
+  .subtabs{margin-left:-10px;margin-right:-10px;padding:0 12px}
+}

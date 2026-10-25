@@ -5,7 +5,7 @@ async page=>{
   await page.goto('http://127.0.0.1:4173/?local-preview=1');
   check(await page.evaluate(()=>db===null),'시네마 테스트는 로컬 데이터만 사용');
   await page.evaluate(()=>localStorage.clear());await page.reload();await page.evaluate(()=>document.fonts.ready);
-  await page.locator('nav button').filter({hasText:'룸'}).click();
+  await page.locator('nav [data-group=azit]').click();await page.locator('#subtabs button').filter({hasText:'리빙룸'}).click();
   const state=()=>page.evaluate(()=>cinemaState());
   check((await state()).mode==='films','사진이 없으면 기존 네 가지 풍경 상영');
   await page.evaluate(()=>{

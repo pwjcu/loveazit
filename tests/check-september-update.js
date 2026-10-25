@@ -6,7 +6,7 @@ async (page) => {
   await page.goto('http://127.0.0.1:4173/?local-preview=1');
   check(await page.evaluate(()=>db===null),'로컬 미리보기는 Firebase 없이 시작');
   await page.evaluate(()=>{localStorage.removeItem('wishes');localStorage.removeItem('photos')}); await page.reload();
-  await page.locator('nav button').filter({hasText:'운세'}).click();
+  await page.locator('nav [data-group=azit]').click();await page.locator('#subtabs button').filter({hasText:'운세'}).click();
   await page.locator('.fortune-profile').first().click();
   await page.locator('#fpBirth').fill('19950615');
   check(await page.locator('#fpBirth').inputValue()==='1995-06-15','숫자 생일 자동 서식');
@@ -31,7 +31,7 @@ async (page) => {
   const validPng=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=300;c.height=300;const x=c.getContext('2d');x.fillStyle='#a3d7dc';x.fillRect(0,0,300,300);x.fillStyle='#ffe4b0';x.fillRect(0,200,300,100);x.fillStyle='#fff6cf';x.beginPath();x.arc(230,65,28,0,Math.PI*2);x.fill();return c.toDataURL('image/png')});
   const data=await page.evaluate(async img=>{const one=Array.from({length:21},(_,i)=>({id:'legacy-'+i,img,cap:'legacy '+i,date:'2026-09-08',ts:i}));localStorage.setItem('photos',JSON.stringify(one));await refreshLocal('photos');return one.length},validPng);
   check(data===21,'레거시 사진 fixture 생성');
-  await page.locator('nav button').filter({hasText:'추억'}).click();
+  await page.locator('nav button').filter({hasText:'추억'}).click(); if(!await page.locator('#photoCompose').evaluate(d=>d.open))await page.locator('#photoCompose summary').click();
   await page.evaluate(()=>{setPhotoMonth('2026-09');selectPhotoDay('2026-09-08',false)});
   check((await page.locator('#photoPageLabel').innerText()).includes('1 / 2')&&await page.locator('.photo-tile').count()===20,'사진 페이지 20개 기준');
   await page.locator('#photoNextPage').click(); check((await page.locator('#photoPageLabel').innerText()).includes('2 / 2')&&await page.locator('.photo-tile').count()===1,'사진 다음 페이지');
@@ -47,7 +47,7 @@ async (page) => {
   await page.locator('#mimg').dispatchEvent('touchstart',{touches:[{identifier:0,clientX:250,clientY:200}]});await page.locator('#mimg').dispatchEvent('touchend',{changedTouches:[{identifier:0,clientX:100,clientY:205}]});
   check((await page.locator('#photoSlideCount').innerText()).startsWith('2 /'),'터치 스와이프로 다음 사진');
   await shot('gallery'); await page.locator('#modal button[aria-label="추억 사진 닫기"]').click();
-  await page.reload(); await page.locator('nav button').filter({hasText:'추억'}).click(); check(await page.locator('.photo-count').count()>=1,'그룹 게시글 새로고침 유지');
+  await page.reload(); await page.locator('nav button').filter({hasText:'추억'}).click(); if(!await page.locator('#photoCompose').evaluate(d=>d.open))await page.locator('#photoCompose summary').click(); check(await page.locator('.photo-count').count()>=1,'그룹 게시글 새로고침 유지');
   await page.locator('#photoGroup').uncheck(); const splitBefore=await page.evaluate(()=>photos.length); await page.locator('#pfile').setInputFiles([png,png]); await page.waitForFunction(()=>document.querySelector('#photoUploadStatus').innerText.includes('2개의 추억'));
   check(await page.evaluate(()=>photos.length)===splitBefore+2,'비그룹 업로드 게시글 두 개');
   check((await page.locator('#photoUploadStatus').innerText()).includes('2개의 추억'),'비그룹 업로드 분리');
@@ -61,7 +61,7 @@ async (page) => {
     await page.locator('#wishTitle').fill('실패 메모'); await page.locator('#wishSave').click();
     await page.waitForFunction(()=>document.querySelector('#wishError').textContent.includes('저장하지 못했어요'));
     check(await page.locator('#wishTitle').inputValue()==='실패 메모'&&!await page.locator('#wishSave').isDisabled()&&await page.evaluate(()=>wishes.length)===wishCount,'메모 저장 실패 입력 보존·버튼 복구');
-    await page.locator('nav button').filter({hasText:'추억'}).click(); const failCount=await page.evaluate(()=>photos.length);
+    await page.locator('nav button').filter({hasText:'추억'}).click(); if(!await page.locator('#photoCompose').evaluate(d=>d.open))await page.locator('#photoCompose summary').click(); const failCount=await page.evaluate(()=>photos.length);
     await page.locator('#pfile').setInputFiles([png]);
     await page.waitForFunction(()=>document.querySelector('#photoUploadStatus').textContent.includes('simulated'));
     check(!await page.locator('#pfile').isDisabled()&&await page.evaluate(()=>photos.length)===failCount,'사진 저장 실패 busy 복구·개수 불변');

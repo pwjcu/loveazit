@@ -9,7 +9,7 @@ const {chromium}=require('../output/npm-cache/_npx/31e32ef8478fbf80/node_modules
  const check=(value,label)=>{assert.ok(value,label);checks.push(label)};
  const seed=async rows=>page.evaluate(async posts=>{localStorage.setItem('photos',JSON.stringify(posts));await refreshLocal('photos')},rows);
  const read=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('photos')||'[]'));
- const openMemories=()=>page.locator('nav button').filter({hasText:'추억'}).click();
+ const openMemories=async()=>{await page.locator('nav button').filter({hasText:'추억'}).click();if(!await page.locator('#photoCompose').evaluate(d=>d.open))await page.locator('#photoCompose summary').click();};
  const openEditor=async id=>{await page.evaluate(id=>{const post=photos.find(p=>p.id===id);photoMonth=photoDiaryDay(post).slice(0,7);photoSelectedDay=photoDiaryDay(post);renderPhotos();openPhotoPost(post);openPhotoEditor()},id);await page.locator('#photoEditor').waitFor({state:'visible'})};
  const cancel=async()=>{if(await page.locator('#photoEditor').isVisible())await page.locator('#photoEditCancel').click();if(await page.locator('#modal').isVisible())await page.locator('#modal button[aria-label="추억 사진 닫기"]').click()};
  const openMerge=async()=>{if(!await page.locator('#photoEditor details').evaluate(el=>el.open))await page.locator('#photoEditor details summary').click()};
@@ -92,10 +92,10 @@ const {chromium}=require('../output/npm-cache/_npx/31e32ef8478fbf80/node_modules
   fs.mkdirSync('output/playwright',{recursive:true});await page.setViewportSize({width:320,height:740});await openEditor(base.id);
   check(await page.evaluate(()=>{const r=document.querySelector('#photoEditor').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight&&document.documentElement.scrollWidth<=innerWidth}),'320px photo editor fits the viewport without page overflow');
   await page.screenshot({path:'output/playwright/photo-editing-320.png',animations:'disabled'});await cancel();
-  const nav=page.locator('nav button');check((await nav.nth(6).innerText()).includes('운세')&&(await nav.nth(7).innerText()).includes('설정'),'fortune precedes settings in the bottom tabs');
-  await nav.nth(6).click();check(await page.locator('#p7').isVisible()&&await nav.nth(6).getAttribute('aria-current')==='page','fortune tab activates the fortune page and correct button');
-  await nav.nth(7).click();check(await page.locator('#p4').isVisible()&&await nav.nth(7).getAttribute('aria-current')==='page','settings tab activates the settings page and correct button');
-  await page.evaluate(()=>goFortune());check(await page.locator('#p7').isVisible()&&await nav.nth(6).getAttribute('aria-current')==='page','fortune shortcut respects reordered navigation');
+  const nav=page.locator('nav button');check(await nav.count()===5&&(await nav.last().innerText()).includes('아지트')&&await page.locator('#settingsNav').isVisible(),'five grouped bottom tabs with settings in the header');
+  await nav.last().click();await page.locator('#subtabs button').filter({hasText:'운세'}).click();check(await page.locator('#p7').isVisible()&&await nav.last().getAttribute('aria-current')==='page'&&await page.locator('#subtabs button[aria-current=page]').innerText()==='운세','fortune sub tab activates the fortune page under the azit tab');
+  await page.locator('#settingsNav').click();check(await page.locator('#p4').isVisible()&&await page.locator('#settingsNav').getAttribute('aria-current')==='page'&&await page.locator('nav button[aria-current]').count()===0,'settings gear activates the settings page');
+  await page.evaluate(()=>goFortune());check(await page.locator('#p7').isVisible()&&await nav.last().getAttribute('aria-current')==='page','fortune shortcut activates the azit tab');
   assert.deepEqual(errors,[]);checks.push('no browser JavaScript errors');console.log(JSON.stringify({count:checks.length,checks},null,2));
  }catch(error){fs.mkdirSync('output/playwright',{recursive:true});await page.screenshot({path:'output/playwright/photo-editing-failure.png',fullPage:true}).catch(()=>{});throw error}
  finally{await browser.close()}

@@ -7,7 +7,7 @@ const {chromium}=require('../output/npm-cache/_npx/31e32ef8478fbf80/node_modules
  const page=await browser.newPage({viewport:{width:390,height:844},timezoneId:'America/Los_Angeles',reducedMotion:'reduce'});
  const errors=[],checks=[];page.on('pageerror',e=>errors.push(e.message));
  const check=(value,label)=>{assert.ok(value,label);checks.push(label)};
- const open=async()=>page.locator('nav button').filter({hasText:'추억'}).click();
+ const open=async()=>{await page.locator('nav button').filter({hasText:'추억'}).click();if(!await page.locator('#photoCompose').evaluate(d=>d.open))await page.locator('#photoCompose summary').click();};
  const seed=async posts=>page.evaluate(async rows=>{localStorage.setItem('photos',JSON.stringify(rows));await refreshLocal('photos')},posts);
  const close=async()=>{if(await page.locator('#modal').isVisible())await page.locator('#modal button[aria-label="추억 사진 닫기"]').click()};
  try{
