@@ -12,6 +12,7 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Jua',sans-serif;background:linear-gradient(180deg,#fff5f7,#ffeaf0);color:#5b4a4f;min-height:100vh;padding-bottom:82px}
@@ -332,7 +333,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
 <link rel="stylesheet" href="assets/garden-life.css?v=20260921-garden">
 <link rel="stylesheet" href="assets/settings-extra.css?v=20260908-life">
 <link rel="stylesheet" href="assets/lobby.css?v=20261025-lobby">
-  <link rel="stylesheet" href="assets/개인판.css?v=20261118-personal">
+  <link rel="stylesheet" href="assets/personal.css?v=20261118-merge">
 </head>
 <body>
 <div id="fx"></div>
@@ -375,24 +376,28 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
   </section>
   <div class="season-strip" id="seasonCard" hidden></div>
   <div id="togetherPanel"></div>
-  <section class="lobby-sec personal-agenda" aria-labelledby="upTitle">
-  <div class="sec-head"><h2 class="sec-title" id="upTitle">다가오는 기념일</h2><button type="button" class="sec-link" onclick="openDay(todayStr())">달력 열기 ›</button></div>
-  <div class="uplist expanded" id="uplist"></div>
-</section>
-<section class="lobby-sec personal-agenda" aria-labelledby="personalEventsTitle">
-  <div class="sec-head"><h2 class="sec-title" id="personalEventsTitle">다가오는 일정</h2></div>
-  <div class="uplist expanded" id="upevlist"></div>
-</section>
-<section class="lobby-sec personal-home-card" aria-labelledby="personalDrawTitle">
-  <div class="sec-head"><h2 class="sec-title" id="personalDrawTitle">🎁 이달의 뽑기</h2></div>
-  <p>둘이 함께 한 달에 한 번, 작은 선물을 뽑아요.</p>
-  <button type="button" class="btn sm" id="personalDrawButton">뽑기</button>
-  <p id="personalDrawResult" aria-live="polite"></p>
-</section>
-<section class="lobby-sec personal-home-card" aria-labelledby="personalReminderTitle">
-  <div class="sec-head"><h2 class="sec-title" id="personalReminderTitle">🔔 일정 알림</h2></div>
-  <div id="personalReminderItems"></div>
-</section>
+  <section class="lobby-sec personal-due" id="personalReminders" hidden aria-labelledby="personalReminderTitle">
+    <div class="sec-head"><h2 class="sec-title" id="personalReminderTitle">🔔 챙길 일정</h2></div>
+    <div id="personalReminderItems"></div>
+  </section>
+  <section class="lobby-sec" aria-labelledby="upTitle">
+    <div class="sec-head"><h2 class="sec-title" id="upTitle">다가오는 기념일</h2><button type="button" class="sec-link" onclick="openDay(todayStr())">달력 열기 ›</button></div>
+    <div class="uplist" id="uplist"></div>
+  </section>
+  <section class="lobby-sec" aria-labelledby="personalEventsTitle">
+    <div class="sec-head"><h2 class="sec-title" id="personalEventsTitle">다가오는 일정</h2></div>
+    <div class="uplist" id="upevlist"></div>
+  </section>
+  <div class="personal-entries">
+    <button type="button" class="personal-entry" onclick="goCinema()"><span aria-hidden="true">🎞️</span><b>우리 추억 상영관</b><small>올린 사진을 리빙룸 빔프로젝터로 봐요.</small></button>
+    <button type="button" class="personal-entry" onclick="goPhotoUpload()"><span aria-hidden="true">📷</span><b>추억 사진 올리기</b><small>늦게 올려도 함께한 날짜로 남아요.</small></button>
+    <button type="button" class="personal-entry lucky" id="personalDrawOpen" aria-expanded="false" aria-controls="personalDrawPanel"><span aria-hidden="true">🎁</span><b>이달의 작은 행운</b><small id="personalDrawHint">한 달에 한 번, 둘이 함께 선물을 뽑아요.</small></button>
+    <div id="personalDrawPanel" class="personal-draw" hidden>
+      <button type="button" class="btn sm" id="personalDrawButton">뽑기 열기</button>
+      <div id="personalDrawResult" aria-live="polite"></div>
+      <details class="personal-giftbox" id="personalGiftbox"><summary>지난 선물함</summary><div id="personalGiftList"></div></details>
+    </div>
+  </div>
 </div>
 
 <!-- 달력 -->
@@ -421,7 +426,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
           <label>장소<input id="evplace" type="text" maxlength="100" placeholder="장소 이름이나 주소"></label>
           <label>링크<input id="evlink" type="url" maxlength="500" placeholder="https://"></label>
           <label>사진<input id="evphoto" type="file" accept="image/*"></label>
-          <label>알림<select id="evremind"><option value="">알림 없음</option><option value="1440">하루 전</option><option value="60">1시간 전</option><option value="15">15분 전</option></select></label>
+          <label>알림<select id="evremind"><option value="">알림 없음</option><option value="0">당일</option><option value="1">하루 전</option><option value="3">3일 전</option><option value="7">일주일 전</option></select></label>
         </div>
       </details>
       <div class="personal-event-save"><span id="evfeedback" role="status"></span><button type="button" class="btn sm" id="evsave" onclick="addEv()">일정 추가</button></div>
@@ -534,6 +539,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
     <div class="mut" id="modeinfo"></div>
     <details>
       <summary>💑 같이 쓰기 연결 상태</summary>
+      <p class="mut" id="deviceAuthStatus" role="status"></p>
       <p class="mut">달력·추억·한마디·Q&amp;A·룸은 Firebase에서 실시간 공유 중이에요. 운세의 생년월일·만세력·타로는 운세 화면에서 초대 링크로 한 번 연결하면 이후 자동으로 암호화해 공유해요.</p>
     </details>
     <div class="frow" style="margin-top:12px">
@@ -998,8 +1004,25 @@ async function checkMilestone(){
 async function refreshLocal(n){ setD[n](await DB.load(n)); renderAll(); }
 
 function toArr(v){ return v?Object.entries(v).map(([id,o])=>({id,...o})):[]; }
+let deviceUid='',deviceAuthNote='';
+async function ensureDeviceAuth(){
+  if(!db||typeof firebase.auth!=='function')return;
+  try{
+    const auth=firebase.auth();
+    const user=auth.currentUser||(await Promise.race([auth.signInAnonymously(),new Promise((_,no)=>setTimeout(()=>no(Error('timeout')),8000))])).user;
+    deviceUid=user.uid;
+    await db.ref('members/'+user.uid).transaction(v=>v||{joinedAt:Date.now(),device:navigator.userAgent.slice(0,90)});
+    deviceAuthNote='이 기기는 보호 준비가 끝났어요 (기기 번호 '+user.uid.slice(0,6)+').';
+  }catch(error){
+    deviceAuthNote=error?.code==='auth/admin-restricted-operation'||error?.code==='auth/operation-not-allowed'
+      ?'기기 보호를 시작하려면 Firebase에서 익명 로그인을 켜야 해요.'
+      :deviceUid?'이 기기는 로그인했지만 등록을 확인하지 못했어요.':'기기 보호 준비를 다음에 다시 시도해요.';
+  }
+  if($('deviceAuthStatus'))$('deviceAuthStatus').textContent=deviceAuthNote;
+}
 async function boot(){
   if(db){
+    await ensureDeviceAuth();
     db.ref('.info/serverTimeOffset').on('value',s=>{serverTimeOffset=Number(s.val())||0;});
     ['events','annis','photos','notes','qa','wishes'].forEach(n=>
       db.ref(n).on('value',s=>{ setD[n](toArr(s.val())); renderAll(); }));
@@ -1016,6 +1039,9 @@ async function boot(){
   applySet(); renderAll(); await checkMilestone();
   if(!db && !localStorage.getItem('living')) await saveLiving();
 }
+
+function goCinema(){go(5);if(typeof setLoc==='function')setLoc('room');setTimeout(()=>document.querySelector('.cinema-heading')?.scrollIntoView({block:'center'}),120);}
+function goPhotoUpload(){go(2);const compose=$('photoCompose');if(compose){compose.open=true;setTimeout(()=>compose.scrollIntoView({block:'start'}),120);}}
 
 function applySet(){
   $('cn1').textContent=S.n1; $('cn2').textContent=S.n2;
@@ -1091,7 +1117,7 @@ function renderHome(){
   }).join('')||`<div class="mut">${empty}</div>`;
   $('upevlist').innerHTML=rows(ev,'달력에서 일정을 추가해보세요!');
   $('uplist').innerHTML=rows(an,'달력에서 "매년 반복"으로 기념일을 추가해보세요!');
-  if(window.Personal) Personal.sync();
+  if(typeof Personal!=='undefined')Personal.sync();
 }function openDay(key){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(key))return;
   calY=+key.slice(0,4);calM=+key.slice(5,7)-1;selDate=key;
@@ -1139,9 +1165,9 @@ function renderDay(){
   $('selttl').textContent=isNaN(sd)?selDate:`${sd.getMonth()+1}월 ${sd.getDate()}일 ${'일월화수목금토'[sd.getDay()]}요일`;
   const evs=events.filter(e=>e.date===selDate);
   const ann=annis.filter(a=>a.date.slice(5)===selDate.slice(5));
-  $('daylist').innerHTML=Personal.day(ann,evs);
+  $('daylist').innerHTML=typeof Personal!=='undefined'?Personal.day(ann,evs):'<div class="mut">'+(ann.length+evs.length?esc([...ann,...evs].map(x=>x.title).join(', ')):'일정이 없어요')+'</div>';
 }
-async function addEv(){await Personal.saveEvent();}
+async function addEv(){if(typeof Personal!=='undefined')await Personal.saveEvent();}
 
 /* ---- 언젠가 함께 ---- */
 let editingWishId=null,wishBusy=false,wishDraft=false;
@@ -2279,13 +2305,14 @@ setInterval(updateNavBadges,60000);
 <script src="assets/wish-map.js?v=20261006-memories"></script>
 <script src="assets/world.js?v=20260921-garden"></script>
 <script src="assets/pixel-world.js?v=20261012-fig"></script>
-<script src="assets/fortune.js?v=20261006-memories"></script>
+<script src="assets/vendor/manseryeok.min.js?v=2.0.0"></script>
+<script src="assets/fortune.js?v=20261118-saju"></script>
 <script src="assets/fortune-sync.js?v=20260912-pixel"></script>
 <script src="assets/couple.js?v=20261001-diary"></script>
 <script src="assets/garden-life.js?v=20260921-garden"></script>
 <script src="assets/settings-extra.js?v=20260912-pixel"></script>
 <script src="assets/together.js?v=20261001-diary"></script>
-<script src="assets/개인판.js?v=20261118-personal"></script>
-<script>WishMap.init();setWho(who); applySeason(); boot().then(async()=>{Personal.init();bootFortune();bootCouple();bootTogether();bootSettingsExtras();await bootFortuneServices();});</script>
+<script src="assets/personal.js?v=20261118-merge"></script>
+<script>WishMap.init();setWho(who); applySeason(); boot().then(async()=>{bootFortune();bootCouple();bootTogether();bootSettingsExtras();try{if(typeof Personal!=='undefined')Personal.init();}catch(error){console.error(error);}await bootFortuneServices();});</script>
 </body>
 </html>

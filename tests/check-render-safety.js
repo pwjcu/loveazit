@@ -27,10 +27,16 @@ async (page) => {
       check(!document.querySelector('#uplist img, #upevlist img, #daylist img, #calgrid svg'), '일정·기념일 마크업을 DOM 요소로 만들지 않음');
       check(document.querySelector('#upevlist')?.textContent.includes(marker) && document.querySelector('#daylist')?.textContent.includes(marker), '일정·기념일 제목을 글자로 표시');
 
-      const eventDelete = Array.from(document.querySelectorAll('#daylist [data-record-id]')).find(el => el.dataset.recordId === eventId);
-      const anniDelete = Array.from(document.querySelectorAll('#daylist [data-record-id]')).find(el => el.dataset.recordId === anniId);
-      eventDelete.click();
-      anniDelete.click();
+      // Day rows delete through one delegated handler that asks for confirmation first.
+      const eventDelete = Array.from(document.querySelectorAll('#daylist [data-personal-delete]')).find(el => el.dataset.personalDelete === eventId);
+      const anniDelete = Array.from(document.querySelectorAll('#daylist [data-personal-delete]')).find(el => el.dataset.personalDelete === anniId);
+      const realConfirm = window.confirm;
+      window.confirm = () => true;
+      try {
+        eventDelete.click();
+        anniDelete.click();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      } finally { window.confirm = realConfirm; }
       check(removed.some(([kind, id]) => kind === 'events' && id === eventId) && removed.some(([kind, id]) => kind === 'annis' && id === anniId), '조작된 레코드 ID도 코드가 아닌 값으로 삭제 함수에 전달');
       check(window.__renderXss === 0, '삭제 버튼의 레코드 ID가 스크립트를 실행하지 않음');
 

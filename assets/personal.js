@@ -96,7 +96,9 @@ const Personal = (() => {
     const reminders = list.filter(x => leadDays(x.remindDays) !== undefined && offsetDate(x.when, -x.remindDays) <= today);
     if ($('personalReminderItems')) $('personalReminderItems').innerHTML = reminders.length ? reminders.map(item =>
       `<button type="button" class="personal-list-link" data-personal-date="${esc(item.when)}"><strong>${esc(item.emoji || '🔔')} ${esc(item.title)}</strong><span>${item.when === today ? '오늘' : esc(dateLabel(item.when))}</span></button>`
-    ).join('') : '<p class="mut">지금 표시할 알림이 없어요.</p>';
+    ).join('') : '';
+    // The home shows this block only while something is due.
+    if ($('personalReminders')) $('personalReminders').hidden = !reminders.length;
     if ($('personalPlaceItems')) {
       const places = list.filter(item => typeof item.place === 'string' && item.place.trim());
       $('personalPlaceItems').innerHTML = places.length ? places.map(item =>
@@ -159,13 +161,67 @@ const Personal = (() => {
     } catch { if (key === forecast) text.textContent = '☁️ 날씨를 불러오지 못했어요'; }
   }
 
+  // Wish tickets carry the person's name rather than a side of the screen.
+  const prizeTitle = index => index === 2 ? '소원권 · ' + S.n1 : index === 3 ? '소원권 · ' + S.n2 : prizes[index].title;
+  const isWish = index => index === 2 || index === 3;
+  let latestDraw = null;
+
   function showDraw(data, message = '') {
+    latestDraw = data;
     const result = $('personalDrawResult'), button = $('personalDrawButton');
     const prize = data && Number.isInteger(data.prize) ? prizes[data.prize] : null;
     button.disabled = drawBusy || !!prize;
     button.textContent = prize ? '이번 달 뽑기 완료' : drawBusy ? '뽑는 중…' : '뽑기 열기';
+    $('personalDrawHint').textContent = prize ? '이번 달 선물: ' + prize.icon + ' ' + prizeTitle(data.prize) + (isWish(data.prize) && !data.used ? ' · 아직 사용 전' : '')
+      : '한 달에 한 번, 둘이 함께 선물을 뽑아요.';
     if (!prize) { result.textContent = message; return; }
-    result.innerHTML = `<strong>${prize.icon} ${esc(prize.title)}</strong><p>${esc(prize.note)}</p>`;
+    const promise = data.used ? `<p class="personal-wish-done">🤝 함께 약속한 소원: ${esc(data.used.note)}</p>` : isWish(data.prize) ? `
+      <form class="personal-wish" onsubmit="event.preventDefault();Personal.useWish()">
+        <label for="personalWishNote">함께 정한 소원</label>
+        <input id="personalWishNote" maxlength="80" placeholder="예: 다음 데이트 메뉴는 내가 고르기">
+        <label class="chk"><input type="checkbox" id="personalWishAgree"> 둘 다 동의했어요</label>
+        <button class="btn sm">소원 약속하기</button><span id="personalWishError" role="alert"></span>
+      </form>` : '';
+    result.innerHTML = `<strong>${prize.icon} ${esc(prizeTitle(data.prize))}</strong><p>${esc(prize.note)}</p>${promise}`;
+  }
+
+  // Marks this month's wish ticket used once both people agreed on the wish.
+  async function useWish() {
+    const note = $('personalWishNote').value.trim(), error = $('personalWishError');
+    if (!note || !$('personalWishAgree').checked) { error.textContent = '소원을 적고 둘 다 동의했는지 체크해 주세요.'; return; }
+    const used = {note: note.slice(0, 80), at: Date.now()};
+    try {
+      if (drawRef) {
+        const receipt = await drawRef.transaction(value => value && isWish(value.prize) && !value.used ? {...value, used} : undefined, undefined, false);
+        if (!receipt.committed) throw new Error('used');
+      } else {
+        const key = 'loveazitDraw:' + drawMonth, value = JSON.parse(getLocal(key, 'null'));
+        if (!value || value.used) throw new Error('used');
+        setLocal(key, JSON.stringify({...value, used}));
+        showDraw({...value, used});
+      }
+      renderGifts();
+    } catch (e) { error.textContent = e?.message === 'used' ? '이미 약속한 소원권이에요.' : '저장하지 못했어요. 연결을 확인해 주세요.'; }
+  }
+
+  // Past months' gifts, newest first.
+  async function renderGifts() {
+    const list = $('personalGiftList');
+    if (!list || !$('personalGiftbox').open) return;
+    let rows = [];
+    try {
+      if (db) rows = Object.entries((await db.ref('personalDraws').once('value')).val() || {});
+      else rows = Object.keys(localStorage).filter(key => key.startsWith('loveazitDraw:')).map(key => [key.slice(13), JSON.parse(getLocal(key, 'null'))]);
+    } catch { list.textContent = '선물함을 불러오지 못했어요.'; return; }
+    rows = rows.filter(([month, data]) => /^\d{4}-\d\d$/.test(month) && data && prizes[data.prize]).sort(([a], [b]) => b.localeCompare(a));
+    list.innerHTML = rows.length ? rows.map(([month, data]) => `<p class="personal-gift"><span>${esc(month.replace('-', '.'))}</span><b>${prizes[data.prize].icon} ${esc(prizeTitle(data.prize))}</b>${data.used ? `<small>약속: ${esc(data.used.note)}</small>` : isWish(data.prize) ? '<small>사용 전</small>' : ''}</p>`).join('')
+      : '<p class="mut">아직 받은 선물이 없어요.</p>';
+  }
+
+  function toggleDraw() {
+    const panel = $('personalDrawPanel'), open = panel.hidden;
+    panel.hidden = !open;
+    $('personalDrawOpen').setAttribute('aria-expanded', String(open));
   }
 
   function trackDraw() {
@@ -209,6 +265,8 @@ const Personal = (() => {
     weather(picker.value);
     trackDraw(); sync();
     $('personalDrawButton').addEventListener('click', draw);
+    $('personalDrawOpen').addEventListener('click', toggleDraw);
+    $('personalGiftbox').addEventListener('toggle', renderGifts);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) { trackDraw(); sync(); }
     });
@@ -230,5 +288,5 @@ const Personal = (() => {
       catch { button.disabled = false; $('evfeedback').textContent = '삭제하지 못했어요. 연결을 확인해주세요.'; }
     });
   }
-  return {day,saveEvent,sync,init};
+  return {day,saveEvent,sync,init,useWish};
 })();

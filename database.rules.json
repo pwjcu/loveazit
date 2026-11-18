@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "members": {
+      ".read": "auth != null && data.child(auth.uid).exists()",
+      ".write": false
+    },
+    "$node": {
+      ".read": "auth != null && root.child('members').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('members').child(auth.uid).exists()"
+    }
+  }
+}

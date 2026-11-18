@@ -24,3 +24,23 @@
 .personal-places{display:grid;gap:6px;margin:10px 0;padding:11px 12px;border:1px solid #f0dce6;border-radius:13px;background:#fffafd}
 .personal-places > :empty{display:none}
 @media(max-width:540px){.personal-agenda{grid-template-columns:minmax(0,1fr);gap:9px}.personal-home-card{padding:13px 14px}}
+.personal-due[hidden]{display:none}
+.personal-due .personal-list-link{display:flex;justify-content:space-between;gap:10px;width:100%;min-height:44px;padding:8px 2px;border:0;border-bottom:1px solid #f1dde4;background:none;font:inherit;color:#4f3d44;text-align:left;cursor:pointer}
+/* Short entrances on home, like the release app: one line each instead of extra cards. */
+.personal-entries{display:grid;gap:10px;margin-top:22px}
+.personal-entry{display:grid;grid-template-columns:28px 1fr auto;grid-template-rows:auto auto;column-gap:10px;align-items:center;width:100%;min-height:62px;padding:11px 14px;border:1px solid #f0dbe3;border-radius:16px;background:#fffdfd;color:#4f3d44;font:inherit;text-align:left;cursor:pointer}
+.personal-entry::after{content:'›';grid-row:1/3;grid-column:3;color:#b49aa2;font-size:20px}
+.personal-entry span{grid-row:1/3;font-size:20px}
+.personal-entry b{font-family:'Jua',sans-serif;font-weight:400;font-size:15px}
+.personal-entry small{grid-column:2;font-size:12px;color:#8b7179}
+.personal-entry.lucky{background:linear-gradient(135deg,#fff8ec,#fff1f2);border-color:#f4dfc6}
+.personal-entry[aria-expanded=true]::after{transform:rotate(90deg)}
+.personal-draw[hidden]{display:none}
+.personal-draw{display:grid;gap:10px;padding:4px 4px 2px}
+.personal-draw strong{font-family:'Jua',sans-serif;font-weight:400;font-size:16px}
+.personal-wish{display:grid;gap:7px;margin-top:8px;padding:12px;border:1px dashed #e8c9d4;border-radius:13px;background:#fffafb}
+.personal-wish label{font-size:13px}
+.personal-wish-done{margin-top:6px;padding:10px 12px;border-radius:12px;background:#f3f8ef;color:#4f6a4a}
+.personal-giftbox summary{cursor:pointer;min-height:40px;display:flex;align-items:center;color:#8b7179;font-size:13px}
+.personal-gift{display:grid;grid-template-columns:62px 1fr;gap:2px 8px;padding:7px 0;border-bottom:1px solid #f4e6eb;font-size:13px}
+.personal-gift span{color:#b49aa2}.personal-gift small{grid-column:2;color:#8b7179}

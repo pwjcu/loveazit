@@ -102,10 +102,30 @@ function profileEditor(w){
     <div class="wide"><label class="chk"><input type="checkbox" id="fpUnknown" ${p.unknownTime!==false?'checked':''} onchange="document.getElementById('fpTime').disabled=this.checked;document.getElementById('fpHour').disabled=this.checked"> 태어난 시각을 몰라요</label></div>
     <div><label for="fpMbti">MBTI</label><select id="fpMbti">${options(mbti,p.mbti)}</select></div><div><label for="fpBlood">혈액형</label><select id="fpBlood">${options(['A','B','O','AB'],p.blood)}</select></div></div>
     <details ${hasSaju(p)?'open':''}><summary style="margin-top:16px;min-height:44px;padding-top:10px;cursor:pointer">사주 · 만세력에서 확인한 사주팔자</summary>
-      <p class="dialog-note">사용하시는 만세력의 연주·월주·일주·시주를 그대로 입력해 주세요. 예: 갑자 또는 甲子. 절기·출생지·야자시 기준이 달라질 수 있어 생년월일만으로 사주를 추정하지 않아요.</p>
+      <p class="dialog-note">생년월일과 태어난 시각으로 만세력을 계산해 채울 수 있어요. 자정 기준·한국 표준시로 계산하므로, 쓰시는 만세력과 다르면 직접 고쳐 저장해 주세요. 예: 갑자 또는 甲子.</p><button type="button" class="btn ghost sm" onclick="autoPillars()">생년월일·시각으로 자동 계산</button><p id="fpAutoNote" class="dialog-note" role="status"></p>
       <div class="pillar-fields">${[['year','연주'],['month','월주'],['day','일주'],['hour','시주']].map(([k,n])=>`<div><label for="fp${k==='hour'?'Hour':k}">${n}</label><input id="fp${k==='hour'?'Hour':k}" maxlength="2" placeholder="${k==='hour'?'선택':'갑자'}" value="${esc(q[k]||'')}" ${k==='hour'&&p.unknownTime!==false?'disabled':''}></div>`).join('')}</div>
-      <p class="dialog-note">연·월·일주를 모두 넣으면 사주 궁합이 열려요. 모르는 시주는 제외해요. 성별·시각은 기록용이며 대운·용신·진태양시를 자동 계산하지 않아요.</p>
+      <p class="dialog-note">연·월·일주를 모두 넣으면 사주 궁합이 열려요. 모르는 시주는 제외해요. 대운·용신·진태양시는 계산하지 않아요.</p>
     </details><div id="fortuneFormError" class="form-error" role="alert"></div><button class="btn form-submit">프로필 저장</button>${FT.profiles[w]?`<button type="button" class="btn ghost form-submit" onclick="deleteFortuneProfile(${w})">이 프로필 지우기</button>`:''}</form>`);
+}
+// Fills the pillar fields from the birth inputs. The person can still edit them before saving.
+function autoPillars(){
+  const note=$('fpAutoNote'),say=message=>{note.textContent=message;};
+  if(typeof Manseryeok==='undefined')return say('만세력 계산기를 불러오지 못했어요. 새로고침한 뒤 다시 눌러 주세요.');
+  const p={birth:normalizeBirthInput($('fpBirth').value.trim()),calendar:$('fpCalendar').value,leap:$('fpCalendar').value==='lunar'&&$('fpLeap').checked};
+  const facts=birthFacts(p);
+  if(!facts)return say('먼저 실제 생년월일을 입력해 주세요. 음력이면 윤달 여부도 확인해 주세요.');
+  const unknown=$('fpUnknown').checked,time=$('fpTime').value;
+  if(!unknown&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))return say('태어난 시각을 입력하거나 ‘몰라요’를 선택해 주세요.');
+  const {year,month,day}=facts.solar,[hour,minute]=unknown?[12,0]:time.split(':').map(Number);
+  const chart=Manseryeok.calculateFourPillars({year,month,day,hour,minute});
+  if(unknown){
+    // A solar term can begin during the day; without the hour the month pillar would be a guess.
+    const morning=Manseryeok.calculateFourPillars({year,month,day,hour:0,minute:0}),night=Manseryeok.calculateFourPillars({year,month,day,hour:23,minute:59});
+    if(morning.yearString!==night.yearString||morning.monthString!==night.monthString)return say('이 날은 절기가 바뀌어 태어난 시각이 있어야 계산할 수 있어요.');
+  }
+  $('fpyear').value=chart.yearString;$('fpmonth').value=chart.monthString;$('fpday').value=chart.dayString;
+  $('fpHour').value=unknown?'':chart.hourString;
+  say('계산했어요: '+[chart.yearString+'년',chart.monthString+'월',chart.dayString+'일',unknown?'':chart.hourString+'시'].filter(Boolean).join(' · ')+'. 확인한 뒤 저장해 주세요.');
 }
 function updateBirthInput(){const lunar=$('fpCalendar').value==='lunar';$('fpLeap').disabled=!lunar;if(!lunar)$('fpLeap').checked=false;}
 async function saveFortuneProfile(w){
