@@ -332,6 +332,7 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
 <link rel="stylesheet" href="assets/garden-life.css?v=20260921-garden">
 <link rel="stylesheet" href="assets/settings-extra.css?v=20260908-life">
 <link rel="stylesheet" href="assets/lobby.css?v=20261025-lobby">
+  <link rel="stylesheet" href="assets/개인판.css?v=20261118-personal">
 </head>
 <body>
 <div id="fx"></div>
@@ -347,6 +348,11 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
 <!-- 홈 -->
 <div class="page on" id="p0">
   <section class="hero" aria-label="우리 디데이">
+    <div class="personal-weather" id="personalWeather">
+      <label for="personalCity" class="personal-sr">날씨 도시</label>
+      <select id="personalCity" aria-label="날씨 도시"></select>
+      <span id="personalWeatherText" aria-live="polite"></span>
+    </div>
     <div class="chars">
       <div class="side"><div class="pframe" id="pf1">
       <img class="glow" id="gl1" alt=""><img class="av" id="av1" alt="">
@@ -369,18 +375,24 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
   </section>
   <div class="season-strip" id="seasonCard" hidden></div>
   <div id="togetherPanel"></div>
-  <section class="lobby-sec" aria-labelledby="upTitle">
-    <div class="sec-head"><h2 class="sec-title" id="upTitle">다가오는 날</h2><button type="button" class="sec-link" onclick="openDay(todayStr())">달력 열기 ›</button></div>
-    <div class="utabs" role="group" aria-label="다가오는 날 보기">
-      <button type="button" data-up="all" aria-pressed="true" onclick="setUpTab('all')">전체</button>
-      <button type="button" data-up="ev" aria-pressed="false" onclick="setUpTab('ev')">일정</button>
-      <button type="button" data-up="an" aria-pressed="false" onclick="setUpTab('an')">기념일</button>
-    </div>
-    <div class="uplist" id="upall"></div>
-    <div class="uplist" id="upevlist" hidden></div>
-    <div class="uplist" id="uplist" hidden></div>
-    <button type="button" class="more-btn" id="upMore" hidden onclick="toggleUpMore()">더 보기</button>
-  </section>
+  <section class="lobby-sec personal-agenda" aria-labelledby="upTitle">
+  <div class="sec-head"><h2 class="sec-title" id="upTitle">다가오는 기념일</h2><button type="button" class="sec-link" onclick="openDay(todayStr())">달력 열기 ›</button></div>
+  <div class="uplist expanded" id="uplist"></div>
+</section>
+<section class="lobby-sec personal-agenda" aria-labelledby="personalEventsTitle">
+  <div class="sec-head"><h2 class="sec-title" id="personalEventsTitle">다가오는 일정</h2></div>
+  <div class="uplist expanded" id="upevlist"></div>
+</section>
+<section class="lobby-sec personal-home-card" aria-labelledby="personalDrawTitle">
+  <div class="sec-head"><h2 class="sec-title" id="personalDrawTitle">🎁 이달의 뽑기</h2></div>
+  <p>둘이 함께 한 달에 한 번, 작은 선물을 뽑아요.</p>
+  <button type="button" class="btn sm" id="personalDrawButton">뽑기</button>
+  <p id="personalDrawResult" aria-live="polite"></p>
+</section>
+<section class="lobby-sec personal-home-card" aria-labelledby="personalReminderTitle">
+  <div class="sec-head"><h2 class="sec-title" id="personalReminderTitle">🔔 일정 알림</h2></div>
+  <div id="personalReminderItems"></div>
+</section>
 </div>
 
 <!-- 달력 -->
@@ -394,14 +406,25 @@ body.season-summer h1{color:#287da5}body.season-fall h1{color:#a95c28}body.seaso
   <div class="card">
     <div class="stitle" id="selttl">일정</div>
     <div id="daylist"></div>
+    <details class="personal-places"><summary>📍 다가오는 일정 장소</summary><div id="personalPlaceItems"></div></details>
     <details class="reveal" id="dayAdd">
       <summary>이 날에 일정 추가</summary>
       <div class="frow">
         <select id="evemoji" aria-label="일정 아이콘"><option>💗</option><option>🎂</option><option>🍽️</option><option>✈️</option><option>🎬</option><option>🎁</option><option>⭐</option><option>🏥</option></select>
         <input type="text" id="evtitle" placeholder="일정 이름" maxlength="30" aria-label="일정 이름" onkeydown="if(event.key==='Enter'&&!event.isComposing)addEv()">
-        <button class="btn sm" onclick="addEv()">추가</button>
+
       </div>
       <label class="chk"><input type="checkbox" id="evyearly"> 매년 반복되는 기념일 (생일·크리스마스 등)</label>
+      <details class="personal-event-options">
+        <summary>장소 · 링크 · 사진 · 알림 (선택)</summary>
+        <div class="personal-fields">
+          <label>장소<input id="evplace" type="text" maxlength="100" placeholder="장소 이름이나 주소"></label>
+          <label>링크<input id="evlink" type="url" maxlength="500" placeholder="https://"></label>
+          <label>사진<input id="evphoto" type="file" accept="image/*"></label>
+          <label>알림<select id="evremind"><option value="">알림 없음</option><option value="1440">하루 전</option><option value="60">1시간 전</option><option value="15">15분 전</option></select></label>
+        </div>
+      </details>
+      <div class="personal-event-save"><span id="evfeedback" role="status"></span><button type="button" class="btn sm" id="evsave" onclick="addEv()">일정 추가</button></div>
     </details>
   </div>
   </div>
@@ -1066,22 +1089,10 @@ function renderHome(){
     const dd=Math.round((u.d-t)/864e5);
     return `<button type="button" class="up-row${n===0?' next':''}" data-day="${esc(dayKey(u.d))}" onclick="openDay(this.dataset.day)"><span class="up-dd">${dd===0?'오늘':'D-'+dd}</span><span class="up-main"><b>${esc(u.label)}</b><small>${u.d.getMonth()+1}월 ${u.d.getDate()}일 (${'일월화수목금토'[u.d.getDay()]}) · ${u.kind}</small></span></button>`;
   }).join('')||`<div class="mut">${empty}</div>`;
-  $('upall').innerHTML=rows([...ev,...an].sort((a,b)=>a.d-b.d).slice(0,6),'달력에서 일정이나 기념일을 추가해보세요!');
   $('upevlist').innerHTML=rows(ev,'달력에서 일정을 추가해보세요!');
-  $('uplist').innerHTML=rows(an,'달력에서 "매년 반복" 체크로 기념일을 추가해보세요!');
-  syncUpTab();
-}
-let upTab='all',upExpanded=false;
-const UP_LISTS={all:'upall',ev:'upevlist',an:'uplist'};
-function setUpTab(tab){upTab=tab;upExpanded=false;syncUpTab();}
-function toggleUpMore(){upExpanded=!upExpanded;syncUpTab();}
-function syncUpTab(){
-  document.querySelectorAll('[data-up]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.up===upTab)));
-  Object.entries(UP_LISTS).forEach(([tab,id])=>{$(id).hidden=tab!==upTab;$(id).classList.toggle('expanded',upExpanded);});
-  const extra=$(UP_LISTS[upTab]).querySelectorAll('.up-row').length-3;
-  $('upMore').hidden=extra<=0;$('upMore').textContent=upExpanded?'접기':`${extra}개 더 보기`;
-}
-function openDay(key){
+  $('uplist').innerHTML=rows(an,'달력에서 "매년 반복"으로 기념일을 추가해보세요!');
+  if(window.Personal) Personal.sync();
+}function openDay(key){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(key))return;
   calY=+key.slice(0,4);calM=+key.slice(5,7)-1;selDate=key;
   go(1);showCalendarTab('calendar');renderCal();
@@ -1128,18 +1139,9 @@ function renderDay(){
   $('selttl').textContent=isNaN(sd)?selDate:`${sd.getMonth()+1}월 ${sd.getDate()}일 ${'일월화수목금토'[sd.getDay()]}요일`;
   const evs=events.filter(e=>e.date===selDate);
   const ann=annis.filter(a=>a.date.slice(5)===selDate.slice(5));
-  $('daylist').innerHTML=
-    ann.map(a=>`<div class="row"><span>${esc(a.emoji||'🎀')} ${esc(a.title)} <small style="color:#c7a3ad">매년</small></span><button class="x" data-record-id="${esc(a.id)}" onclick="DB.del('annis',this.dataset.recordId)">✕</button></div>`).join('')+
-    evs.map(e=>`<div class="row"><span>${esc(e.emoji||'●')} ${esc(e.title)}</span><button class="x" data-record-id="${esc(e.id)}" onclick="DB.del('events',this.dataset.recordId)">✕</button></div>`).join('')
-    ||'<div class="mut">일정이 없어요</div>';
+  $('daylist').innerHTML=Personal.day(ann,evs);
 }
-async function addEv(){
-  const title=$('evtitle').value.trim(); if(!title)return;
-  const emoji=$('evemoji').value;
-  if($('evyearly').checked) await DB.add('annis',{date:selDate,title,emoji});
-  else await DB.add('events',{date:selDate,title,emoji});
-  $('evtitle').value=''; $('evyearly').checked=false; $('dayAdd').open=false;
-}
+async function addEv(){await Personal.saveEvent();}
 
 /* ---- 언젠가 함께 ---- */
 let editingWishId=null,wishBusy=false,wishDraft=false;
@@ -2283,6 +2285,7 @@ setInterval(updateNavBadges,60000);
 <script src="assets/garden-life.js?v=20260921-garden"></script>
 <script src="assets/settings-extra.js?v=20260912-pixel"></script>
 <script src="assets/together.js?v=20261001-diary"></script>
-<script>WishMap.init();setWho(who); applySeason(); boot().then(async()=>{bootFortune();bootCouple();bootTogether();bootSettingsExtras();await bootFortuneServices();});</script>
+<script src="assets/개인판.js?v=20261118-personal"></script>
+<script>WishMap.init();setWho(who); applySeason(); boot().then(async()=>{Personal.init();bootFortune();bootCouple();bootTogether();bootSettingsExtras();await bootFortuneServices();});</script>
 </body>
 </html>

@@ -1,0 +1,26 @@
+.personal-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.personal-weather{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 10px;margin:12px auto 0;font-size:.84rem;color:inherit}
+.personal-weather select{width:auto;max-width:100%;min-height:32px;padding:4px 9px;font:inherit;color:#5b3c4c;background:#fff9;border:1px solid #fff;border-radius:9px}
+[data-weather]{transition:background-color .35s ease}
+[data-weather='clear'],[data-weather='sun']{background:linear-gradient(140deg,#fff6db,#ffd9e6)}
+[data-weather='cloud'],[data-weather='cloudy']{background:linear-gradient(140deg,#eef0fc,#f5e0ed)}
+[data-weather='rain'],[data-weather='storm']{background:linear-gradient(140deg,#e2eefd,#e5dcf1)}
+[data-weather='snow']{background:linear-gradient(140deg,#f4faff,#efdef8)}
+.personal-agenda{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin:14px 0}
+.personal-home-card{min-width:0;padding:15px 16px;border:1px solid #f0dbe6;border-radius:17px;background:#fff;box-shadow:0 3px 14px #af6c9110;color:#5b3c4c}
+.personal-home-card h2,.personal-home-card h3{margin:0 0 8px;color:#513644}
+.personal-home-card p{margin:.4em 0;color:#725665}
+.personal-home-card button{font-family:inherit}
+.personal-day-item{min-width:0;overflow-wrap:anywhere}
+.personal-event-photo{display:block;width:100%;max-width:150px;aspect-ratio:1;object-fit:cover;border-radius:11px;margin:7px 0}
+.personal-event-links{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;margin-top:6px}
+.personal-event-links a,.personal-event-links button,.personal-places a{display:inline-flex;align-items:center;min-height:32px;padding:3px 9px;border:1px solid #eed5e2;border-radius:8px;background:#fff6fa;color:#80445f;font:inherit;font-size:.82rem;text-decoration:none}
+.personal-event-links a:focus-visible,.personal-event-links button:focus-visible,.personal-places a:focus-visible{outline:2px solid #a14f77;outline-offset:2px}
+.personal-event-options{margin:8px 0;color:#644653}
+.personal-event-options summary{cursor:pointer;padding:6px 0}
+.personal-fields{display:grid;gap:8px;margin-top:8px}
+.personal-fields label{display:grid;gap:3px;min-width:0;font-size:.85rem}
+.personal-fields input,.personal-fields select{min-width:0;width:100%;box-sizing:border-box;font-family:inherit}
+.personal-places{display:grid;gap:6px;margin:10px 0;padding:11px 12px;border:1px solid #f0dce6;border-radius:13px;background:#fffafd}
+.personal-places > :empty{display:none}
+@media(max-width:540px){.personal-agenda{grid-template-columns:minmax(0,1fr);gap:9px}.personal-home-card{padding:13px 14px}}
